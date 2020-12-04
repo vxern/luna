@@ -12,7 +12,7 @@
     "discord.js": "^12.5.1",
     "opus": "0.0.0",
     "opusscript": "0.0.7",
-    "ytdl-core": "^4.1.1",
+    "ytdl-core": "^4.1.2",
     "ytsearcher": "^1.2.3"
   },
   "devDependencies": {},
