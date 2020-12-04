@@ -1,0 +1,25 @@
+{
+    "roles_proficiency": [
+        "beginner", "intermediate", "advanced", "native"
+    ],
+    "roles_general": [
+        "reader", "voicechatter", "daily word", "homework"
+    ],
+    "roles_regions": [
+        "ardeal", "banat", "bucovina", "crisana", "dobrogea", "oltenia", "maramures", "moldova", "muntenia", "transilvania"
+    ],
+    "roles_ethnicity": [
+        "aromanian", "istroromanian", "meglenoromanian"
+    ],
+    "roles_abroad": [
+        "diaspora"
+    ],
+    "roles_countries": [
+        "italy", "united states", "united kingdom", 
+        "germany", "poland", "hungary", 
+        "france", "canada", "russia", 
+        "ukraine", "spain", "brazil", 
+        "argentina", "serbia", "australia", 
+        "sweden", "bulgaria", "estonia"
+    ]
+}

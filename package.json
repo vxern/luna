@@ -1,0 +1,37 @@
+{
+  "name": "profesorul",
+  "version": "1.0.0",
+  "description": "Discord bot written in JavaScript for the Learn Romanian server.",
+  "main": "index.js",
+  "engines": {
+    "node": "14.8.0"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.3.3",
+    "dependencies": "0.0.1",
+    "discord.js": "^12.5.1",
+    "opus": "0.0.0",
+    "opusscript": "0.0.7",
+    "ytdl-core": "^4.1.1",
+    "ytsearcher": "^1.2.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devongalat/profesorul.git"
+  },
+  "keywords": [
+    "discord",
+    "roles",
+    "bot"
+  ],
+  "author": "Dorian Oszczęda <devongalat@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devongalat/profesorul/issues"
+  },
+  "homepage": "https://github.com/devongalat/profesorul#readme"
+}
