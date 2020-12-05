@@ -90,6 +90,9 @@ Client.on('message', async(message) => {
         case 'pause':
             music.pauseSong(message.member.voice.channel, message.channel);
             return;
+        case 'replay':
+            music.replaySong(message.member.voice.channel, message.channel);
+            return;
         case 'stop':
             music.stopPlaying(message.member.voice.channel, message.channel);
             return;

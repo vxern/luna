@@ -223,6 +223,32 @@ async function displayQueue(voice_channel, text_channel) {
         }
     });
 }
+
+// Start playing the current song again
+async function replaySong(voice_channel, text_channel) {
+    if (!checkVoiceChannel(voice_channel, text_channel)) {
+        return;
+    }
+
+    if (song_queue.length == 0) {
+        text_channel.send({
+            embed: {
+                color: 0xaa0000,
+                description: 'There is no song to replay.'
+            }
+        });
+        return;
+    }
+    // Readd the current song
+    song_queue.unshift(song_queue[0]);
+    playSong(text_channel, voice_connection);
+    text_channel.send({
+        embed: {
+            color: 0xaa0000,
+            description: 'Replaying current song!'
+        }
+    });
+}
     
 // Removes song at specified index
 async function removeSong(voice_channel, text_channel, index_to_remove) {
@@ -272,4 +298,13 @@ function checkVoiceChannel(voice_channel, text_channel) {
     return true;
 }
 
-module.exports = { initialisePlaying, addToQueue, playSong, skipSong, pauseSong, stopPlaying, displayQueue, removeSong }
+module.exports = { 
+    initialisePlaying, 
+    addToQueue, 
+    playSong, 
+    skipSong, 
+    pauseSong, 
+    replaySong,
+    stopPlaying, 
+    displayQueue, 
+    removeSong }
