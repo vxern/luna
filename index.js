@@ -8,6 +8,9 @@ const language = require('./language');
 const game = require('./game');
 const music = require('./music');
 const roles = require('./roles');
+const word_chain = require('./word-chain')
+
+const word_chain_channel_id = '786257105563811841';
 
 // Load sentences before logging in
 language.loadSentences();
@@ -16,6 +19,11 @@ Client.login(authorization.auth_key);
 
 Client.on('ready', () => {
     Client.user.setActivity('Moara Cuvintelor');
+
+    let word_chain_channel = Client.channels.cache.find(channel => channel.id === word_chain_channel_id);
+    // Collect words that have been written into #word-chain
+    word_chain.beginHandlingChain(word_chain_channel);
+
     console.log('Ready!');
 });
 
@@ -49,8 +57,15 @@ Client.on('message', async(message) => {
     // If the user instantiated a game, redirect to game
     if (game.users.has(message.member.id)) {
         game.handleChoice(message.member.id, message.channel, message.content);
+        return;
     }
 
+    // If the message is found in the word chain channel, redirect to word_chain
+    if (message.channel.id === word_chain_channel_id) {
+        word_chain.handleChain(message.channel, message);
+        return;
+    }
+    
     switch (command) {
         // Role related
         case 'roles':
