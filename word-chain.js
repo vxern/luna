@@ -9,6 +9,8 @@ const user_error_timeout = 2000;
 const user_message_timeout = 10000;
 // Time it takes for the bot's message to be deleted
 const bot_message_timeout = 5000;
+// Time it takes for the bot to be able to notify the user again
+const notification_timeout = 20000;
 
 const color = 0x9580ff;
 
@@ -57,11 +59,14 @@ function handleChain(channel, message) {
                 }
             }).then(
                 (bot_message) => {
-                    message.delete({ timeout: user_message_timeout });
                     bot_message.delete({ timeout: bot_message_timeout });
+                    setTimeout(() => {
+                        already_notified = false;
+                    }, notification_timeout);
                 }
             );
         }
+        message.delete({ timeout: user_message_timeout });
         return;
     }
 
