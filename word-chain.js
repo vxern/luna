@@ -51,7 +51,7 @@ function handleChain(channel, message) {
             channel.send({
                 embed: {
                     color: 0xaa0000,
-                    description: 'Messages without a hashtag and a number are automatically deleted after 10 seconds.'
+                    description: 'Messages without a hashtag and number are automatically deleted after 10 seconds.'
                 }
             }).then(
                 (bot_message) => {
