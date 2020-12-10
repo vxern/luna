@@ -28,14 +28,26 @@ async function beginHandlingChain(channel) {
                     continue;
                 }
 
-                // If the first argument doesn't contain a hashtag or isn't a number
+                // If the first argument:
+                // - doesn't contain a hashtag
+                // - isn't a number
                 if (arguments[0][0] != '#' || isNaN(arguments[0].substring(1))) {
                     message.delete();
                     continue;
                 }
 
+                // Obtain the entirety of the 'word', for example 'a turna'
+                let word = '';
+                arguments.shift(); // Remove the index
+                for (let argument in arguments) {
+                    if (!argument.includes('(') && !argument.includes('{') && !argument.includes('[')) {
+                        // Add argument to word
+                        word = word + ' ' + argument;
+                    } 
+                }
+
                 // Add to words that have already been written
-                words_already_written.push(arguments[1]);
+                words_already_written.push(word);
             }
         }
     );
