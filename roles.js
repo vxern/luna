@@ -18,6 +18,8 @@ const advanced_tag = '<@&432176480269631502>';
 const intermediate_tag = '<@&432176435311149056>';
 const beginner_tag = '<@&432204106615095307>';
 
+const color = 0xf04747;
+
 // Resolves a role from the name 'target_role'
 async function resolveRole(user, text_channel, target_role) {
     if (all_roles.includes(target_role)) {
@@ -31,7 +33,7 @@ async function resolveRole(user, text_channel, target_role) {
                     case 3:
                         text_channel.send({
                             embed: {
-                                color: 0xf04747, 
+                                color: color, 
                                 description: base + `:arrow_double_down: downgrade to ${advanced_tag}, ${intermediate_tag} or ${beginner_tag}`
                             }
                         });
@@ -39,7 +41,7 @@ async function resolveRole(user, text_channel, target_role) {
                     case 2:
                         text_channel.send({
                             embed: {
-                                color: 0xf04747, 
+                                color: color, 
                                 description: base + `:arrow_double_up: upgrade to ${native_tag} or :arrow_double_down: downgrade to ${intermediate_tag} or ${beginner_tag}`
                             }
                         });
@@ -47,7 +49,7 @@ async function resolveRole(user, text_channel, target_role) {
                     case 1:
                         text_channel.send({
                             embed: {
-                                color: 0xf04747, 
+                                color: color, 
                                 description: base + `:arrow_double_up: upgrade to ${advanced_tag} or ${native_tag} or :arrow_double_down: downgrade to ${beginner_tag}`
                             }
                         });
@@ -55,7 +57,7 @@ async function resolveRole(user, text_channel, target_role) {
                     case 0:
                         text_channel.send({
                             embed: {
-                                color: 0xf04747, 
+                                color: color, 
                                 description: base + `:arrow_double_up: upgrade to ${intermediate_tag}, ${advanced_tag} or ${native_tag}`
                             }
                         });
@@ -68,7 +70,7 @@ async function resolveRole(user, text_channel, target_role) {
                 }
                 text_channel.send({
                     embed: {
-                        color: 0xf04747, 
+                        color: color, 
                         description: `Your level is now ${target_role}.`
                     }
                 });
@@ -88,7 +90,7 @@ async function resolveRole(user, text_channel, target_role) {
                 removeRole(user, target_role);
                 text_channel.send({
                     embed: {
-                        color: 0x8299ea, 
+                        color: color, 
                         description: `:sob: ${message} :sob:`
                     }
                 });
@@ -101,7 +103,7 @@ async function resolveRole(user, text_channel, target_role) {
                     if (userHasEnoughRegions(user)) {
                         text_channel.send({
                             embed: {
-                                color: 0xf04747,
+                                color: color, 
                                 description: `:exclamation: You may only have two region roles.`
                             }
                         });
@@ -113,7 +115,7 @@ async function resolveRole(user, text_channel, target_role) {
                     if (userHasEnoughCountries(user)) {
                         text_channel.send({
                             embed: {
-                                color: 0xf04747,
+                                color: color, 
                                 description: `:exclamation: You may only have two country roles.`
                             }
                         });
@@ -125,7 +127,7 @@ async function resolveRole(user, text_channel, target_role) {
                     if (userHasEthnicity(user)) {
                         text_channel.send({
                             embed: {
-                                color: 0xf04747,
+                                color: color, 
                                 description: `:exclamation: You may only be of one Romanian ethnicity.`
                             }
                         });
@@ -138,7 +140,7 @@ async function resolveRole(user, text_channel, target_role) {
                 addRole(user, target_role);
                 text_channel.send({
                     embed: {
-                        color: 0xf04747, 
+                        color: color, 
                             description: `:partying_face: ${message} :partying_face:`
                     }
                 });
@@ -151,7 +153,7 @@ async function resolveRole(user, text_channel, target_role) {
 function displayAvailableRoles(user, text_channel) {
     text_channel.send({
         embed:{
-            color: 0xd83a3a, 
+            color: color, 
             fields: [
                 {
                     name: 'Proficiency', 

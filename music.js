@@ -9,9 +9,12 @@ const url_searcher = new YTSearcher.YTSearcher({
 })
 
 var song_queue = new Array();
+
 // Voice channel connection
 var voice_connection;
 var voice_connection_channel;
+
+const color = 0x00fa7d;
 
 // Begins playing a song by adding it to queue ( and playing it )
 async function initialisePlaying(voice_channel, text_channel, song_name) {
@@ -34,7 +37,7 @@ async function initialisePlaying(voice_channel, text_channel, song_name) {
         } catch (error) {
             text_channel.send({
                 embed: {
-                    color: 0xaa0000,
+                    color: color,
                     description: `An error has occurred while attempting to play: '${error}'`
                 }
             });
@@ -47,7 +50,7 @@ async function addToQueue(text_channel, url) {
     if (url === '') {
         text_channel.send({
             embed: {
-                color: 0x00dd00,
+                color: color,
                 description: `You must specify the name of a song.`
             }
         });
@@ -72,7 +75,7 @@ async function addToQueue(text_channel, url) {
     if (song_queue.some((song) => song.title == title)) {
         text_channel.send({
             embed: {
-                color: 0x00dd00,
+                color: color,
                 description: `**${title}** is already in the queue.`
             }
         });
@@ -112,7 +115,7 @@ async function playSong(text_channel, connection) {
         if (error == 'Error: Video unavailable') {
             text_channel.send({
                 embed: {
-                    color: 0x00dd00,
+                    color: color,
                     description: `Song unavailable, skipping...`
                 }
             });
@@ -125,7 +128,7 @@ async function playSong(text_channel, connection) {
     voice_connection.setVolumeLogarithmic(1);
     text_channel.send({
         embed: {
-            color: 0x00dd00,
+            color: color,
             description: `Now playing **${current_song.title}** [#${song_queue.length}]`
         }
     });
@@ -143,7 +146,7 @@ async function skipSong(voice_channel, text_channel) {
 
     text_channel.send({
         embed: {
-            color: 0x00dd00,
+            color: color,
             description: `Skipping **${song_queue[0].title}** [#${song_queue.length}]`
         }
     });
@@ -159,7 +162,7 @@ async function pauseSong(voice_channel, text_channel) {
         voice_connection.resume();
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Song resumed.'
             }
         });
@@ -167,7 +170,7 @@ async function pauseSong(voice_channel, text_channel) {
         voice_connection.pause();
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Song paused.'
             }
         });
@@ -189,7 +192,7 @@ async function stopPlaying(voice_channel, text_channel) {
 
     text_channel.send({
         embed: {
-            color: 0x00dd00,
+            color: color,
             description: `Goodbye!`
         }
     });
@@ -206,7 +209,7 @@ async function displayQueue(voice_channel, text_channel) {
 
     text_channel.send({
         embed: {
-            color: 0xaa0000,
+            color: color,
             fields: [
                 (
                     titles.length == 0 ?
@@ -233,7 +236,7 @@ async function replaySong(voice_channel, text_channel) {
     if (song_queue.length == 0) {
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'There is no song to replay.'
             }
         });
@@ -244,7 +247,7 @@ async function replaySong(voice_channel, text_channel) {
     playSong(text_channel, voice_connection);
     text_channel.send({
         embed: {
-            color: 0xaa0000,
+            color: color,
             description: 'Replaying current song!'
         }
     });
@@ -260,7 +263,7 @@ async function removeSong(voice_channel, text_channel, index_to_remove) {
     if (isNaN(index_to_remove)) {
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Your index must be a number.'
             }
         });
@@ -268,7 +271,7 @@ async function removeSong(voice_channel, text_channel, index_to_remove) {
     } else if (index_to_remove > song_queue.length || index_to_remove < 2) {
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Your index is either too high or too low. Please check the index of the song requested.'
             }
         });
@@ -277,7 +280,7 @@ async function removeSong(voice_channel, text_channel, index_to_remove) {
         song_queue.splice(index_to_remove - 1);
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Removed song.'
             }
         });
@@ -289,7 +292,7 @@ function checkVoiceChannel(voice_channel, text_channel) {
     if (!voice_channel) {
         text_channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'You must be in a voice channel in order to play music.'
             }
         });

@@ -10,6 +10,8 @@ const user_message_timeout = 10000;
 // Time it takes for the bot's message to be deleted
 const bot_message_timeout = 5000;
 
+const color = 0x9580ff;
+
 async function beginHandlingChain(channel) {
     // Fetch all the messages inside the channel
     channel.messages.fetch().then(
@@ -50,7 +52,7 @@ function handleChain(channel, message) {
             already_notified = true;
             channel.send({
                 embed: {
-                    color: 0xaa0000,
+                    color: color,
                     description: 'Messages without a hashtag and number are automatically deleted after 10 seconds.'
                 }
             }).then(
@@ -67,7 +69,7 @@ function handleChain(channel, message) {
     if (arguments.length < 3) {
         channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Your entry should be in this format: #[index] [word] ([definition])'
             }
         }).then(
@@ -85,7 +87,7 @@ function handleChain(channel, message) {
     if (words_already_written.includes(word)) {
         channel.send({
             embed: {
-                color: 0xaa0000,
+                color: color,
                 description: 'Uh-oh! Someone has already thought of this word!'
             }
         }).then(
@@ -112,9 +114,8 @@ function handleChain(channel, message) {
 async function writeContributionMessage(channel) {
     contribute_message = await channel.send({
         embed: {
-            color: 0x2222aa,
-            title: `Welcome to the word chain!`,
-            description: 'Contribute by writing a word that starts with the final letter[s] of the previous one and its index.\n\nExample: #45 magie (magic)'
+            color: color,
+            description: 'Contribute by writing a word that starts with the final letter[s] of the previous one and its index.'
         }
     });
 }
