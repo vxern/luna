@@ -52,12 +52,9 @@ async function beginHandlingChain(channel) {
                 words_already_written.push(word);
             }
         }
-    ).then(
-        () => {
-            await writeContributionMessage(channel);
-            channel.send(words_already_written.join(', '));
-        }
     );
+    await writeContributionMessage(channel);
+    channel.send(words_already_written.join(', '));
 }
 
 function handleChain(channel, message) {
