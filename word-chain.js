@@ -39,10 +39,10 @@ async function beginHandlingChain(channel) {
                 // Obtain the entirety of the 'word', for example 'a turna'
                 let word = '';
                 arguments.shift(); // Remove the index
-                for (let argument in arguments) {
-                    if (!argument.includes('(') && !argument.includes('{') && !argument.includes('[')) {
+                for (let i = 0; i < arguments.length; i++) {
+                    if (!arguments[i].includes('(') && !arguments[i].includes('{') && !arguments[i].includes('[')) {
                         // Add argument to word
-                        word = word + ' ' + argument;
+                        word = word + ' ' + arguments[i];
                     } 
                 }
 
@@ -102,10 +102,10 @@ function handleChain(channel, message) {
     // Obtain the entirety of the 'word', for example 'a turna'
     let word = '';
     arguments.shift(); // Remove the index
-    for (let argument in arguments) {
-        if (!argument.includes('(') && !argument.includes('{') && !argument.includes('[')) {
+    for (let i = 0; i < arguments.length; i++) {
+        if (!arguments[i].includes('(') && !arguments[i].includes('{') && !arguments[i].includes('[')) {
             // Add argument to word
-            word = word + ' ' + argument;
+            word = word + ' ' + arguments[i];
         } 
     }
     
