@@ -99,7 +99,15 @@ function handleChain(channel, message) {
         return;
     }
 
-    let word = arguments[1];
+    // Obtain the entirety of the 'word', for example 'a turna'
+    let word = '';
+    arguments.shift(); // Remove the index
+    for (let argument in arguments) {
+        if (!argument.includes('(') && !argument.includes('{') && !argument.includes('[')) {
+            // Add argument to word
+            word = word + ' ' + argument;
+        } 
+    }
     
     // If the word has been already written
     if (words_already_written.includes(word)) {
