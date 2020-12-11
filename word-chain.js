@@ -55,7 +55,7 @@ async function beginHandlingChain(channel) {
     ).then(
         async () => {
             await writeContributionMessage(channel);
-            channel.send(words_already_written.length;
+            channel.send(words_already_written.length);
         }
     );
 }
