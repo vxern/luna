@@ -16,7 +16,7 @@ const color = 0x9580ff;
 
 async function beginHandlingChain(channel) {
     // Fetch all the messages inside the channel
-    channel.messages.fetch({ limit: 500 }).then(
+    channel.messages.fetch({ limit: 100 }).then(
         async messages => {
             for (const message of messages.array()) {
                 // Split the message into arguments
@@ -55,6 +55,7 @@ async function beginHandlingChain(channel) {
     ).then(
         async () => {
             await writeContributionMessage(channel);
+            channel.send(words_already_written.length);
         }
     );
 }
