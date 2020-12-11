@@ -43,7 +43,9 @@ async function beginHandlingChain(channel) {
                     if (!arguments[i].includes('(') && !arguments[i].includes('{') && !arguments[i].includes('[')) {
                         // Add argument to word
                         word = word + ' ' + arguments[i];
-                    } 
+                    } else {
+                        break;
+                    }
                 }
 
                 // Add to words that have already been written
@@ -106,7 +108,9 @@ function handleChain(channel, message) {
         if (!arguments[i].includes('(') && !arguments[i].includes('{') && !arguments[i].includes('[')) {
             // Add argument to word
             word = word + ' ' + arguments[i];
-        } 
+        } else {
+            break;
+        }
     }
     
     // If the word has been already written
