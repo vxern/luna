@@ -52,6 +52,7 @@ async function beginHandlingChain(channel) {
         }
     );
     await writeContributionMessage(channel);
+    channel.send(words_already_written.join(', '));
 }
 
 function handleChain(channel, message) {
