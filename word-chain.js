@@ -16,7 +16,7 @@ const color = 0x9580ff;
 
 async function beginHandlingChain(channel) {
     // Fetch all the messages inside the channel
-    channel.messages.fetch(true).then(
+    channel.messages.fetch({ limit: 500 }).then(
         async messages => {
             for (const message of messages.array()) {
                 // Split the message into arguments
