@@ -310,4 +310,5 @@ module.exports = {
     replaySong,
     stopPlaying, 
     displayQueue, 
-    removeSong }
+    removeSong,
+}
