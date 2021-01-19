@@ -75,7 +75,7 @@ async function resolveRole(user, text_channel, target_role) {
                     }
                 });
             }
-        } else {
+        } else if (userHasProficiency(user)) {
             if (userHasRole(user, target_role)) {
                 let message = '';
                 if (roles.roles_general.includes(target_role)) {
@@ -145,6 +145,13 @@ async function resolveRole(user, text_channel, target_role) {
                     }
                 });
             }
+        } else {
+            text_channel.send({
+                embed: {
+                    color: color, 
+                        description: 'In order to get any additional roles, you must first have a proficiency role.'
+                }
+            });
         }
     }
 }
