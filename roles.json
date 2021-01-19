@@ -3,7 +3,7 @@
         "beginner", "intermediate", "advanced", "native"
     ],
     "roles_general": [
-        "reader", "voicechatter", "daily word", "homework"
+        "voicechatter", "daily word"
     ],
     "roles_regions": [
         "ardeal", "banat", "bucovina", "crisana", "dobrogea", "oltenia", "maramures", "moldova", "muntenia", "transilvania"
