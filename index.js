@@ -12,6 +12,11 @@ const word_chain = require('./word-chain')
 
 const word_chain_channel_id = '786257105563811841';
 
+const native_role_id = '432175772623437825';
+const advanced_role_id = '432176480269631502';
+const intermediate_role_id = '432176435311149056';
+const beginner_role_id = '432204106615095307';
+
 // Load sentences before logging in
 language.loadSentences();
 
@@ -131,6 +136,12 @@ Client.on('message', async(message) => {
 });
 
 async function displayInfo(text_channel, guild) {
+    let members = guild.fetchMembers();
+    let memberCount = guild.memberCount;
+    let nativeCount = members.roles.cache.get(native_role_id).members.size;
+    let advancedCount = members.roles.cache.get(advanced_role_id).members.size;
+    let intermediateCount = members.roles.cache.get(intermediate_role_id).members.size;
+    let beginnerCount = members.roles.cache.get(beginner_role_id).members.size;
     text_channel.send({embed: {
         color: 0x4e4ecb, 
         thumbnail: {
@@ -141,7 +152,15 @@ async function displayInfo(text_channel, guild) {
         fields: [
             {
                 name: 'Members',
-                value: guild.memberCount
+                value: memberCount
+            },
+            {
+                name: 'Of which',
+                value: `${nativeCount / memberCount * 100}% are native speakers` +
+                `\n${advancedCount / memberCount * 100}% are advanced speakers` + 
+                `\n${intermediateCount / memberCount * 100}% are intermediate speakers` +
+                `\n${beginnerCount / memberCount * 100}% are beginner speakers` +
+                `\n${(nativeCount + advancedCount + intermediateCount + beginnerCount) / memberCount * 100}% have not picked a role`
             },
         ]
     }});
