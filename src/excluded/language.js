@@ -1,12 +1,12 @@
 // Libraries required for language work
 const levenshtein = require('fastest-levenshtein');
 const fs = require('fs');
-const utils = require('../../utils.js');
+const utils = require('../utils.js').default;
 
 var sentences;
 
 // Loads sentences from the language file
-function loadSentences() {
+export function loadSentences() {
     sentences = fs
         .readFileSync('ro-strings.txt')
         .toString()
@@ -14,7 +14,7 @@ function loadSentences() {
 }
 
 // Capitalises each term in a string
-function capitalise(subject) {
+export function capitalise(subject) {
     let terms = subject.split(' ');
     
     for (let i = 0; i < terms.length; i++) {
@@ -25,7 +25,7 @@ function capitalise(subject) {
 }
 
 // Picks a random term from a random sentence
-function pickTerm() {
+export function pickTerm() {
     let sentence_index = utils.random(sentences.length);
     console.log(sentence_index);
     let sentence = sentences[sentence_index];
@@ -43,7 +43,7 @@ function pickTerm() {
 }
 
 // Picks similar terms by 1. comparing distance or 2. picking words with similar endings
-function pickSimilarTerms({subject, max_terms = -1}) {
+export function pickSimilarTerms({subject, max_terms = -1}) {
     let similar_terms = new Array();
 
     if (subject.length > 5) {
@@ -131,19 +131,17 @@ function pickSimilarTerms({subject, max_terms = -1}) {
 }
 
 // Removes symbols and digits
-function removeNonAlphanumeric(subject) {
+export function removeNonAlphanumeric(subject) {
     return subject
         .replace(/[^\w\săĂâÂîÎțȚșȘţŢşŞ]/g, '')
         .replace(/[0-9]/g, '');
 }
 
 // Removes Romanian unicode
-function removeRomanian(subject) {
+export function removeRomanian(subject) {
     return subject
         .replace(/[șȘşŞ]/g, 's')
         .replace(/[țȚţŢ]/g, 't')
         .replace(/[ăĂâÂ]/g, 'a')
         .replace(/[îÎ]/g, 'i');
 }
-
-module.exports = { loadSentences, capitalise, pickTerm, pickSimilarTerms, removeNonAlphanumeric, removeRomanian }

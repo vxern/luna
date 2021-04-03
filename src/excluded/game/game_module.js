@@ -1,5 +1,5 @@
-const language = require('./language');
-const utils = require('../../utils');
+const language = require('../language');
+const utils = require('../../utils').default;
 const levenshtein = require('fastest-levenshtein');
 
 // <user_id, term>
