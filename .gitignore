@@ -1,2 +1,5 @@
-index.bat
+# Node
 node_modules/
+
+# NPM
+package-lock.json
