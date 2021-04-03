@@ -1,24 +1,23 @@
-const roles = require('../roles.json');
-const language = require('../language/language');
-const { GuildMember } = require('discord.js');
+import { GuildMember } from 'discord.js';
+import { TeacherModule } from '../module';
+import { roles } from './roles';
 
-// Compiles the lists into a single one
-var all_roles = [].concat(
-    roles.roles_abroad, 
-    roles.roles_countries, 
-    roles.roles_ethnicity, 
-    roles.roles_general, 
-    roles.roles_proficiency, 
-    roles.roles_regions
-    );
+// Concatenate the roles specified in roles.js into a single array
+const all_roles = [].concat(
+    roles.proficiency,
+    roles.regions,
+    roles.ethnicity,
+    roles.abroad,
+    roles.extension,
+);
 
-// Tags linking to their respective proficiencies
-const native_tag = '<@&432175772623437825>';
-const advanced_tag = '<@&432176480269631502>';
-const intermediate_tag = '<@&432176435311149056>';
-const beginner_tag = '<@&432204106615095307>';
+export class RolesModule {
+    async handleMessage(message) {
+        let arguments = message.content.split(' ');
 
-const color = 0xf04747;
+
+    }
+}
 
 // Resolves a role from the name 'target_role'
 async function resolveRole(user, text_channel, target_role) {
