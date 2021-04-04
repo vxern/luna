@@ -2,5 +2,5 @@ export default
 {
     'excludedCategories': [],
     'excludedChannels': [],
-    'unprefixedChannels': ['development']
+    'unprefixedChannels': ['get-role', 'interact-with-bots']
 }
