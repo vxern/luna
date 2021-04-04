@@ -52,7 +52,7 @@ export class TeacherClient {
             return;
         }
 
-        message.content = message.content.replace(config.prefix).trimLeft();
+        message.content = message.content.replace(config.prefix, '').trimLeft();
 
         // Iterate over modules to find the suitable message handler
         for (const teacherModule in this.teacherModules) {
