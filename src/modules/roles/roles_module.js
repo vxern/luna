@@ -24,15 +24,23 @@ export class RolesModule {
 
     /// Match seeked role against a role specified in `allRoles`
     async resolveRole(user, textChannel, targetRole) {
-        // If the user does not have a proficiency role
-        if (!userHasProficiency(user)) {
-            // If the seeked role is not a proficiency
-            if (!roles.proficiency.includes(targetRole)) {
+        // If the seeked role is not a proficiency
+        if (!roles.proficiency.includes(targetRole)) {
+            // If the user does not have a proficiency role
+            if (!userHasProficiency(user)) {
                 TeacherClient.sendEmbed(textChannel, message = 'In order to get any additional roles, you must first have a proficiency role.');
                 return true;
             }
-    
+            
+            if (!userHasRole(user, targetRole)) {
+
+            }
+            
+            
         }
+        
+
+            
 
         // If the seeked role is not a proficiency
 
@@ -40,24 +48,44 @@ export class RolesModule {
     }
 
     /// Adds a role to user
-    async addRole(user, target_role) {
-        await user.roles.add(user.guild.roles.cache.find((role) => role.name.toLowerCase() === target_role));
+    async addRole(user, targetRole) {
+        await user.roles.add(
+            user.guild.roles.cache.find((role) => role.name.toLowerCase() === targetRole)
+        );
     }
 
     /// Removes a role from user
-    async removeRole(user, target_role) {
-        await user.roles.remove(user.roles.cache.find((role) => role.name.toLowerCase() === target_role));
+    async removeRole(user, targetRole) {
+        await user.roles.remove(
+            user.roles.cache.find((role) => role.name.toLowerCase() === targetRole)
+        );
     }
 
     /// Check if the user has a role
-    userHasRole(user, target_role) {
-        return user.roles.cache.some((role) => role.name.toLowerCase() === target_role);
+    userHasRole(user, targetRole) {
+        return user.roles.cache.some(
+            (role) => role.name.toLowerCase() === targetRole
+        );
     }
 
-    /// Check if user has a proficiency
+    /// Check if the user has a proficiency
     userHasProficiency(user) {
         return user.roles.cache.some(
-            (role) => roles.roles_proficiency.includes(role.name.toLowerCase())
+            (role) => roles.proficiency.includes(role.name.toLowerCase())
+        );
+    }
+    
+    /// Check if the user has more than 1 region role already
+    userHasEnoughRegions(user) {
+        return user.roles.cache.filter(
+            (role) => roles.regions.includes(role.name.toLowerCase())
+        ).size > 1;
+    }
+
+    /// Check if the user already has an ethnicity role
+    userHasEthnicity(user) {
+        return user.roles.cache.some(
+            (role) => roles.ethnicity.includes(role.name.toLowerCase())
         );
     }
 }
@@ -238,46 +266,3 @@ function displayAvailableRoles(user, text_channel) {
         }
     });
 }
-
-// Adds a role to user
-async function addRole(user, target_role) {
-    await user.roles.add(user.guild.roles.cache.find((role) => role.name.toLowerCase() === target_role));
-}
-
-// Removes a role from user
-async function removeRole(user, target_role) {
-    await user.roles.remove(user.roles.cache.find((role) => role.name.toLowerCase() === target_role));
-}
-
-// If the user has a role
-function userHasRole(user, target_role) {
-    return user.roles.cache.some((role) => role.name.toLowerCase() === target_role);
-}
-
-// If the user already has two country roles
-function userHasEnoughCountries(user) {
-    if (user.roles.cache.filter((role) => roles.roles_countries.includes(role.name.toLowerCase())).size > 1) {
-        return true;
-    }
-    return false;
-}
-
-// If the user already has two region roles
-function userHasEnoughRegions(user) {
-    if (user.roles.cache.filter((role) => roles.roles_regions.includes(role.name.toLowerCase())).size > 1) {
-        return true;
-    }
-    return false;
-}
-
-// If the user already has two region roles
-function userHasEthnicity(user) {
-    return user.roles.cache.some((role) => roles.roles_ethnicity.includes(role.name.toLowerCase()));
-}
-
-// If the user has a proficiency
-function userHasProficiency(user) {
-    return user.roles.cache.some((role) => roles.roles_proficiency.includes(role.name.toLowerCase()));
-}
-
-module.exports = { resolveRole, displayAvailableRoles }
