@@ -1,21 +1,21 @@
 export default
 {
-    "maximumRegions": 2,
-    "maximumEthnicities": 1,
+    'maximumRegions': 2,
+    'maximumEthnicities': 1,
 
-    "proficiency": [
-        "beginner", "intermediate", "advanced", "native"
+    'proficiency': [
+        'beginner', 'intermediate', 'advanced', 'native'
     ],
-    "regions": [
-        "ardeal", "banat", "bucovina", "crisana", "dobrogea", "maramures", "moldova", "muntenia", "oltenia", "transilvania"
+    'regions': [
+        'ardeal', 'banat', 'bucovina', 'crisana', 'dobrogea', 'maramures', 'moldova', 'muntenia', 'oltenia', 'transilvania'
     ],
-    "ethnicity": [
-        "aromanian", "istroromanian", "meglenoromanian"
+    'ethnicity': [
+        'aromanian', 'istroromanian', 'meglenoromanian'
     ],
-    "abroad": [
-        "diaspora"
+    'abroad': [
+        'diaspora'
     ],
-    "extension": [
-        "voicechatter", "daily word"
+    'extension': [
+        'voicechatter', 'daily word'
     ],
 }

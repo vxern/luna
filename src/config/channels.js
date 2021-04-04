@@ -1,6 +1,6 @@
 export default
 {
-    "excludedCategories": [],
-    "excludedChannels": [],
-    "unprefixedChannels": []
+    'excludedCategories': [],
+    'excludedChannels': [],
+    'unprefixedChannels': ['development']
 }
