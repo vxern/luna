@@ -30,3 +30,18 @@ export function areSimilar(subject, object) {
 
     return similarity > (0.5 + Math.pow(0.5, iterations / passes));
 }
+
+/// Join array so that it is orthographically correct
+///
+/// ['A'] -> 'A'
+/// ['A', 'B'] -> 'A' and 'B'
+/// ['A', 'B', 'C'] -> 'A', 'B' and 'C'
+export function joinArrayCoherently(target) {
+    let lastElement = target.pop();
+    return `${target.join(', ') + (target > 0 ? 'and' : '')} ${lastElement}`;
+}
+
+/// Removes characters that aren't ASCII digits and/or letters
+export function removeNonAlphanumeric(target) {
+    return target.replace(/\W/g, '');
+}
