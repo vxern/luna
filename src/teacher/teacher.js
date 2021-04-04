@@ -64,7 +64,7 @@ export class TeacherClient {
     }
 
     /// Sends an embed to the text channel specified
-    static sendEmbed(textChannel, color = config.accentColorSuccess, message = undefined, fields = undefined) {
+    static sendEmbed(textChannel, message = undefined, fields = undefined, color = config.accentColorSuccess) {
         if (fields === undefined) {
             if (message === undefined) {
                 console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
@@ -85,12 +85,12 @@ export class TeacherClient {
 
     /// Sends an embed with a warning message
     static sendWarning(textChannel, message = undefined, fields = undefined) {
-        this.sendEmbed(textChannel, color = config.accentColorWarning, message = message !== undefined ? `:warning: ${message}` : message, fields = fields);
+        this.sendEmbed(textChannel, message = message !== undefined ? `:warning: ${message}` : message, fields = fields, color = config.accentColorWarning);
     }
 
     /// Sends an embed with an error message
     static sendError(textChannel, message = undefined, fields = undefined) {
-        this.sendEmbed(textChannel, color = config.accentColorErrorcolor, message = message !== undefined ? `:exclamation: ${message}` : message, fields = fields);
+        this.sendEmbed(textChannel, message = message !== undefined ? `:exclamation: ${message}` : message, fields = fields, color = config.accentColorError);
     }
 }
 

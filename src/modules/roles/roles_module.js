@@ -58,45 +58,31 @@ export class RolesModule {
             
             if (roles.regions.includes(targetRole)) {
                 if (this.userHasEnoughRegions(user)) {
-                    TeacherClient.sendWarning(textChannel, message = `A user may not have more than ${roles.maximumRegions} region roles`)
+                    TeacherClient.sendWarning(textChannel, message = `You may not have more than ${roles.maximumRegions} region roles`);
                     return true;
                 }
 
-                message = `You are now from ${capitaliseWords(targetRole)}`
+                message = `You are now from ${capitaliseWords(targetRole)}`;
             }
 
             if (roles.ethnicity.includes(targetRole)) {
                 if (this.userHasEnoughEthnicities(user)) {
-                    TeacherClient.sendWarning(textChannel, message = '');
+                    TeacherClient.sendWarning(textChannel, message = `You may not have of more than ${roles.maximumEthnicities} Romanian ${roles.maximumEthnicities > 1 ? 'ethnicities' : 'ethnicity'}`);
+                    return true;
                 }
+
+                message = `You are now ${capitaliseWords(targetRole)}`;
             }
 
-                else if (roles.roles_ethnicity.includes(target_role)) {
-                    // Check if user already has an ethnicity
-                    if (userHasEthnicity(user)) {
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: `:exclamation: You may only be of one Romanian ethnicity.`
-                            }
-                        });
-                        return;
-                    }
-                    message = `You are now ${language.capitalise(target_role)}`;
-                } else if (roles.roles_abroad.includes(target_role)) {
-                    message = `You are now a ${language.capitalise(target_role) + 'n'}`;
-                }
-                addRole(user, target_role);
-                text_channel.send({
-                    embed: {
-                        color: color, 
-                            description: `:partying_face: ${message} :partying_face:`
-                    }
-                });
-        }
-        
+            if (roles.abroad.includes(targetRole)) {
+                message = `You are now a ${capitaliseWords(targetRole) + 'n'}`
+            }
 
-            
+            this.addRole(user, targetRole);
+
+            TeacherClient.sendEmbed(textChannel, message = `:partying_face: ${message} :partying_face:`);
+            return true;
+        }
 
         // If the seeked role is not a proficiency
 
