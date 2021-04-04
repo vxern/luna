@@ -1,19 +1,25 @@
-import { TeacherClient } from '../../teacher/teacher';
-import { roles } from './roles';
-import { capitaliseWords, joinArrayCoherently } from '../../utils';
+import { TeacherClient } from '../../teacher/teacher.js';
+import * as roles from './roles.js';
+
+import { capitaliseWords, areSimilar, joinArrayCoherently } from '../../language.js';
 
 // Concatenate the roles specified in roles.js into a single array
 const allRoles = [].concat(
-    roles.proficiency,
-    roles.regions,
-    roles.ethnicity,
-    roles.abroad,
-    roles.extension,
+    roles.default.proficiency,
+    roles.default.regions,
+    roles.default.ethnicity,
+    roles.default.abroad,
+    roles.default.extension,
 );
 
 export class RolesModule {
     async handleMessage(message) {
-        return await this.resolveRole(message.author, message.channel, message.content);
+        if (areSimilar('roles', message.content)) {
+            this.displayAvailableRoles(message.member, message.channel);
+            return true;
+        }
+
+        return await this.resolveRole(message.member, message.channel, message.content);
     }
 
     /// Match seeked role against a role specified in `allRoles`
@@ -24,10 +30,10 @@ export class RolesModule {
         }
 
         // If the seeked role is not a proficiency
-        if (!roles.proficiency.includes(targetRole)) {
+        if (!roles.default.proficiency.includes(targetRole)) {
             // If the user does not have a proficiency role
             if (!this.userHasProficiency(user)) {
-                TeacherClient.sendEmbed(textChannel, message = 'In order to get any additional roles, you must first have a proficiency role');
+                TeacherClient.sendEmbed(textChannel, {message: 'In order to get any additional roles, you must first have a proficiency role'});
                 return true;
             }
             
@@ -38,65 +44,66 @@ export class RolesModule {
 
                 let message = `You no longer have the role '${capitaliseWords(targetRole)}'`;
                 
-                if (roles.regions.includes(targetRole)) {
+                if (roles.default.regions.includes(targetRole)) {
                     message = `You are no longer from ${capitaliseWords(targetRole)}`;
                 }
 
-                if (roles.ethnicity.includes(targetRole)) {
+                if (roles.default.ethnicity.includes(targetRole)) {
                     message = `You are no longer from ${capitaliseWords(targetRole)}`;
                 }
 
-                if (roles.abroad.includes(targetRole)) {
+                if (roles.default.abroad.includes(targetRole)) {
                     message = `You are no longer a ${capitaliseWords(targetRole) + 'n'}`;
                 }
 
-                TeacherClient.sendEmbed(textChannel, message = `:sob: ${message} :sob:`);
+                TeacherClient.sendEmbed(textChannel, {message: `:sob: ${message} :sob:`});
                 return true;
             }
 
             let message = `You now have the role '${capitaliseWords(targetRole)}'`;
             
-            if (roles.regions.includes(targetRole)) {
+            if (roles.default.regions.includes(targetRole)) {
                 if (this.userHasEnoughRegions(user)) {
-                    TeacherClient.sendWarning(textChannel, message = `You may not have more than ${roles.maximumRegions} region roles`);
+                    TeacherClient.sendWarning(textChannel, {message: `You may not have more than ${roles.default.maximumRegions} region roles`});
                     return true;
                 }
 
                 message = `You are now from ${capitaliseWords(targetRole)}`;
             }
 
-            if (roles.ethnicity.includes(targetRole)) {
+            if (roles.default.ethnicity.includes(targetRole)) {
                 if (this.userHasEnoughEthnicities(user)) {
-                    TeacherClient.sendWarning(textChannel, message = `You may not have of more than ${roles.maximumEthnicities} Romanian ${roles.maximumEthnicities > 1 ? 'ethnicities' : 'ethnicity'}`);
+                    TeacherClient.sendWarning(textChannel, {message: `You may not be of more than ${roles.default.maximumEthnicities} Romanian ${roles.default.maximumEthnicities > 1 ? 'ethnicities' : 'ethnicity'}`});
                     return true;
                 }
 
                 message = `You are now ${capitaliseWords(targetRole)}`;
             }
 
-            if (roles.abroad.includes(targetRole)) {
+            if (roles.default.abroad.includes(targetRole)) {
                 message = `You are now a ${capitaliseWords(targetRole) + 'n'}`
             }
 
             this.addRole(user, targetRole);
 
-            TeacherClient.sendEmbed(textChannel, message = `:partying_face: ${message} :partying_face:`);
+            TeacherClient.sendEmbed(textChannel, {message: `:partying_face: ${message} :partying_face:`});
             return true;
         }
+        
+        let currentProficiency = user.roles.cache.find(
+            role => roles.default.proficiency.includes(role.name.toLowerCase())
+        )?.name.toLowerCase();
 
-        if (!this.userHasProficiency(user)) {
+        if (!this.userHasRole(user, targetRole)) {
             this.addRole(user, targetRole);
+            this.removeRole(user, currentProficiency);
 
-            TeacherClient.sendEmbed(textChannel, message = `Your level is now ${targetRole}`);
+            TeacherClient.sendEmbed(textChannel, {message: `Your level is now ${targetRole}`});
             return true;
         }
 
         // Find `targetRole` in the proficiency roles
-        let proficiencyIndex = roles.proficiency.indexOf(targetRole);
-        // Find user's current proficiency
-        let proficiency = user.roles.cache.find(
-            role => roles.proficiency.includes(role.name.toLowerCase())
-        )?.name.toLowerCase();
+        let proficiencyIndex = roles.default.proficiency.indexOf(targetRole);
 
         // If the user already has the same proficiency role
         if (this.userHasRole(user, targetRole)) {
@@ -105,16 +112,20 @@ export class RolesModule {
             let baseDowngradeMessage = ':arrow_double_down: downgrade to ';
 
             // Find the names of the roles on either side of the pivot `index`
-            let upgradeRoleNames = roles.proficiency.filter((_, index) => index > proficiencyIndex);
-            let downgradeRoleNames = roles.proficiency.filter((_, index) => index < proficiencyIndex);
+            let upgradeRoleNames = roles.default.proficiency.filter((_, index) => index > proficiencyIndex);
+            let downgradeRoleNames = roles.default.proficiency.filter((_, index) => index < proficiencyIndex);
 
             // Create tags from role names by fetching the roles' ids
-            let upgradeRoleTags = upgradeRoleNames.map((name) => `<@&${this.idOfRole(user, targetRole)}>`);
-            let downgradeRoleTags = downgradeRoleNames.map((name) => `<@&${this.idOfRole(user, targetRole)}>`);
+            let upgradeRoleTags = upgradeRoleNames.map((name) => this.idOfRole(user, name));
+            let downgradeRoleTags = downgradeRoleNames.map((name) => this.idOfRole(user, name));
 
             if (upgradeRoleTags.length > 0) {
                 baseUpgradeMessage += joinArrayCoherently(upgradeRoleTags);
                 baseMessage += baseUpgradeMessage;
+
+                if (downgradeRoleTags.length > 0) {
+                    baseMessage += ' or ';
+                }
             }
 
             if (downgradeRoleTags.length > 0) {
@@ -122,11 +133,42 @@ export class RolesModule {
                 baseMessage += baseDowngradeMessage;
             }
 
-            TeacherClient.sendEmbed(textChannel, message = baseMessage);
+            TeacherClient.sendEmbed(textChannel, {message: baseMessage});
             return true;
         }
 
         return false;
+    }
+
+    /// Displays all available roles in a list
+    async displayAvailableRoles(user, textChannel) {
+        TeacherClient.sendEmbed(textChannel, {fields: [
+            {
+                name: 'Proficiency', 
+                value: `${roles.default.proficiency.join(', ')}`
+            },
+            this.userHasProficiency(user) ? 
+            [
+                {
+                    name: roles.default.maximumRegions > 1 ? 'Regions': 'Region', 
+                    value: `${roles.default.regions.sort().join(', ')}`
+                },
+                {
+                    name: roles.default.maximumEthnicities > 1 ? 'Ethnicities' : 'Ethnicity', 
+                    value: `${roles.default.ethnicity.join(', ')}`
+                },
+                {
+                    name: 'Abroad', 
+                    value: `${roles.default.abroad.join(', ')}`
+                },
+                {
+                    name: 'Extension', 
+                    value: `${roles.default.extension.join(', ')}`
+                },
+            ] : 
+            []
+            
+        ]});
     }
 
     /// Adds a role to user
@@ -160,62 +202,21 @@ export class RolesModule {
     /// Check if the user has a proficiency
     userHasProficiency(user) {
         return user.roles.cache.some(
-            (role) => roles.proficiency.includes(role.name.toLowerCase())
+            (role) => roles.default.proficiency.includes(role.name.toLowerCase())
         );
     }
     
     /// Check if the user already has enough region roles
     userHasEnoughRegions(user) {
         return user.roles.cache.filter(
-            (role) => roles.regions.includes(role.name.toLowerCase())
-        ).size >= roles.maximumRegions;
+            (role) => roles.default.regions.includes(role.name.toLowerCase())
+        ).size >= roles.default.maximumRegions;
     }
     
     /// Check if the user already has enough ethnnicity roles
     userHasEnoughEthnicities(user) {
         return user.roles.cache.filter(
-            (role) => roles.ethnicity.includes(role.name.toLowerCase())
-        ).size >= roles.maximumEthnicities;
+            (role) => roles.default.ethnicity.includes(role.name.toLowerCase())
+        ).size >= roles.default.maximumEthnicities;
     }
-}
-
-// Displays the roles that a user may join
-function displayAvailableRoles(user, text_channel) {
-    text_channel.send({
-        embed:{
-            color: color, 
-            fields: [
-                {
-                    name: 'Proficiency', 
-                    value: `${roles.roles_proficiency.join(', ')}`
-                },
-                (
-                    userHasProficiency(user) ? 
-                    [
-                        {
-                            name: 'General', 
-                            value: `${roles.roles_general.sort().join(', ')}`
-                        },
-                        {   
-                            name: 'Countries', 
-                            value: `${roles.roles_countries.sort().join(', ')}`
-                        },
-                        {
-                            name: 'Counties', 
-                            value: `${roles.roles_regions.sort().join(', ')}`
-                        },
-                        {
-                            name: 'Ethnicity', 
-                            value: `${roles.roles_ethnicity.join(', ')}`
-                        },
-                        {
-                            name: 'Abroad', 
-                            value: `${roles.roles_abroad.join(', ')}`
-                        }
-                    ] : 
-                    []
-                )
-            ]
-        }
-    });
 }
