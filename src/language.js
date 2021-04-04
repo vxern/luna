@@ -12,23 +12,17 @@ export function areSimilar(subject, object) {
     if (subject === object) {
         return true;
     }
-
-    // How many iterations there should be, based on the lesser of the lengths
-    let iterations = Math.trunc(Math.min(subject.length, object.length) / 2);
-    let passes = 0;
-
-    for (let i = 0; i < iterations; i++) {
-        if (distance(
-                subject.substring(i * 2, i * 2 + 2), 
-                object.substring(i * 2, i * 2 + 2)
-            ) <= 1) {
-            passes += 1;
-        }
+    
+    function regularize(target) {
+        return target.split('').sort().join().trim();
     }
 
-    let similarity = passes / iterations;
+    // If the words contain the same letters
+    if (regularize(subject) === regularize(object)) {
+        return true;
+    }
 
-    return similarity > (0.5 + Math.pow(0.5, iterations / passes));
+    return distance(subject, object) < 2;
 }
 
 /// Join array so that it is orthographically correct
@@ -38,7 +32,7 @@ export function areSimilar(subject, object) {
 /// ['A', 'B', 'C'] -> 'A', 'B' and 'C'
 export function joinArrayCoherently(target) {
     let lastElement = target.pop();
-    return `${target.join(', ') + (target > 0 ? 'and' : '')} ${lastElement}`;
+    return `${target.join(', ')} ${target.length > 0 ? 'or' : ''} ${lastElement}`;
 }
 
 /// Removes characters that aren't ASCII digits and/or letters
