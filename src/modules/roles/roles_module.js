@@ -54,43 +54,24 @@ export class RolesModule {
                 return true;
             }
 
-            let message = `You now have the role '${capitaliseWords(targetRole)}.'`;
+            let message = `You now have the role '${capitaliseWords(targetRole)}'`;
             
             if (roles.regions.includes(targetRole)) {
                 if (this.userHasEnoughRegions(user)) {
-                    TeacherClient.sendWarning(textChannel, message = `A user may not have more than ${roles.maximumRegions} region roles.`)
+                    TeacherClient.sendWarning(textChannel, message = `A user may not have more than ${roles.maximumRegions} region roles`)
                     return true;
+                }
+
+                message = `You are now from ${capitaliseWords(targetRole)}`
+            }
+
+            if (roles.ethnicity.includes(targetRole)) {
+                if (this.userHasEnoughEthnicities(user)) {
+                    TeacherClient.sendWarning(textChannel, message = '');
                 }
             }
 
-                let message = '';
-                if (roles.roles_general.includes(target_role)) {
-                    message = `You now have the role '${language.capitalise(target_role)}'`;
-                } else if (roles.roles_regions.includes(target_role)) {
-                    // Check if user already has two region roles
-                    if (userHasEnoughRegions(user)) {
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: `:exclamation: You may only have two region roles.`
-                            }
-                        });
-                        return;
-                    }
-                    message = `You are now from ${language.capitalise(target_role)}`;
-                } else if (roles.roles_countries.includes(target_role)) {
-                    // Check if user already has two country roles
-                    if (userHasEnoughCountries(user)) {
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: `:exclamation: You may only have two country roles.`
-                            }
-                        });
-                        return;
-                    }
-                    message = `You are now from ${language.capitalise(target_role)}`;
-                } else if (roles.roles_ethnicity.includes(target_role)) {
+                else if (roles.roles_ethnicity.includes(target_role)) {
                     // Check if user already has an ethnicity
                     if (userHasEthnicity(user)) {
                         text_channel.send({
@@ -150,18 +131,18 @@ export class RolesModule {
         );
     }
     
-    /// Check if the user has more than 1 region role already
+    /// Check if the user already has enough region roles
     userHasEnoughRegions(user) {
         return user.roles.cache.filter(
             (role) => roles.regions.includes(role.name.toLowerCase())
         ).size >= roles.maximumRegions;
     }
-
-    /// Check if the user already has an ethnicity role
-    userHasEthnicity(user) {
-        return user.roles.cache.some(
+    
+    /// Check if the user already has enough ethnnicity roles
+    userHasEnoughEthnicities(user) {
+        return user.roles.cache.filter(
             (role) => roles.ethnicity.includes(role.name.toLowerCase())
-        );
+        ).size >= roles.maximumEthnicities;
     }
 }
 

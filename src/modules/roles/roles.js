@@ -1,6 +1,7 @@
 export default
 {
     "maximumRegions": 2,
+    "maximumEthnicities": 1,
 
     "proficiency": [
         "beginner", "intermediate", "advanced", "native"
