@@ -13,16 +13,16 @@ const allRoles = [].concat(
 
 export class RolesModule {
     async handleMessage(message) {
-        // If the seeked role is not found in `allRoles`
-        if (!allRoles.includes(message.content)) {
-            return false;
-        }
-
         return await this.resolveRole(message.author, message.channel, message.content);
     }
 
     /// Match seeked role against a role specified in `allRoles`
     async resolveRole(user, textChannel, targetRole) {
+        // If the seeked role is not found in `allRoles`
+        if (!allRoles.includes(targetRole)) {
+            return false;
+        }
+
         // If the seeked role is not a proficiency
         if (!roles.proficiency.includes(targetRole)) {
             // If the user does not have a proficiency role
@@ -84,7 +84,14 @@ export class RolesModule {
             return true;
         }
 
-        // If the seeked role is not a proficiency
+        if (!this.userHasProficiency(user)) {
+            this.addRole(user, targetRole);
+
+            TeacherClient.sendEmbed(textChannel, message = `Your level is now ${targetRole}`);
+            return true;
+        }
+
+        
 
         return false;
     }
@@ -100,6 +107,13 @@ export class RolesModule {
     async removeRole(user, targetRole) {
         await user.roles.remove(
             user.roles.cache.find((role) => role.name.toLowerCase() === targetRole)
+        );
+    }
+
+    /// Takes the name of a role and returns its id
+    idOfRole(user, targetRole) {
+        return user.guild.roles.cache.find(
+            (role) => role.name.toLowerCase() === targetRole
         );
     }
 
@@ -129,142 +143,6 @@ export class RolesModule {
         return user.roles.cache.filter(
             (role) => roles.ethnicity.includes(role.name.toLowerCase())
         ).size >= roles.maximumEthnicities;
-    }
-}
-
-// Resolves a role from the name 'target_role'
-async function resolveRole(user, text_channel, target_role) {
-    if (all_roles.includes(target_role)) {
-        // If role is a proficiency role
-        if (roles.roles_proficiency.includes(target_role)) {
-            let proficiency_index = roles.roles_proficiency.indexOf(target_role);
-            let previous_proficiency = user.roles.cache.find(role => roles.roles_proficiency.includes(role.name.toLowerCase()))?.name.toLowerCase();
-            if (userHasProficiency(user) && userHasRole(user, target_role)) {
-                let base = `Your level is already ${target_role} and you may instead `;
-                switch (proficiency_index) {
-                    case 3:
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: base + `:arrow_double_down: downgrade to ${advanced_tag}, ${intermediate_tag} or ${beginner_tag}`
-                            }
-                        });
-                        return;
-                    case 2:
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: base + `:arrow_double_up: upgrade to ${native_tag} or :arrow_double_down: downgrade to ${intermediate_tag} or ${beginner_tag}`
-                            }
-                        });
-                        return;
-                    case 1:
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: base + `:arrow_double_up: upgrade to ${advanced_tag} or ${native_tag} or :arrow_double_down: downgrade to ${beginner_tag}`
-                            }
-                        });
-                        return;
-                    case 0:
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: base + `:arrow_double_up: upgrade to ${intermediate_tag}, ${advanced_tag} or ${native_tag}`
-                            }
-                        });
-                        return;
-                }
-            } else {
-                addRole(user, target_role);
-                if (previous_proficiency) {
-                    removeRole(user, previous_proficiency);
-                }
-                text_channel.send({
-                    embed: {
-                        color: color, 
-                        description: `Your level is now ${target_role}.`
-                    }
-                });
-            }
-        } else if (userHasProficiency(user)) {
-            if (userHasRole(user, target_role)) {
-                let message = '';
-                if (roles.roles_general.includes(target_role)) {
-                    message = `You no longer have the role '${language.capitalise(target_role)}'`;
-                } else if (roles.roles_regions.includes(target_role) || roles.roles_countries.includes(target_role)) {
-                    message = `You are no longer from ${language.capitalise(target_role)}`;
-                } else if (roles.roles_ethnicity.includes(target_role)) {
-                    message = `You are no longer ${language.capitalise(target_role)}`;
-                } else if (roles.roles_abroad.includes(target_role)) {
-                    message = `You are no longer a ${language.capitalise(target_role) + 'n'}`;
-                }
-                removeRole(user, target_role);
-                text_channel.send({
-                    embed: {
-                        color: color, 
-                        description: `:sob: ${message} :sob:`
-                    }
-                });
-            } else {
-                let message = '';
-                if (roles.roles_general.includes(target_role)) {
-                    message = `You now have the role '${language.capitalise(target_role)}'`;
-                } else if (roles.roles_regions.includes(target_role)) {
-                    // Check if user already has two region roles
-                    if (userHasEnoughRegions(user)) {
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: `:exclamation: You may only have two region roles.`
-                            }
-                        });
-                        return;
-                    }
-                    message = `You are now from ${language.capitalise(target_role)}`;
-                } else if (roles.roles_countries.includes(target_role)) {
-                    // Check if user already has two country roles
-                    if (userHasEnoughCountries(user)) {
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: `:exclamation: You may only have two country roles.`
-                            }
-                        });
-                        return;
-                    }
-                    message = `You are now from ${language.capitalise(target_role)}`;
-                } else if (roles.roles_ethnicity.includes(target_role)) {
-                    // Check if user already has an ethnicity
-                    if (userHasEthnicity(user)) {
-                        text_channel.send({
-                            embed: {
-                                color: color, 
-                                description: `:exclamation: You may only be of one Romanian ethnicity.`
-                            }
-                        });
-                        return;
-                    }
-                    message = `You are now ${language.capitalise(target_role)}`;
-                } else if (roles.roles_abroad.includes(target_role)) {
-                    message = `You are now a ${language.capitalise(target_role) + 'n'}`;
-                }
-                addRole(user, target_role);
-                text_channel.send({
-                    embed: {
-                        color: color, 
-                            description: `:partying_face: ${message} :partying_face:`
-                    }
-                });
-            }
-        } else {
-            text_channel.send({
-                embed: {
-                    color: color, 
-                        description: 'In order to get any additional roles, you must first have a proficiency role.'
-                }
-            });
-        }
     }
 }
 
