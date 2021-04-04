@@ -45,12 +45,14 @@ export class TeacherClient {
         }
 
         // Convert the content of the message to lowercase and trim the left side
-        message.content = message.content.toLowerCase().trimLeft();
+        message.content = message.content.toLowerCase().trimLeft().trimRight();
 
         // If the message does not begin with the specified prefix
         if (!message.content.startsWith(config.prefix) && !channels.unprefixedChannels.includes(message.channel.name)) {
             return;
         }
+
+        message.content = message.content.replace(config.prefix).trimLeft();
 
         // Iterate over modules to find the suitable message handler
         for (const teacherModule in this.teacherModules) {
