@@ -1,4 +1,5 @@
 import { GuildMember } from 'discord.js';
+import { TeacherClient } from '../../teacher/teacher';
 import { TeacherModule } from '../module';
 import { roles } from './roles';
 
@@ -23,11 +24,37 @@ export class RolesModule {
 
     /// Match seeked role against a role specified in `allRoles`
     async resolveRole(user, textChannel, targetRole) {
+        // If the user does not have a proficiency role
+        if (!userHasProficiency(user)) {
+            // If the seeked role is not a proficiency
+            if (!roles.proficiency.includes(targetRole)) {
+                TeacherClient.sendEmbed(textChannel, message = 'In order to get any additional roles, you must first have a proficiency role.');
+                return true;
+            }
+    
+        }
+
         // If the seeked role is not a proficiency
 
+        return false;
     }
 
-    /// Check if user has proficiency
+    /// Adds a role to user
+    async addRole(user, target_role) {
+        await user.roles.add(user.guild.roles.cache.find((role) => role.name.toLowerCase() === target_role));
+    }
+
+    /// Removes a role from user
+    async removeRole(user, target_role) {
+        await user.roles.remove(user.roles.cache.find((role) => role.name.toLowerCase() === target_role));
+    }
+
+    /// Check if the user has a role
+    userHasRole(user, target_role) {
+        return user.roles.cache.some((role) => role.name.toLowerCase() === target_role);
+    }
+
+    /// Check if user has a proficiency
     userHasProficiency(user) {
         return user.roles.cache.some(
             (role) => roles.roles_proficiency.includes(role.name.toLowerCase())
