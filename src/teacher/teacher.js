@@ -65,9 +65,15 @@ export class TeacherClient {
 
     /// Sends an embed to the text channel specified
     static sendEmbed(textChannel, color = config.accentColorSuccess, message = undefined, fields = undefined) {
-        if (message === undefined && fields === undefined) {
-            console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
-            return;
+        if (fields === undefined) {
+            if (message === undefined) {
+                console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
+                return;
+            }
+
+            if (config.addFullStops) {
+                message = message + '.';
+            }
         }
 
         textChannel.send({embed: {
