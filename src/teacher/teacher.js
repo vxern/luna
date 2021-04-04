@@ -78,13 +78,13 @@ export class TeacherClient {
     }
 
     /// Sends an embed with a warning message
-    static sendWarning(textChannel, color = config.accentColorWarning, message = undefined, fields = undefined) {
-        this.sendEmbed(textChannel, color = color, message = message !== undefined ? `:warning: ${message}` : message, fields = fields);
+    static sendWarning(textChannel, message = undefined, fields = undefined) {
+        this.sendEmbed(textChannel, color = config.accentColorWarning, message = message !== undefined ? `:warning: ${message}` : message, fields = fields);
     }
 
     /// Sends an embed with an error message
-    static sendError(textChannel, color = config.accentColorError, message = undefined, fields = undefined) {
-        this.sendEmbed(textChannel, color = color, message = message !== undefined ? `:exclamation: ${message}` : message, fields = fields);
+    static sendError(textChannel, message = undefined, fields = undefined) {
+        this.sendEmbed(textChannel, color = config.accentColorErrorcolor, message = message !== undefined ? `:exclamation: ${message}` : message, fields = fields);
     }
 }
 
