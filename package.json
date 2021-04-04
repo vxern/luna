@@ -1,7 +1,8 @@
 {
   "name": "teacher",
-  "version": "1.0.1",
+  "version": "2.1.0",
   "description": "Discord Bot written in JavaScript for the Learn Romanian language server.",
+  "author": "Dorian Oszczęda <vxern@ctemplar.com>",
   "main": "src/main.js",
   "type": "module",
   "engines": {
@@ -28,10 +29,12 @@
   },
   "keywords": [
     "discord",
+    "bot",
+    "romanian",
+    "language",
     "roles",
-    "bot"
+    "modules"
   ],
-  "author": "Dorian Oszczęda <vxern@ctemplar.com>",
   "license": "GPL",
   "bugs": {
     "url": "https://github.com/vxern/teacher/issues"
