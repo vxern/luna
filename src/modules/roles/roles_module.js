@@ -1,6 +1,6 @@
 import { TeacherClient } from '../../teacher/teacher';
 import { roles } from './roles';
-import '../../utils';
+import { capitaliseWords, joinArrayCoherently } from '../../utils';
 
 // Concatenate the roles specified in roles.js into a single array
 const allRoles = [].concat(
@@ -91,7 +91,40 @@ export class RolesModule {
             return true;
         }
 
-        
+        // Find `targetRole` in the proficiency roles
+        let proficiencyIndex = roles.proficiency.indexOf(targetRole);
+        // Find user's current proficiency
+        let proficiency = user.roles.cache.find(
+            role => roles.proficiency.includes(role.name.toLowerCase())
+        )?.name.toLowerCase();
+
+        // If the user already has the same proficiency role
+        if (this.userHasRole(user, targetRole)) {
+            let baseMessage = `Your level is already ${targetRole} and you may instead `;
+            let baseUpgradeMessage = ':arrow_double_up: upgrade to ';
+            let baseDowngradeMessage = ':arrow_double_down: downgrade to ';
+
+            // Find the names of the roles on either side of the pivot `index`
+            let upgradeRoleNames = roles.proficiency.filter((_, index) => index > proficiencyIndex);
+            let downgradeRoleNames = roles.proficiency.filter((_, index) => index < proficiencyIndex);
+
+            // Create tags from role names by fetching the roles' ids
+            let upgradeRoleTags = upgradeRoleNames.map((name) => `<@&${this.idOfRole(user, targetRole)}>`);
+            let downgradeRoleTags = downgradeRoleNames.map((name) => `<@&${this.idOfRole(user, targetRole)}>`);
+
+            if (upgradeRoleTags.length > 0) {
+                baseUpgradeMessage += joinArrayCoherently(upgradeRoleTags);
+                baseMessage += baseUpgradeMessage;
+            }
+
+            if (downgradeRoleTags.length > 0) {
+                baseDowngradeMessage += joinArrayCoherently(downgradeRoleTags);
+                baseMessage += baseDowngradeMessage;
+            }
+
+            TeacherClient.sendEmbed(textChannel, message = baseMessage);
+            return true;
+        }
 
         return false;
     }
