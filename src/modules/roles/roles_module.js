@@ -3,7 +3,7 @@ import { TeacherModule } from '../module';
 import { roles } from './roles';
 
 // Concatenate the roles specified in roles.js into a single array
-const all_roles = [].concat(
+const allRoles = [].concat(
     roles.proficiency,
     roles.regions,
     roles.ethnicity,
@@ -13,9 +13,25 @@ const all_roles = [].concat(
 
 export class RolesModule {
     async handleMessage(message) {
-        let arguments = message.content.split(' ');
+        // If the seeked role is not found in `allRoles`
+        if (!allRoles.includes(message.content)) {
+            return false;
+        }
 
+        return await resolveRole(message.author, message.channel, message.content);
+    }
 
+    /// Match seeked role against a role specified in `allRoles`
+    async resolveRole(user, textChannel, targetRole) {
+        // If the seeked role is not a proficiency
+
+    }
+
+    /// Check if user has proficiency
+    userHasProficiency(user) {
+        return user.roles.cache.some(
+            (role) => roles.roles_proficiency.includes(role.name.toLowerCase())
+        );
     }
 }
 
