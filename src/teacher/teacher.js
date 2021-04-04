@@ -1,10 +1,10 @@
 import { Client as DiscordClient } from 'discord.js';
 
 // Teacher modules
+import { RolesModule } from '../modules/roles/roles';
 /*
 import GameModule from '../modules/game/game';
 import MusicModule from '../modules/music/music';
-import RolesModule from '../modules/roles/roles';
 import WordChainModule from '../modules/word_chain/word_chain';
 */
 
@@ -27,12 +27,12 @@ export class TeacherClient {
         Client.on('message', (message) => this.handleMessage(message));
     }
 
-    // Authenticates the client using the Discord secret specified in environment variables
+    /// Authenticates the client using the Discord secret specified in environment variables
     async login() {
         await Client.login(process.env.DISCORD_SECRET);
     }
 
-    // Handles messages written to the server
+    /// Handles messages written to the server
     async handleMessage(message) {
         // If the message author is a bot
         if (message.author.bot) {
@@ -61,6 +61,16 @@ export class TeacherClient {
                 return;
             }
         }
+    }
+
+    /// Sends an embed to the text channel specified
+    static sendEmbed(textChannel, message = undefined, fields = undefined) {
+        textChannel.send({embed: {
+            color: config.accentColor, 
+            description: message,
+            fields: fields,
+        }
+    });
     }
 }
 
