@@ -21,12 +21,12 @@ export function areSimilar(subject, object) {
         if (distance(
                 subject.substring(i * 2, i * 2 + 2), 
                 object.substring(i * 2, i * 2 + 2)
-            ) < 2) {
+            ) <= 1) {
             passes += 1;
         }
     }
 
     let similarity = passes / iterations;
 
-    return similarity > 0.7;
+    return similarity > (0.5 + Math.pow(0.5, iterations / passes));
 }
