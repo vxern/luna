@@ -1,10 +1,11 @@
 import { Client as DiscordClient } from 'discord.js';
 
 // Teacher modules
+import { ExtensionModule } from '../modules/extension/extension_module.js';
 import { RolesModule } from '../modules/roles/roles_module.js';
 /*
 import GameModule from '../modules/game/game';
-import MusicModule from '../modules/music/music';
+import MusicModule from '../modules/music/music_module.js';
 import WordChainModule from '../modules/word_chain/word_chain';
 */
 
@@ -20,11 +21,14 @@ export class TeacherClient {
     constructor() {
         // Modules used by teacher
         this.teacherModules = [
+            new ExtensionModule(Client.user),
             new RolesModule(),
         ];
 
         Client.on('ready', () => {
-            Client.user.setStatus(config.status);
+            Client.user.setStatus(config.default.status);
+
+            console.log(`${config.default.prefix} is ready to serve with ${this.teacherModules.length} module/s.`);
         });
 
         // Begin handling messages
@@ -52,8 +56,8 @@ export class TeacherClient {
             return;
         }
 
-        // Convert the content of the message to lowercase and trim the left side
-        message.content = message.content.toLowerCase().trim();
+        // Convert the content of the message to lowercase, remove duplicate whitespaces
+        message.content = message.content.toLowerCase().split(' ').filter((word) => word.length !== 0).join(' ');
 
         // If the message does not begin with the specified prefix
         if (!message.content.startsWith(config.default.prefix) && !channels.default.unprefixedChannels.includes(message.channel.name)) {
@@ -73,7 +77,13 @@ export class TeacherClient {
     }
 
     /// Sends an embed to the text channel specified
-    static async sendEmbed(textChannel, {message = undefined, fields = undefined, color = config.default.accentColorSuccess}) {
+    static async sendEmbed(textChannel, {
+        title = undefined,
+        thumbnail = undefined,
+        message = undefined,
+        color = config.default.accentColorSuccess,
+        fields = undefined,
+    }) {
         if (fields === undefined) {
             if (message === undefined) {
                 console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
@@ -86,8 +96,12 @@ export class TeacherClient {
         }
 
         textChannel.send({embed: {
-            color: color, 
+            title: title,
+            thumbnail: {
+                url: thumbnail
+            },
             description: message,
+            color: color,
             fields: fields,
         }});
     }
