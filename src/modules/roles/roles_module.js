@@ -1,7 +1,8 @@
+import { TeacherModule } from '../module.js';
 import { TeacherClient } from '../../teacher/teacher.js';
-import * as roles from './roles.js';
-
 import { capitaliseWords, areSimilar, joinArrayCoherently } from '../../language.js';
+
+import * as roles from './roles.js';
 
 // Concatenate the roles specified in roles.js into a single array
 const allRoles = [].concat(
@@ -12,7 +13,7 @@ const allRoles = [].concat(
     roles.default.extension,
 );
 
-export class RolesModule {
+export class RolesModule extends TeacherModule {
     async handleMessage(message) {
         if (areSimilar('roles', message.content)) {
             this.displayAvailableRoles(message.member, message.channel);
@@ -49,7 +50,7 @@ export class RolesModule {
                 }
 
                 if (roles.default.ethnicity.includes(targetRole)) {
-                    message = `You are no longer from ${capitaliseWords(targetRole)}`;
+                    message = `You are no longer ${capitaliseWords(targetRole)}`;
                 }
 
                 if (roles.default.abroad.includes(targetRole)) {
@@ -96,7 +97,10 @@ export class RolesModule {
 
         if (!this.userHasRole(user, targetRole)) {
             this.addRole(user, targetRole);
-            this.removeRole(user, currentProficiency);
+            // If the user does have a proficiency role
+            if (currentProficiency !== undefined) {
+                this.removeRole(user, currentProficiency);
+            }
 
             TeacherClient.sendEmbed(textChannel, {message: `Your level is now ${targetRole}`});
             return true;
