@@ -7,7 +7,7 @@ export default
         'beginner', 'intermediate', 'advanced', 'native'
     ],
     'regions': [
-        'ardeal', 'banat', 'bucovina', 'crisana', 'dobrogea', 'maramures', 'moldova', 'muntenia', 'oltenia', 'transilvania'
+        'ardeal', 'banat', 'basarabia', 'bucovina', 'crisana', 'dobrogea', 'maramures', 'moldova', 'muntenia', 'oltenia', 'transilvania'
     ],
     'ethnicity': [
         'aromanian', 'istroromanian', 'meglenoromanian'
