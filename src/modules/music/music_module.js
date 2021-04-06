@@ -17,8 +17,11 @@ export class MusicModule extends TeacherModule {
     }
 
     async handleMessage(message) {
-        let messageHandled = await super.resolveCommand(message.content, {
-            'play': async () => await this.play(message.channel),
+        return await super.resolveCommand(message.content, {
+            'play': {
+                '': async () => await this.play(message.channel),
+                '$songName': async (songName) => await this.play(message.channel, songName),
+            },
             'pause': async () => await this.pause(message.channel),
             'stop': async () => await this.stop(message.channel),
 
@@ -39,17 +42,15 @@ export class MusicModule extends TeacherModule {
                 }
             },
         });
-        
-        // To execute commands, the user must be in a voice channel
-        if (messageHandled && !this.isInVoiceChannel(message.channel, message.member.voice.channel)) {
-            return true;
-        }
-
-        return messageHandled;
     }
 
-    async play(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {message: 'Playing...'});
+    async play(textChannel, songName) {
+        if (songName === undefined) {
+            TeacherClient.sendWarning(textChannel, {message: `You have not specified a song name`});
+            return false;
+        }
+
+        TeacherClient.sendEmbed(textChannel, {message: `Playing ${songName}...`});
     }
 
     async pause(textChannel) {
