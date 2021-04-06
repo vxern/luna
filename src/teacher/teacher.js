@@ -92,7 +92,7 @@ export class TeacherClient {
             return;
         }
 
-        if (message !== undefined && config.addFullStops) {
+        if (message !== undefined && config.default.addFullStops) {
             message = message + '.';
         }
         
@@ -105,6 +105,15 @@ export class TeacherClient {
             color: color,
             fields: fields,
         }});
+    }
+
+    /// Sends an embed with a warning message
+    static async sendTip(textChannel, {message = undefined, fields = undefined}) {
+        this.sendEmbed(textChannel, {
+            message: message !== undefined ? `:bulb: ${message}` : message, 
+            fields: fields, 
+            color: config.default.accentColorTip
+        });
     }
 
     /// Sends an embed with a warning message

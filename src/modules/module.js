@@ -42,10 +42,9 @@ export class TeacherModule {
 
         // Get the first command
         let identifiedResult = commands.values().next().value;
-        
+
         // If the precheck yields false, return without resolving command
         if (precheck() === false) {
-            console.log('Returning true...');
             return true;
         }
 

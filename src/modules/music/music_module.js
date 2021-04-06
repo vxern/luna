@@ -56,7 +56,7 @@ export class MusicModule extends TeacherModule {
         }
 
         if (songName.length <= 3) {
-            TeacherClient.sendWarning(textChannel, {
+            TeacherClient.sendTip(textChannel, {
                 message: `The song name you've specified is very short; it may be difficult to narrow down the requested song.\n\n` +
                          'Try writing a longer name.',
             });
