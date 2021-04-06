@@ -87,21 +87,19 @@ export class TeacherClient {
         color = config.default.accentColorSuccess,
         fields = undefined,
     }) {
-        if (fields === undefined) {
-            if (message === undefined) {
-                console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
-                return;
-            }
-
-            if (config.addFullStops) {
-                message = message + '.';
-            }
+        if (fields === undefined && message === undefined) {
+            console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
+            return;
         }
 
+        if (message !== undefined && config.addFullStops) {
+            message = message + '.';
+        }
+        
         textChannel.send({embed: {
             title: title,
             thumbnail: {
-                url: thumbnail
+                url: thumbnail,
             },
             description: message,
             color: color,
@@ -111,12 +109,20 @@ export class TeacherClient {
 
     /// Sends an embed with a warning message
     static async sendWarning(textChannel, {message = undefined, fields = undefined}) {
-        this.sendEmbed(textChannel, {message: message !== undefined ? `:warning: ${message}` : message, fields: fields, color: config.default.accentColorWarning});
+        this.sendEmbed(textChannel, {
+            message: message !== undefined ? `:warning: ${message}` : message, 
+            fields: fields, 
+            color: config.default.accentColorWarning
+        });
     }
 
     /// Sends an embed with an error message
-    static async sendError(textChannel, message = undefined, fields = undefined) {
-        this.sendEmbed(textChannel, {message: message !== undefined ? `:exclamation: ${message}` : message, fields: fields, color: config.default.accentColorError});
+    static async sendError(textChannel, {message = undefined, fields = undefined}) {
+        this.sendEmbed(textChannel, {
+            message: message !== undefined ? `:exclamation: ${message}` : message, 
+            fields: fields, 
+            color: config.default.accentColorError
+        });
     }
 }
 
