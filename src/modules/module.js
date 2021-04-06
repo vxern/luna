@@ -5,15 +5,19 @@ export class TeacherModule {
     /// Takes a `message` and `commands`
     /// 
     /// If the first argument matches a command's `trigger`, call or resolve its `result`
-    async resolveCommand(message, commandTree = {precheck: true, commands: undefined}) {
+    async resolveCommand(message, {
+        precheck = function() { return true; }, 
+        commands = undefined,
+    }) {
+        let commandTree = arguments[1];
+
         if (commandTree === undefined) {
             console.error('Refused to resolve command: No command tree provided');
             return false;
         }
 
-        let precheck = commandTree.precheck;
         // Shorthand for writing a simple object {}, instead of {commands:{}}
-        let commands = commandTree.commands ?? commandTree;
+        commands = commandTree.commands ?? commandTree;
 
         let words = message.split(' ');
         // Obtain the first argument so it can be resolved
@@ -38,14 +42,15 @@ export class TeacherModule {
 
         // Get the first command
         let identifiedResult = commands.values().next().value;
+        
+        // If the precheck yields false, return without resolving command
+        if (precheck() === false) {
+            console.log('Returning true...');
+            return true;
+        }
 
         // If `identifiedResult` is not an object, call it
         if (typeof identifiedResult !== 'object') {
-            // If the precheck yields false, return without calling `identifiedResult`
-            if (precheck === false) {
-                return true;
-            }
-
             // If the following term is not expected to be an argument
             if (firstArgument === '') {
                 return await identifiedResult() || true;
