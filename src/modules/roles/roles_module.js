@@ -15,12 +15,12 @@ const allRoles = [].concat(
 
 export class RolesModule extends TeacherModule {
     async handleMessage(message) {
-        if (areSimilar('roles', message.content)) {
-            this.displayAvailableRoles(message.member, message.channel);
-            return true;
-        }
-
-        return await this.resolveRole(message.member, message.channel, message.content);
+        return await super.resolveCommand(message.content, {
+            commands: {
+                'roles': async () => await this.displayAvailableRoles(message.guild, message.channel),
+                '$roleName': async (roleName) => await this.resolveRole(message.member, message.channel, roleName),
+            }
+        });
     }
 
     /// Match seeked role against a role specified in `allRoles`

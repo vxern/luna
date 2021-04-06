@@ -4,12 +4,11 @@ import { areSimilar } from "../../language.js";
 
 export class ExtensionModule extends TeacherModule {
     async handleMessage(message) {
-        if (areSimilar('info', message.content)) {
-            this.displayInfo(message.guild, message.channel);
-            return true;
-        }
-
-        return false;
+        return await super.resolveCommand(message.content, {
+            commands: {
+                'info': async () => await this.displayInfo(message.guild, message.channel),
+            }
+        });
     }
 
     async displayInfo(guild, textChannel) {
