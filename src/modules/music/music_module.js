@@ -17,7 +17,7 @@ export class MusicModule extends TeacherModule {
     }
 
     async handleMessage(message) {
-        return await super.resolveCommand(message.content, {
+        let messageHandled = await super.resolveCommand(message.content, {
             'play': async () => await this.play(message.channel),
             'pause': async () => await this.pause(message.channel),
             'stop': async () => await this.stop(message.channel),
@@ -39,6 +39,13 @@ export class MusicModule extends TeacherModule {
                 }
             },
         });
+        
+        // To execute commands, the user must be in a voice channel
+        if (messageHandled && !this.isInVoiceChannel(message.channel, message.member.voice.channel)) {
+            return true;
+        }
+
+        return messageHandled;
     }
 
     async play(textChannel) {
@@ -70,29 +77,18 @@ export class MusicModule extends TeacherModule {
     }
 
     /// Check if the user is in 
-    isInVoice() {
+    isInVoiceChannel(textChannel, voiceChannel) {
+        if (voiceChannel) {
+            return true;
+        }
 
+        TeacherClient.sendWarning(textChannel, {
+            message: 'To play music, you must first join a voice channel',
+        });
     }
 }
 
 /*
-const ytdl = require('ytdl-core');
-const YTSearcher = require('ytsearcher');
-
-const authorization = require('../authorization.json');
-
-const url_searcher = new YTSearcher.YTSearcher({
-    key: authorization.youtube_api_key,
-    revealkey: true
-})
-
-var song_queue = new Array();
-
-// Voice channel connection
-var voice_connection;
-var voice_connection_channel;
-
-const color = 0x00fa7d;
 
 // Begins playing a song by adding it to queue ( and playing it )
 async function initialisePlaying(voice_channel, text_channel, song_name) {
