@@ -17,6 +17,10 @@ export function areSimilar(subject, object) {
         return false;
     }
 
+    if (subject === '' || object === '') {
+        return false;
+    }
+
     function regularize(target) {
         return target.split('').sort().join().trim();
     }
