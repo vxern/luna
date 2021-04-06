@@ -5,10 +5,15 @@ export class TeacherModule {
     /// Takes a `message` and `commands`
     /// 
     /// If the first argument matches a command's `trigger`, call or resolve its `result`
-    async resolveCommand(message, {precheck = true, commands = undefined}) {
-        if (commands === undefined) {
-            console.error('Refused to resolve command: No commands have been specified');
+    async resolveCommand(message, commandTree = {precheck = true, commands = undefined}) {
+        if (commandTree === undefined) {
+            console.error('Refused to resolve command: No command tree provided');
             return false;
+        }
+
+        // Allows for writing a simple object {}, instead of {commands:{}}
+        if (commands === undefined) {
+            commands = commandTree;
         }
 
         let words = message.split(' ');
@@ -53,11 +58,6 @@ export class TeacherModule {
         // If the following term is empty, and a command for an empty term is not specified
         if (passedMessage === '' && !Object.keys(identifiedResult).includes('')) {
             return;
-        }
-
-        // Allows for writing a simple object {}, instead of {commands:{}}
-        if (identifiedResult.commands === undefined) {
-            identifiedResult = {commands: identifiedResult}
         }
 
         // Otherwise, if `identifiedResult` is not a function, resolve it
