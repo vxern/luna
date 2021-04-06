@@ -5,7 +5,12 @@ export class TeacherModule {
     /// Takes a `message` and `commands`
     /// 
     /// If the first argument matches a command's `trigger`, call or resolve its `result`
-    async resolveCommand(message, commands, precheck = true) {
+    async resolveCommand(message, {precheck = true, commands = undefined}) {
+        if (commands === undefined) {
+            console.error('Refused to resolve command: No commands have been specified');
+            return false;
+        }
+
         let words = message.split(' ');
         // Obtain the first argument so it can be resolved
         let firstArgument = words.shift();
