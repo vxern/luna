@@ -3,11 +3,12 @@ export function random(max) {
     return Math.floor(Math.random() * max);
 }
 
-/// Maps over a.. map and removes the undesired elements
-export function filterMap(target, predicate) {
-    for (let key of target.keys()) {
-        if (!predicate) {
-            target.delete(key);
+/// Removes undesired elements from an object
+export function filterObject(target, predicate) {
+    for (let key of Object.keys(target)) {
+        // If the element does not fit the predicate, remove it
+        if (!predicate(key)) {
+            delete target[key];
         }
     }
     return target;
