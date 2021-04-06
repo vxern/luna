@@ -2,10 +2,10 @@ import { Client as DiscordClient } from 'discord.js';
 
 // Teacher modules
 import { ExtensionModule } from '../modules/extension/extension_module.js';
+import { MusicModule } from '../modules/music/music_module.js';
 import { RolesModule } from '../modules/roles/roles_module.js';
 /*
 import GameModule from '../modules/game/game';
-import MusicModule from '../modules/music/music_module.js';
 import WordChainModule from '../modules/word_chain/word_chain';
 */
 
@@ -22,9 +22,11 @@ export class TeacherClient {
         // Modules used by teacher
         this.teacherModules = [
             new ExtensionModule(Client.user),
+            new MusicModule(),
             new RolesModule(),
         ];
 
+        // Set up at launch
         Client.on('ready', () => {
             Client.user.setStatus(config.default.status);
 
@@ -42,7 +44,7 @@ export class TeacherClient {
 
     /// Handles messages written to the server
     async handleMessage(message) {
-        // If the message author is a bot
+        // Prevents the bot from responding to another bot
         if (message.author.bot) {
             return;
         }
@@ -52,12 +54,13 @@ export class TeacherClient {
             return;
         }
 
+        // Prevents the bot from responding in an excluded channel
         if (channels.default.excludedChannels.includes(removeNonAlphanumeric(message.channel.name))) {
             return;
         }
 
         // Convert the content of the message to lowercase, remove duplicate whitespaces
-        message.content = message.content.toLowerCase().split(' ').filter((word) => word.length !== 0).join(' ');
+        message.content = message.content.toLowerCase().trim().replace(/ +/g, ' ');
 
         // If the message does not begin with the specified prefix
         if (!message.content.startsWith(config.default.prefix) && !channels.default.unprefixedChannels.includes(message.channel.name)) {
