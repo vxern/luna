@@ -18,7 +18,7 @@ export class MusicModule extends TeacherModule {
 
     async handleMessage(message) {
         return await super.resolveCommand(message.content, {
-            precheck: this.isInVoiceChannel(message.channel, message.member.voice.channel),
+            precheck: () => this.isInVoiceChannel(message.channel, message.member.voice.channel),
             commands: {
                 'play': {
                     '': async () => await this.play(message.channel),
