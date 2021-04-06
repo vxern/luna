@@ -5,7 +5,7 @@ export class TeacherModule {
     /// Takes a `message` and `commands`
     /// 
     /// If the first argument matches a command's `trigger`, call or resolve its `result`
-    async resolveCommand(message, commands) {
+    async resolveCommand(message, commands, precheck = true) {
         let words = message.split(' ');
         // Obtain the first argument so it can be resolved
         let firstArgument = words.shift();
@@ -32,6 +32,11 @@ export class TeacherModule {
 
         // If `identifiedResult` is not an object, call it
         if (typeof identifiedResult !== 'object') {
+            // If the precheck yields false, return without calling `identifiedResult`
+            if (precheck === false) {
+                return true;
+            }
+
             // If the following term is not expected to be an argument
             if (firstArgument === '') {
                 return await identifiedResult() || true;
