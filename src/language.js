@@ -12,7 +12,11 @@ export function areSimilar(subject, object) {
     if (subject === object) {
         return true;
     }
-    
+
+    if (subject === undefined || object === undefined) {
+        return false;
+    }
+
     function regularize(target) {
         return target.split('').sort().join().trim();
     }
