@@ -5,9 +5,7 @@ import { areSimilar } from "../../language.js";
 export class ExtensionModule extends TeacherModule {
     async handleMessage(message) {
         return await super.resolveCommand(message.content, {
-            commands: {
-                'info': async () => await this.displayInfo(message.guild, message.channel),
-            }
+            'info': async () => await this.displayInfo(message.guild, message.channel),
         });
     }
 

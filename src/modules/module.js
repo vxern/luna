@@ -55,6 +55,11 @@ export class TeacherModule {
             return;
         }
 
+        // Allows for writing a simple object {}, instead of {commands:{}}
+        if (identifiedResult.commands === undefined) {
+            identifiedResult = {commands: identifiedResult}
+        }
+
         // Otherwise, if `identifiedResult` is not a function, resolve it
         return await this.resolveCommand(passedMessage, identifiedResult);
     }

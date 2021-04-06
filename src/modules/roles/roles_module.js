@@ -16,10 +16,8 @@ const allRoles = [].concat(
 export class RolesModule extends TeacherModule {
     async handleMessage(message) {
         return await super.resolveCommand(message.content, {
-            commands: {
-                'roles': async () => await this.displayAvailableRoles(message.guild, message.channel),
-                '$roleName': async (roleName) => await this.resolveRole(message.member, message.channel, roleName),
-            }
+            'roles': async () => await this.displayAvailableRoles(message.guild, message.channel),
+            '$roleName': async (roleName) => await this.resolveRole(message.member, message.channel, roleName),
         });
     }
 
