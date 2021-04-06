@@ -98,6 +98,7 @@ export class MusicModule extends TeacherModule {
         TeacherClient.sendWarning(textChannel, {
             message: 'To play music, you must first join a voice channel',
         });
+        return false;
     }
 }
 
