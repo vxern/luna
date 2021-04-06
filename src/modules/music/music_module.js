@@ -18,36 +18,48 @@ export class MusicModule extends TeacherModule {
 
     async handleMessage(message) {
         return await super.resolveCommand(message.content, {
-            'play': {
-                '': async () => await this.play(message.channel),
-                '$songName': async (songName) => await this.play(message.channel, songName),
-            },
-            'pause': async () => await this.pause(message.channel),
-            'stop': async () => await this.stop(message.channel),
+            precheck: this.isInVoiceChannel(message.channel, message.member.voice.channel),
+            commands: {
+                'play': {
+                    '': async () => await this.play(message.channel),
+                    '$songName': async (songName) => await this.play(message.channel, songName),
+                },
+                'pause': async () => await this.pause(message.channel),
+                'stop': async () => await this.stop(message.channel),
 
-            'skip': {
-                // Skip entire song
-                '': async () => await this.skipSong(message.channel),
-                // Skip a specified time
-                '$time': async (time) => await this.skipTime(message.channel, time),
-            },
+                'skip': {
+                    // Skip entire song
+                    '': async () => await this.skipSong(message.channel),
+                    // Skip a specified time
+                    '$time': async (time) => await this.skipTime(message.channel, time),
+                },
 
-            'queue': {
-                '': async () => await this.displayQueue(message.channel),
-                'remove': {
-                    // Remove last song from queue
-                    '': async () => await this.removeFromQueue(message.channel, Math.max(0, this.songQueue.length - 1)),
-                    // Remove song specified by user
-                    '$identifier': async (identifier) => await this.removeFromQueue(message.channel, identifier),
-                }
-            },
+                'queue': {
+                    '': async () => await this.displayQueue(message.channel),
+                    'remove': {
+                        // Remove last song from queue
+                        '': async () => await this.removeFromQueue(message.channel, Math.max(0, this.songQueue.length - 1)),
+                        // Remove song specified by user
+                        '$identifier': async (identifier) => await this.removeFromQueue(message.channel, identifier),
+                    }
+                },
+            }
         });
     }
 
     async play(textChannel, songName) {
         if (songName === undefined) {
-            TeacherClient.sendWarning(textChannel, {message: `You have not specified a song name`});
+            TeacherClient.sendWarning(textChannel, {
+                message: 'You have not specified a song name'
+            });
             return false;
+        }
+
+        if (songName.length <= 3) {
+            TeacherClient.sendWarning(textChannel, {
+                message: `The song name you've specified is very short; it may be difficult to narrow down the requested song.\n\n` +
+                         'Try writing a longer name.',
+            });
         }
 
         TeacherClient.sendEmbed(textChannel, {message: `Playing ${songName}...`});
