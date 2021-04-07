@@ -55,7 +55,7 @@ export class TeacherModule {
                 return await identifiedResult() || true;
             }
 
-            return await identifiedResult(firstArgument) || true;
+            return await identifiedResult(message) || true;
         }
 
         // If the following term is empty, and a command for an empty term is not specified
