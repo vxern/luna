@@ -1,7 +1,11 @@
 import 'ytdl-core';
 import { YTSearcher } from 'ytsearcher';
+
 import { TeacherClient } from '../../teacher/teacher.js';
 import { TeacherModule } from "../module.js";
+
+// Music configs
+import * as config from './music.js';
 
 // Construct searcher for finding youtube videos
 const searcher = new YTSearcher({
@@ -20,12 +24,17 @@ export class MusicModule extends TeacherModule {
         return await super.resolveCommand(message.content, {
             precheck: () => this.isInVoiceChannel(message.channel, message.member.voice.channel),
             commands: {
+                // Search for a song and play it
                 'play': {
-                    '': async () => await this.play(message.channel),
-                    '$songName': async (songName) => await this.play(message.channel, songName),
+                    '': async () => await this.play(message.channel, message.author, 
+                            await this.searchSong(message.channel, message.author, '')
+                        ),
+                    '$songName': async (songName) => await this.play(message.channel, message.author, 
+                            await this.searchSong(message.channel, message.author, songName)
+                        ),
                 },
+                // Pause the current song
                 'pause': async () => await this.pause(message.channel),
-                'stop': async () => await this.stop(message.channel),
 
                 'skip': {
                     // Skip entire song
@@ -47,30 +56,19 @@ export class MusicModule extends TeacherModule {
         });
     }
 
-    async play(textChannel, songName) {
-        if (songName === undefined) {
-            TeacherClient.sendWarning(textChannel, {
-                message: 'You have not specified a song name'
-            });
-            return false;
+    async play(textChannel, user, searchResult) {
+        // `searchSong` yielded `null`, song hasn't been found
+        if (searchResult === null) {
+            return true;
         }
 
-        if (songName.length <= 3) {
-            TeacherClient.sendTip(textChannel, {
-                message: `The song name you've specified is very short; it may be difficult to narrow down the requested song.\n\n` +
-                         'Try writing a longer name.',
-            });
-        }
+        let songToPlay;
 
-        TeacherClient.sendEmbed(textChannel, {message: `Playing ${songName}...`});
+        console.log(searchResult);
     }
 
     async pause(textChannel) {
         TeacherClient.sendEmbed(textChannel, {message: 'Pausing...'});
-    }
-
-    async stop(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {message: 'Stopping...'});
     }
 
     async skipSong(textChannel) {
@@ -85,6 +83,99 @@ export class MusicModule extends TeacherModule {
         TeacherClient.sendEmbed(textChannel, {message: 'Displaying queue...'});
     }
 
+    /// Searches for a song, asks the user to pick the song and returns `YTSearch` or `undefined`
+    async searchSong(textChannel, user, songName) {
+        if (songName === undefined) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'You have not specified a song name'
+            });
+            return null;
+        }
+
+        if (songName.length <= 3) {
+            TeacherClient.sendTip(textChannel, {
+                message: `The song name you've specified is very short. It may be difficult to find the requested song`,
+            });
+        }
+
+        if (songName.length > 40) {
+            TeacherClient.sendError(textChannel, {
+                message: `That does not look like a song name`,
+            });
+            return null;
+        }
+        
+        if (songName.startsWith('https://') || songName.startsWith('http://')) {
+            TeacherClient.sendTip(textChannel, {
+                message: 'Playing from links is not supported. Please search a song by its name',
+            });
+            return null;
+        }
+
+        let searchResults;
+
+        try {
+            // Obtain search results
+            searchResults = (await searcher.search(songName)).currentPage.slice(0, config.default.maximumSearchResults);
+        } catch {
+            TeacherClient.sendError(textChannel, {
+                message: 'An error occurred while attempting to resolve the name of a song to its url.\n\n' +
+                         'Consider renewing the YouTube token',
+            });
+            return null;
+        }
+        
+        if (searchResults.length === 0) {
+            TeacherClient.sendTip(textChannel, {
+                message: 'No results found. Try refining your search',
+            });
+            return null;
+        } 
+
+        TeacherClient.sendEmbed(textChannel, {
+            // Generate fields
+            fields: {
+                name: 'Select a song below by writing its index',
+                value: Array.from(Array(searchResults.length), (_, i) => `${i + 1} ~ ${searchResults[i].title}`).join('\n\n'),
+            }
+        });
+
+        // Listen for a message containing an index from the user
+        let message = await textChannel.awaitMessages(
+            message => !isNaN(message) && message.author.id === user.id, 
+            { max: 1, time: config.default.queryTimeout * 1000 }
+        ).catch();
+
+        // Extract index from message content
+        let index = message?.first()?.content;
+
+        // If no message has been written
+        if (index === undefined) {
+            TeacherClient.sendEmbed(textChannel, {
+                message: 'You did not write an index',
+            });
+            return null;
+        }
+
+        // If the index is not a number
+        if (isNaN(index)) {
+            TeacherClient.sendEmbed(textChannel, {
+                message: 'Not a valid index',
+            });
+            return null;
+        }
+
+        // If the index is out of range
+        if (index <= 0 || index > searchResults.length) {
+            TeacherClient.sendEmbed(textChannel, {
+                message: 'Index is out of range',
+            });
+            return null;
+        }
+
+        return searchResults[index - 1];
+    }
+
     async removeFromQueue(textChannel, identifier) {
         TeacherClient.sendEmbed(textChannel, {message: `Removing ${identifier} from queue...`});
     }
@@ -96,43 +187,13 @@ export class MusicModule extends TeacherModule {
         }
 
         TeacherClient.sendWarning(textChannel, {
-            message: 'To play music, you must first join a voice channel',
+            message: 'To play music you must first join a voice channel',
         });
         return false;
     }
 }
 
 /*
-
-// Begins playing a song by adding it to queue ( and playing it )
-async function initialisePlaying(voice_channel, text_channel, song_name) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    if (await addToQueue(text_channel, song_name)) {
-        return;
-    }
-    
-    // If the queue isn't empty, do not play, it will play itself soon enough
-    if (song_queue.length == 1) {
-        try {
-            // If already in voice channel, do not join.
-            if (!voice_connection_channel) {
-                voice_connection_channel = await voice_channel.join();
-            }
-            playSong(text_channel, voice_connection_channel);
-        } catch (error) {
-            text_channel.send({
-                embed: {
-                    color: color,
-                    description: `An error has occurred while attempting to play: '${error}'`
-                }
-            });
-        }
-    }
-}
-
 // Adds a song to the queue after resolving
 async function addToQueue(text_channel, url) {
     if (url === '') {
