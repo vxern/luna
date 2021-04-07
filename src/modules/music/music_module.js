@@ -27,10 +27,10 @@ export class MusicModule extends TeacherModule {
                 // Search for a song and play it
                 'play': {
                     '': async () => await this.play(message.channel, message.author, 
-                            await this.searchSong(message.channel, message.author, '')
+                            await this.searchSong(message.channel, message.author),
                         ),
                     '$songName': async (songName) => await this.play(message.channel, message.author, 
-                            await this.searchSong(message.channel, message.author, songName)
+                            await this.searchSong(message.channel, message.author, songName),
                         ),
                 },
                 // Pause the current song
@@ -106,7 +106,7 @@ export class MusicModule extends TeacherModule {
         }
         
         if (songName.startsWith('https://') || songName.startsWith('http://')) {
-            TeacherClient.sendTip(textChannel, {
+            TeacherClient.sendWarning(textChannel, {
                 message: 'Playing from links is not supported. Please search a song by its name',
             });
             return null;
@@ -151,7 +151,7 @@ export class MusicModule extends TeacherModule {
 
         // If no message has been written
         if (index === undefined) {
-            TeacherClient.sendEmbed(textChannel, {
+            TeacherClient.sendWarning(textChannel, {
                 message: 'You did not write an index',
             });
             return null;
@@ -159,7 +159,7 @@ export class MusicModule extends TeacherModule {
 
         // If the index is not a number
         if (isNaN(index)) {
-            TeacherClient.sendEmbed(textChannel, {
+            TeacherClient.sendWarning(textChannel, {
                 message: 'Not a valid index',
             });
             return null;
@@ -167,7 +167,7 @@ export class MusicModule extends TeacherModule {
 
         // If the index is out of range
         if (index <= 0 || index > searchResults.length) {
-            TeacherClient.sendEmbed(textChannel, {
+            TeacherClient.sendWarning(textChannel, {
                 message: 'Index is out of range',
             });
             return null;
