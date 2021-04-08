@@ -1,4 +1,4 @@
-import 'ytdl-core';
+import ytdl from 'ytdl-core';
 import { YTSearcher } from 'ytsearcher';
 
 import { TeacherClient } from '../../teacher/teacher.js';
@@ -16,39 +16,42 @@ const searcher = new YTSearcher({
 export class MusicModule extends TeacherModule {
     constructor() {
         super();
-        this.songQueue = [];
-        this.voiceConnection = undefined;
+        this.textChannel = null;
+        this.voiceChannel = null;
+        this.connection = null;
+        this.dispatcher = null;
+
+        this.currentSong = null;
+        this.queue = [];
+
+        this.volume = 100;
+
+        this.isPlaying = true;
     }
 
     async handleMessage(message) {
         return await super.resolveCommand(message.content, {
             precheck: () => this.isInVoiceChannel(message.channel, message.member.voice.channel),
             commands: {
-                // Search for a song and play it
                 'play': {
-                    '': async () => await this.play(message.channel, message.author, 
-                            await this.searchSong(message.channel, message.author),
+                    '': async () => await this.play(message.channel, message.member, 
+                            await this.searchSong(message.channel, message.author, null),
                         ),
-                    '$songName': async (songName) => await this.play(message.channel, message.author, 
+                    '$songName': async (songName) => await this.play(message.channel, message.member, 
                             await this.searchSong(message.channel, message.author, songName),
                         ),
                 },
-                // Pause the current song
                 'pause': async () => await this.pause(message.channel),
 
                 'skip': {
-                    // Skip entire song
                     '': async () => await this.skipSong(message.channel),
-                    // Skip a specified time
                     '$time': async (time) => await this.skipTime(message.channel, time),
                 },
 
                 'queue': {
                     '': async () => await this.displayQueue(message.channel),
                     'remove': {
-                        // Remove last song from queue
-                        '': async () => await this.removeFromQueue(message.channel, Math.max(0, this.songQueue.length - 1)),
-                        // Remove song specified by user
+                        '': async () => await this.removeFromQueue(message.channel, Math.max(0, this.queue.length - 1)),
                         '$identifier': async (identifier) => await this.removeFromQueue(message.channel, identifier),
                     }
                 },
@@ -56,15 +59,55 @@ export class MusicModule extends TeacherModule {
         });
     }
 
-    async play(textChannel, user, searchResult) {
+    async play(textChannel, member, searchResult = undefined) {
         // `searchSong` yielded `null`, song hasn't been found
         if (searchResult === null) {
             return true;
         }
 
-        let songToPlay;
+        let song;
+        
+        // If the queue is moving up, set `song` to the next song in queue
+        // Otherwise, create a song from the searchResult
+        if (searchResult !== undefined) {
+            song = {
+                player: ytdl(searchResult.url, {
+                    filter: 'audioonly',
+                    quality: 'highestaudio',
+                }),
+                info: searchResult,
+            };
+        } else {
+            // There are no more songs to play, return
+            if (this.queue.length === 0) {
+                return true;
+            }
 
-        console.log(searchResult);
+            song = this.queue.shift();
+        }
+
+        // If there is a song playing, add to queue instead
+        if (this.currentSong) {
+            await this.addToQueue(textChannel, song);
+            return true;
+        }
+
+        this.currentSong = song;
+
+        await this.joinVoiceChannel(member);
+
+        this.dispatcher = await this.connection.play(
+            this.currentSong.player,
+        ).on('finish', async () => {
+            this.play(textChannel, member);
+        }).on('error', async () => {
+            TeacherClient.sendError(textChannel, {
+                message: `Could not stream song '${this.currentSong.info.title}'`
+            });
+            this.play(textChannel, member);
+        });
+
+        return true;
     }
 
     async pause(textChannel) {
@@ -176,8 +219,33 @@ export class MusicModule extends TeacherModule {
         return searchResults[index - 1];
     }
 
+    /// Adds a song to the queue
+    async addToQueue(textChannel, song) {
+        // There are enough songs in the queue already, do not add
+        if (this.queue.length >= this.config.maximumSongsInQueue) {
+            TeacherClient.sendWarning(textChannel, {
+                message: `There are ${this.queue.length} songs queued up already. Please wait until the next song plays`,
+            });
+            return;
+        }
+
+        this.queue.push(song);
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Added '${song.info.title}' to the queue [#${this.queue.length}].`,
+        });
+    }
+
     async removeFromQueue(textChannel, identifier) {
         TeacherClient.sendEmbed(textChannel, {message: `Removing ${identifier} from queue...`});
+    }
+
+    async joinVoiceChannel(member) {
+        // Set teacher's voice channel to the first user requesting to play music
+        this.voiceChannel = member.voice.channel;
+        // Join the voice channel the user is in
+        this.connection = await this.voiceChannel.join();
+        // Deafen teacher as there doesn't need to be extra traffic flowing through
+        await this.connection.voice.setSelfDeaf(true);
     }
 
     /// Check if the user is in 
