@@ -18,7 +18,7 @@ export class MusicModule extends TeacherModule {
         super();
         this.textChannel = null;
         this.voiceChannel = null;
-        this.connection = null;
+        this.voiceConnection = null;
         this.dispatcher = null;
 
         this.currentSong = null;
@@ -96,7 +96,7 @@ export class MusicModule extends TeacherModule {
 
         await this.joinVoiceChannel(member);
 
-        this.dispatcher = await this.connection.play(
+        this.dispatcher = await this.voiceConnection.play(
             this.currentSong.player,
         ).on('finish', async () => {
             this.play(textChannel, member);
@@ -107,19 +107,23 @@ export class MusicModule extends TeacherModule {
             this.play(textChannel, member);
         });
 
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Now playing '${this.currentSong.info.title}'...`
+        });
+
         return true;
     }
 
     async pause(textChannel) {
-        if (this.voiceConnection.paused) {
-            this.voiceConnection.resume();
+        if (this.dispatcher.paused) {
+            this.dispatcher.resume();
             TeacherClient.sendEmbed(textChannel, {
                 message: 'Resumed song',
             });
             return; 
         }
 
-        this.voiceConnection.pause();
+        this.dispatcher.pause();
         TeacherClient.sendEmbed(textChannel, {
             message: 'Paused song',
         });
@@ -131,8 +135,10 @@ export class MusicModule extends TeacherModule {
             message: `Skipping '${this.currentSong.info.title}'...`
         });
 
+        // Remove the current song
+        this.currentSong = null;
         // End the voice connection, which will trigger the 'error' event in `play`
-        this.voiceConnection.end();
+        this.dispatcher.end();
     }
 
     async skipTime(textChannel, time) {
@@ -260,9 +266,9 @@ export class MusicModule extends TeacherModule {
         // Set teacher's voice channel to the first user requesting to play music
         this.voiceChannel = member.voice.channel;
         // Join the voice channel the user is in
-        this.connection = await this.voiceChannel.join();
+        this.voiceConnection = await this.voiceChannel.join();
         // Deafen teacher as there doesn't need to be extra traffic flowing through
-        await this.connection.voice.setSelfDeaf(true);
+        await this.voiceConnection.voice.setSelfDeaf(true);
     }
 
     /// Check if the user is in 
