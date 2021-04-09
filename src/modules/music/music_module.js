@@ -35,7 +35,7 @@ export class MusicModule extends TeacherModule {
             commands: {
                 'play': {
                     '': async () => await this.play(message.channel, message.member, 
-                        await this.searchSong(message.channel, message.author, null),
+                        await this.searchSong(message.channel, message.author, undefined),
                     ),
                     '$songName': async (songName) => await this.play(message.channel, message.member, 
                         await this.searchSong(message.channel, message.author, songName),
@@ -116,6 +116,10 @@ export class MusicModule extends TeacherModule {
 
     async pause(textChannel) {
         if (this.dispatcher.paused) {
+            // TODO: Fix this disgusting hack
+            // https://github.com/discordjs/discord.js/issues/5300
+            this.dispatcher.resume();
+            this.dispatcher.pause();
             this.dispatcher.resume();
             TeacherClient.sendEmbed(textChannel, {
                 message: 'Resumed song',
