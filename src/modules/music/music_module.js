@@ -35,11 +35,11 @@ export class MusicModule extends TeacherModule {
             commands: {
                 'play': {
                     '': async () => await this.play(message.channel, message.member, 
-                            await this.searchSong(message.channel, message.author, null),
-                        ),
+                        await this.searchSong(message.channel, message.author, null),
+                    ),
                     '$songName': async (songName) => await this.play(message.channel, message.member, 
-                            await this.searchSong(message.channel, message.author, songName),
-                        ),
+                        await this.searchSong(message.channel, message.author, songName),
+                    ),
                 },
                 'pause': async () => await this.pause(message.channel),
 
@@ -111,11 +111,28 @@ export class MusicModule extends TeacherModule {
     }
 
     async pause(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {message: 'Pausing...'});
+        if (this.voiceConnection.paused) {
+            this.voiceConnection.resume();
+            TeacherClient.sendEmbed(textChannel, {
+                message: 'Resumed song',
+            });
+            return; 
+        }
+
+        this.voiceConnection.pause();
+        TeacherClient.sendEmbed(textChannel, {
+            message: 'Paused song',
+        });
+        return;
     }
 
     async skipSong(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {message: 'Skipping song...'});
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Skipping '${this.currentSong.info.title}'...`
+        });
+
+        // End the voice connection, which will trigger the 'error' event in `play`
+        this.voiceConnection.end();
     }
 
     async skipTime(textChannel, time) {
@@ -221,8 +238,8 @@ export class MusicModule extends TeacherModule {
 
     /// Adds a song to the queue
     async addToQueue(textChannel, song) {
-        // There are enough songs in the queue already, do not add
-        if (this.queue.length >= this.config.maximumSongsInQueue) {
+        // Do not add if there already are enough songs in the queue
+        if (this.queue.length >= config.default.maximumSongsInQueue) {
             TeacherClient.sendWarning(textChannel, {
                 message: `There are ${this.queue.length} songs queued up already. Please wait until the next song plays`,
             });
@@ -231,7 +248,7 @@ export class MusicModule extends TeacherModule {
 
         this.queue.push(song);
         TeacherClient.sendEmbed(textChannel, {
-            message: `Added '${song.info.title}' to the queue [#${this.queue.length}].`,
+            message: `Added '${song.info.title}' to the queue [#${this.queue.length}]`,
         });
     }
 
@@ -262,56 +279,6 @@ export class MusicModule extends TeacherModule {
 }
 
 /*
-// Adds a song to the queue after resolving
-async function addToQueue(text_channel, url) {
-    if (url === '') {
-        text_channel.send({
-            embed: {
-                color: color,
-                description: `You must specify the name of a song.`
-            }
-        });
-        return;
-    }
-
-    // For checking whether the link is a url or not
-    let check_url = url.toLowerCase();
-
-    // If the message is a link
-    if (!(check_url.includes('https://') ||
-        check_url.includes('youtube'))) {
-        let results = await url_searcher.search(url);
-        url = results.first.url;
-    }
-
-    // Fetch the necessary data
-    let song_player = ytdl(url, {filter: 'audioonly'});
-    let title = (await ytdl.getInfo(url)).videoDetails.title;
-
-    // If the same song exists already
-    if (song_queue.some((song) => song.title == title)) {
-        text_channel.send({
-            embed: {
-                color: color,
-                description: `**${title}** is already in the queue.`
-            }
-        });
-        return;
-    }
-
-    song_queue.push({
-        title: title,
-        song_player: song_player
-    });
-
-    text_channel.send({
-        embed: {
-            color: 0x00dd00,
-            description: `**${title}** added to queue [#${song_queue.length}]`
-        }
-    });
-}
-
 // Plays a song by accessing the queue
 async function playSong(text_channel, connection) {
     if (song_queue.length === 0) {
