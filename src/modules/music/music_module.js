@@ -35,10 +35,10 @@ export class MusicModule extends TeacherModule {
             commands: {
                 'play': {
                     '': async () => await this.play(message.channel, message.member, 
-                        await this.searchSong(message.channel, message.author, undefined),
+                        {searchResult: await this.searchSong(message.channel, message.author),}
                     ),
                     '$songName': async (songName) => await this.play(message.channel, message.member, 
-                        await this.searchSong(message.channel, message.author, songName),
+                        {searchResult: await this.searchSong(message.channel, message.author, songName),}
                     ),
                 },
                 'pause': async () => await this.pause(message.channel),
@@ -59,10 +59,15 @@ export class MusicModule extends TeacherModule {
         });
     }
 
-    async play(textChannel, member, searchResult = undefined) {
+    async play(textChannel, member, {searchResult = undefined, playNext = false}) {
         // `searchSong` yielded `null`, song hasn't been found
         if (searchResult === null) {
             return true;
+        }
+
+        // If we would like to play the next song, we first have to remove the current song
+        if (playNext === true) {
+            this.currentSong = null;
         }
 
         let song;
@@ -99,12 +104,12 @@ export class MusicModule extends TeacherModule {
         this.dispatcher = await this.voiceConnection.play(
             this.currentSong.player,
         ).on('finish', async () => {
-            this.play(textChannel, member);
+            this.play(textChannel, member, {playNext: true});
         }).on('error', async () => {
             TeacherClient.sendError(textChannel, {
                 message: `Could not stream song '${this.currentSong.info.title}'`
             });
-            this.play(textChannel, member);
+            this.play(textChannel, member, {playNext: true});
         });
 
         TeacherClient.sendEmbed(textChannel, {
@@ -114,6 +119,7 @@ export class MusicModule extends TeacherModule {
         return true;
     }
 
+    // Pauses or resumes song
     async pause(textChannel) {
         if (this.dispatcher.paused) {
             // TODO: Fix this disgusting hack
@@ -139,10 +145,14 @@ export class MusicModule extends TeacherModule {
             message: `Skipping '${this.currentSong.info.title}'...`
         });
 
-        // Remove the current song
-        this.currentSong = null;
         // End the voice connection, which will trigger the 'error' event in `play`
         this.dispatcher.end();
+
+        if (this.queue.length === 0) {
+            TeacherClient.sendEmbed(textChannel, {
+                message: `There are no more songs to play`
+            });
+        }
     }
 
     async skipTime(textChannel, time) {
