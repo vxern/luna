@@ -9,5 +9,4 @@ export default
     'accentColorTip': 0x8f9ef3,
     'accentColorWarning': 0xffff00,
     'accentColorError': 0xff0000,
-    'addFullStops': true, // Should full stops be added to the end of messages?
 }

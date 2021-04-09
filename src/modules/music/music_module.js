@@ -42,10 +42,17 @@ export class MusicModule extends TeacherModule {
                     ),
                 },
                 'pause': async () => await this.pause(message.channel),
-
-                'skip': {
-                    '': async () => await this.skipSong(message.channel),
-                    '$time': async (time) => await this.skipTime(message.channel, time),
+                'skip': async () => await this.skip(message.channel),
+                
+                'forward': {
+                    '$time': async (time) => await this.forward(message.channel,
+                        this.resolveTimeQuery(message.channel, time),
+                    ),
+                },
+                'rewind': {
+                    '$time': async (time) => await this.rewind(message.channel, 
+                        this.resolveTimeQuery(message.channel, time),
+                    ),
                 },
 
                 'queue': {
@@ -59,6 +66,7 @@ export class MusicModule extends TeacherModule {
         });
     }
 
+    /// Plays a song. If `playNext` is set to true, the next song will be played
     async play(textChannel, member, {searchResult = undefined, playNext = false}) {
         // `searchSong` yielded `null`, song hasn't been found
         if (searchResult === null) {
@@ -117,50 +125,6 @@ export class MusicModule extends TeacherModule {
         });
 
         return true;
-    }
-
-    // Pauses or resumes song
-    async pause(textChannel) {
-        if (this.dispatcher.paused) {
-            // TODO: Fix this disgusting hack
-            // https://github.com/discordjs/discord.js/issues/5300
-            this.dispatcher.resume();
-            this.dispatcher.pause();
-            this.dispatcher.resume();
-            TeacherClient.sendEmbed(textChannel, {
-                message: 'Resumed song',
-            });
-            return; 
-        }
-
-        this.dispatcher.pause();
-        TeacherClient.sendEmbed(textChannel, {
-            message: 'Paused song',
-        });
-        return;
-    }
-
-    async skipSong(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {
-            message: `Skipping '${this.currentSong.info.title}'...`
-        });
-
-        // End the voice connection, which will trigger the 'error' event in `play`
-        this.dispatcher.end();
-
-        if (this.queue.length === 0) {
-            TeacherClient.sendEmbed(textChannel, {
-                message: `There are no more songs to play`
-            });
-        }
-    }
-
-    async skipTime(textChannel, time) {
-        TeacherClient.sendEmbed(textChannel, {message: `Skipping ${time}...`});
-    }
-
-    async displayQueue(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {message: 'Displaying queue...'});
     }
 
     /// Searches for a song, asks the user to pick the song and returns `YTSearch` or `undefined`
@@ -256,7 +220,92 @@ export class MusicModule extends TeacherModule {
         return searchResults[index - 1];
     }
 
-    /// Adds a song to the queue
+    /// Pauses or resumes song
+    async pause(textChannel) {
+        if (this.dispatcher.paused) {
+            // TODO: Fix this disgusting hack
+            // https://github.com/discordjs/discord.js/issues/5300
+            this.dispatcher.resume();
+            this.dispatcher.pause();
+            this.dispatcher.resume();
+            TeacherClient.sendEmbed(textChannel, {
+                message: 'Resumed song',
+            });
+            return; 
+        }
+
+        this.dispatcher.pause();
+        TeacherClient.sendEmbed(textChannel, {
+            message: 'Paused song',
+        });
+        return;
+    }
+
+    /// Skips a song and plays the first one in the queue
+    async skip(textChannel) {
+        if (this.currentSong === null) {
+            TeacherClient.sendWarning(textChannel, {
+                message: `You cannot skip a song when there is no song being played`
+            });
+            return;
+        }
+
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Skipping '${this.currentSong.info.title}'...`
+        });
+
+        // End the voice connection, which will trigger the 'error' event in `play`
+        this.dispatcher.end();
+
+        if (this.queue.length === 0) {
+            TeacherClient.sendEmbed(textChannel, {
+                message: `There are no more songs to play`
+            });
+        }
+    }
+
+
+    /// Moves the song along by a specified time
+    async forward(textChannel, timeInSeconds) {
+        if (timeInSeconds === null) {
+            return;
+        }
+
+        if (this.currentSong === null) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Cannot fast forward song because there is no song playing',
+            });
+            return;
+        }
+
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Fast forwarding song by ${timeInSeconds} second/s`
+        });
+
+        console.log(this.dispatcher);
+
+        // Get the current offset in the song in seconds
+        let offset = Math.floor(this.dispatcher.streamTime / 1000);
+
+        this.voiceConnection.play(
+            this.currentSong.player, 
+            {seek: offset + timeInSeconds}
+        );
+    }
+
+    /// Moves the song back by a specified time
+    async rewind(textChannel, timeInSeconds) {
+        if (timeInSeconds === null) {
+            return;
+        }
+    }
+
+
+    /// Displays the upcoming songs
+    async displayQueue(textChannel) {
+        TeacherClient.sendEmbed(textChannel, {message: 'Displaying queue...'});
+    }
+
     async addToQueue(textChannel, song) {
         // Do not add if there already are enough songs in the queue
         if (this.queue.length >= config.default.maximumSongsInQueue) {
@@ -283,6 +332,57 @@ export class MusicModule extends TeacherModule {
         this.voiceConnection = await this.voiceChannel.join();
         // Deafen teacher as there doesn't need to be extra traffic flowing through
         await this.voiceConnection.voice.setSelfDeaf(true);
+    }
+
+    
+    /// Takes a string and returns the specified time in seconds
+    resolveTimeQuery(textChannel, timeToResolve) {
+        let totalSeconds = 0;
+
+        // Extract the digits present in the string
+        let integers = timeToResolve.match(/\d+/g);
+        // Extract the strings present in the string
+        let strings = timeToResolve.match(/[a-zA-Z]+/g);
+
+        // No arguments provided for the key and/or value
+        if (integers === null || strings === null) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'You have not provided a valid time specifier, as one of the required terms is missing',
+            });
+            return null;
+        }
+
+        // There aren't as many keys as there are values
+        if (integers.length !== strings.length) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'The number of keys and values does not match.',
+            });
+            return null;
+        }
+
+        for (let i = 0; i < integers.length; i++) {
+            // Convert string containing an integer to an integer
+            integers[i] = parseInt(integers[i]);
+
+            switch (strings[i]) {
+                case 's':
+                    totalSeconds += integers[i];
+                    continue;
+                case 'm':
+                    totalSeconds += integers[i] * 60;
+                    continue;
+                case 'h':
+                    totalSeconds += integers[i] * 60 * 60;
+                    continue;
+                default:
+                    TeacherClient.sendWarning(textChannel, {
+                        message: `'${strings[i]}' is not a valid key`,
+                    });
+                    return;
+            }
+        }
+
+        return totalSeconds;
     }
 
     /// Check if the user is in 

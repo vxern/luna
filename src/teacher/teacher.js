@@ -30,7 +30,7 @@ export class TeacherClient {
         Client.on('ready', () => {
             Client.user.setStatus(config.default.status);
 
-            console.log(`${config.default.prefix} is ready to serve with ${this.teacherModules.length} module/s.`);
+            console.log(`Teacher is ready to serve with ${this.teacherModules.length} module/s.`);
         });
 
         // Begin handling messages
@@ -90,10 +90,6 @@ export class TeacherClient {
         if (fields === undefined && message === undefined) {
             console.error('Refused to send embed: Neither fields nor a message have been supplied into the embed.');
             return;
-        }
-
-        if (message !== undefined && config.default.addFullStops) {
-            message = message + '.';
         }
         
         textChannel.send({embed: {
