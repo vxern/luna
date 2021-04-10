@@ -66,7 +66,7 @@ export class MusicModule extends TeacherModule {
     }
 
     /// Plays a song. If `playNext` is set to true, the next song will be played
-    async play(textChannel, member, {searchResult = undefined, playNext = false}) {
+    async play(textChannel, member, {searchResult = undefined, playNext = false} = {}) {
         // `searchSong` yielded `null`, song hasn't been found
         if (searchResult === null) {
             return true;
@@ -277,8 +277,12 @@ export class MusicModule extends TeacherModule {
             return;
         }
 
-        // Get the current offset in the song in seconds
-        let offset = Math.floor(this.currentSong.offset + this.voiceConnection.dispatcher.streamTime / 1000)
+        // Get the current offset in the song in seconds and add it to the existing offset
+        this.currentSong.offset = Math.floor(this.currentSong.offset + this.voiceConnection.dispatcher.streamTime / 1000 + timeInSeconds);
+
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Fast forwarding song by ${timeInSeconds} seconds`,
+        });
 
         this.play(textChannel, member);
     }
@@ -288,6 +292,31 @@ export class MusicModule extends TeacherModule {
         if (timeInSeconds === null) {
             return;
         }
+
+        if (this.currentSong === null) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Cannot rewind song because there is no song playing',
+            });
+            return;
+        }
+
+        // Get the current offset in the song in seconds and add it to the existing offset
+        this.currentSong.offset = Math.max(
+            0, // The offset must not fall below 0
+            Math.floor(this.currentSong.offset + this.voiceConnection.dispatcher.streamTime / 1000 - timeInSeconds),
+        );
+
+        if (this.currentSong.offset === 0) {
+            TeacherClient.sendEmbed(textChannel, {
+                message: 'Rewinding song to the beginning',
+            });
+        } else {
+            TeacherClient.sendEmbed(textChannel, {
+                message: `Rewinding song by ${timeInSeconds} second/s`,
+            });
+        }
+
+        this.play(textChannel, member);
     }
 
 
