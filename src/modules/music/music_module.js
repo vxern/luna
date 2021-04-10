@@ -19,7 +19,6 @@ export class MusicModule extends TeacherModule {
         this.textChannel = null;
         this.voiceChannel = null;
         this.voiceConnection = null;
-        this.dispatcher = null;
 
         this.currentSong = null;
         this.queue = [];
@@ -45,12 +44,12 @@ export class MusicModule extends TeacherModule {
                 'skip': async () => await this.skip(message.channel),
                 
                 'forward': {
-                    '$time': async (time) => await this.forward(message.channel,
+                    '$time': async (time) => await this.forward(message.channel, message.member,
                         this.resolveTimeQuery(message.channel, time),
                     ),
                 },
                 'rewind': {
-                    '$time': async (time) => await this.rewind(message.channel, 
+                    '$time': async (time) => await this.rewind(message.channel, message.member,
                         this.resolveTimeQuery(message.channel, time),
                     ),
                 },
@@ -72,56 +71,56 @@ export class MusicModule extends TeacherModule {
         if (searchResult === null) {
             return true;
         }
-
-        // If we would like to play the next song, we first have to remove the current song
-        if (playNext === true) {
-            this.currentSong = null;
-        }
-
-        let song;
         
         // If the queue is moving up, set `song` to the next song in queue
         // Otherwise, create a song from the searchResult
         if (searchResult !== undefined) {
-            song = {
-                player: ytdl(searchResult.url, {
-                    filter: 'audioonly',
-                    quality: 'highestaudio',
-                }),
-                info: searchResult,
-            };
-        } else {
-            // There are no more songs to play, return
-            if (this.queue.length === 0) {
+            let song = searchResult;
+            song.offset = 0;
+
+            // If there is a song playing, add to queue instead
+            if (this.currentSong) {
+                await this.addToQueue(textChannel, song);
                 return true;
             }
 
-            song = this.queue.shift();
-        }
+            this.currentSong = song;
+        } 
 
-        // If there is a song playing, add to queue instead
-        if (this.currentSong) {
-            await this.addToQueue(textChannel, song);
-            return true;
-        }
+        if (playNext) {
+            // There are no more songs to play, return
+            if (this.queue.length === 0) {
+                TeacherClient.sendEmbed(textChannel, {
+                    message: `There are no more songs to play`
+                });
+                return true;
+            }
 
-        this.currentSong = song;
+            this.currentSong = this.queue.shift();
+        }
 
         await this.joinVoiceChannel(member);
+        
+        this.voiceConnection.dispatcher?.removeAllListeners();
 
-        this.dispatcher = await this.voiceConnection.play(
-            this.currentSong.player,
+        this.voiceConnection.play(
+            ytdl(this.currentSong.url, {
+                filter: 'audioonly',
+                quality: 'highestaudio',
+            }),
+            { seek: this.currentSong.offset },
         ).on('finish', async () => {
             this.play(textChannel, member, {playNext: true});
         }).on('error', async () => {
             TeacherClient.sendError(textChannel, {
-                message: `Could not stream song '${this.currentSong.info.title}'`
+                message: `Could not stream song '${this.currentSong.title}'`
             });
+            
             this.play(textChannel, member, {playNext: true});
         });
 
         TeacherClient.sendEmbed(textChannel, {
-            message: `Now playing '${this.currentSong.info.title}'...`
+            message: `Now playing '${this.currentSong.title}'...`
         });
 
         return true;
@@ -222,19 +221,19 @@ export class MusicModule extends TeacherModule {
 
     /// Pauses or resumes song
     async pause(textChannel) {
-        if (this.dispatcher.paused) {
+        if (this.voiceConnection.dispatcher.paused) {
             // TODO: Fix this disgusting hack
             // https://github.com/discordjs/discord.js/issues/5300
-            this.dispatcher.resume();
-            this.dispatcher.pause();
-            this.dispatcher.resume();
+            this.voiceConnection.dispatcher.resume();
+            this.voiceConnection.dispatcher.pause();
+            this.voiceConnection.dispatcher.resume();
             TeacherClient.sendEmbed(textChannel, {
                 message: 'Resumed song',
             });
             return; 
         }
 
-        this.dispatcher.pause();
+        this.voiceConnection.dispatcher.pause();
         TeacherClient.sendEmbed(textChannel, {
             message: 'Paused song',
         });
@@ -251,11 +250,11 @@ export class MusicModule extends TeacherModule {
         }
 
         TeacherClient.sendEmbed(textChannel, {
-            message: `Skipping '${this.currentSong.info.title}'...`
+            message: `Skipping '${this.currentSong.title}'...`
         });
 
         // End the voice connection, which will trigger the 'error' event in `play`
-        this.dispatcher.end();
+        this.voiceConnection.dispatcher?.end();
 
         if (this.queue.length === 0) {
             TeacherClient.sendEmbed(textChannel, {
@@ -266,7 +265,7 @@ export class MusicModule extends TeacherModule {
 
 
     /// Moves the song along by a specified time
-    async forward(textChannel, timeInSeconds) {
+    async forward(textChannel, member, timeInSeconds) {
         if (timeInSeconds === null) {
             return;
         }
@@ -278,23 +277,14 @@ export class MusicModule extends TeacherModule {
             return;
         }
 
-        TeacherClient.sendEmbed(textChannel, {
-            message: `Fast forwarding song by ${timeInSeconds} second/s`
-        });
-
-        console.log(this.dispatcher);
-
         // Get the current offset in the song in seconds
-        let offset = Math.floor(this.dispatcher.streamTime / 1000);
+        let offset = Math.floor(this.currentSong.offset + this.voiceConnection.dispatcher.streamTime / 1000)
 
-        this.voiceConnection.play(
-            this.currentSong.player, 
-            {seek: offset + timeInSeconds}
-        );
+        this.play(textChannel, member);
     }
 
     /// Moves the song back by a specified time
-    async rewind(textChannel, timeInSeconds) {
+    async rewind(textChannel, member, timeInSeconds) {
         if (timeInSeconds === null) {
             return;
         }
@@ -317,7 +307,7 @@ export class MusicModule extends TeacherModule {
 
         this.queue.push(song);
         TeacherClient.sendEmbed(textChannel, {
-            message: `Added '${song.info.title}' to the queue [#${this.queue.length}]`,
+            message: `Added '${song.title}' to the queue [#${this.queue.length}]`,
         });
     }
 
