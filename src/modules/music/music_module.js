@@ -85,10 +85,6 @@ export class MusicModule extends TeacherModule {
             }
 
             this.currentSong = song;
-
-            TeacherClient.sendEmbed(textChannel, {
-                message: `Now playing '${this.currentSong.title}'...`
-            });
         } 
 
         if (playNext) {
@@ -100,9 +96,11 @@ export class MusicModule extends TeacherModule {
             this.currentSong = this.queue.shift();
         }
 
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Now playing '${this.currentSong.title}'...`
+        });
+
         await this.joinVoiceChannel(member);
-        
-        this.voiceConnection.dispatcher?.removeAllListeners();
 
         this.voiceConnection.play(
             ytdl(this.currentSong.url, {
