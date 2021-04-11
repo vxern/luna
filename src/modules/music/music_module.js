@@ -87,12 +87,16 @@ export class MusicModule extends TeacherModule {
             this.currentSong = song;
         } 
 
+        // If the `play` function has been called with a `playNext` flag set to true,
+        // we must erase the current playing song
         if (playNext) {
+            this.currentSong = null;
+            
             // There are no more songs to play, return
             if (this.queue.length === 0) {
                 return true;
             }
-
+            
             this.currentSong = this.queue.shift();
         }
 
