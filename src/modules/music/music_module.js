@@ -85,14 +85,15 @@ export class MusicModule extends TeacherModule {
             }
 
             this.currentSong = song;
+
+            TeacherClient.sendEmbed(textChannel, {
+                message: `Now playing '${this.currentSong.title}'...`
+            });
         } 
 
         if (playNext) {
             // There are no more songs to play, return
             if (this.queue.length === 0) {
-                TeacherClient.sendEmbed(textChannel, {
-                    message: `There are no more songs to play`
-                });
                 return true;
             }
 
@@ -117,10 +118,6 @@ export class MusicModule extends TeacherModule {
             });
             
             this.play(textChannel, member, {playNext: true});
-        });
-
-        TeacherClient.sendEmbed(textChannel, {
-            message: `Now playing '${this.currentSong.title}'...`
         });
 
         return true;
