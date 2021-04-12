@@ -1,5 +1,6 @@
 import ytdl from 'ytdl-core';
 import { YTSearcher } from 'ytsearcher';
+import { areSimilar } from '../../language.js';
 
 import { TeacherClient } from '../../teacher/teacher.js';
 import { TeacherModule } from "../module.js";
@@ -127,27 +128,7 @@ export class MusicModule extends TeacherModule {
         // Extract index from message content
         let index = message?.first()?.content;
 
-        // If no message has been written
-        if (index === undefined) {
-            TeacherClient.sendWarning(textChannel, {
-                message: 'You did not write an index.',
-            });
-            return null;
-        }
-
-        // If the index is not a number
-        if (isNaN(index)) {
-            TeacherClient.sendWarning(textChannel, {
-                message: 'Not a valid index.',
-            });
-            return null;
-        }
-
-        // If the index is out of range
-        if (index <= 0 || index > searchResults.length) {
-            TeacherClient.sendWarning(textChannel, {
-                message: 'Index is out of range.',
-            });
+        if (!this.validateIndex(textChannel, index, searchResults)) {
             return null;
         }
 
@@ -342,7 +323,7 @@ export class MusicModule extends TeacherModule {
                     // Show at most `maximumSearchResults` songs
                     Array(Math.min(config.default.maximumSearchResults, this.queue.length)), 
                     (_, i) => `${i + 1} ~ ${this.queue[i].title}`
-                ).join('\n\n'),
+                ).join('\n'),
             });
         }
 
@@ -375,12 +356,35 @@ export class MusicModule extends TeacherModule {
             });
             return;
         }
-        
-        if (isNaN(identifier)) {
 
+        let song;
+
+        if (!isNaN(identifier)) {
+            if (!this.validateIndex(textChannel, identifier, this.queue)) {
+                return;
+            }
+
+            song = this.queue.splice(identifier - 1, 1)[0];
+        } else {
+            let index = this.queue.find(
+                (song) => song.title.split(' ').some(
+                    (term) => areSimilar(term, identifier)
+                )
+            );
+
+            if (index === undefined) {
+                TeacherClient.sendEmbed(textChannel, {
+                    message: 'Could not find a song with a title that matches the search terms provided.'
+                });
+                return;
+            }
+
+            song = this.queue.splice(index - 1, 1)[0];
         }
 
-        TeacherClient.sendEmbed(textChannel, {message: `Removing ${identifier} from queue...`});
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Removed '${song.title}' from queue.`,
+        });
     }
 
 
@@ -459,6 +463,34 @@ export class MusicModule extends TeacherModule {
         if (this.currentSong === null) {
             TeacherClient.sendWarning(textChannel, {
                 message: 'There is no song playing'
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    validateIndex(textChannel, index, array) {
+        // If no message has been written
+        if (index === undefined) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'You did not write an index.',
+            });
+            return false;
+        }
+
+        // If the index is not a number
+        if (isNaN(index)) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Not a valid index.',
+            });
+            return false;
+        }
+
+        // If the index is out of range
+        if (index <= 0 || index > array.length) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Index is out of range.',
             });
             return false;
         }
