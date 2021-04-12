@@ -61,76 +61,6 @@ export class MusicModule extends TeacherModule {
         });
     }
 
-    /// Plays a song. If `playNext` is set to true, the next song will be played
-    async play(textChannel, member, {searchResult = undefined, playNext = false} = {}) {
-        // `searchSong` yielded `null`, song hasn't been found
-        if (searchResult === null) {
-            return true;
-        }
-        
-        // If the queue is moving up, set `song` to the next song in queue
-        // Otherwise, create a song from the searchResult
-        if (searchResult !== undefined) {
-            let song = searchResult;
-            song.offset = 0;
-
-            // If there is a song playing, add to queue instead
-            if (this.currentSong) {
-                await this.addToQueue(textChannel, song);
-                return true;
-            }
-
-            this.currentSong = song;
-        } 
-
-        // If the `play` function has been called with a `playNext` flag set to true,
-        // we must erase the current playing song
-        if (playNext) {
-            this.currentSong = null;
-            
-            // There are no more songs to play, return
-            if (this.queue.length === 0) {
-                return true;
-            }
-            
-            this.currentSong = this.queue.shift();
-        }
-
-        TeacherClient.sendEmbed(textChannel, {
-            message: `Now playing '${this.currentSong.title}'...`
-        });
-
-        await this.joinVoiceChannel(member);
-
-        this.voiceConnection.play(
-            ytdl(this.currentSong.url, {
-                filter: 'audioonly',
-                quality: 'highestaudio',
-            }),
-            { seek: this.currentSong.offset },
-        ).on('finish', async () => {
-            this.play(textChannel, member, {playNext: true});
-        }).on('error', async () => {
-            TeacherClient.sendError(textChannel, {
-                message: `Could not stream song '${this.currentSong.title}'.`
-            });
-            
-            this.play(textChannel, member, {playNext: true});
-        });
-
-        return true;
-    }
-
-    /// Replays a song by moving the offset to 0
-    async replay(textChannel, member) {
-        if (!this.isPlaying()) {
-            return;
-        }
-
-        this.currentSong.offset = 0;
-        this.play(textChannel, member);
-    }
-
     /// Searches for a song, asks the user to pick the song and returns `YTSearch` or `undefined`
     async searchSong(textChannel, user, songName) {
         if (songName === undefined) {
@@ -224,9 +154,79 @@ export class MusicModule extends TeacherModule {
         return searchResults[index - 1];
     }
 
+    /// Plays a song. If `playNext` is set to true, the next song will be played
+    async play(textChannel, member, {searchResult = undefined, playNext = false} = {}) {
+        // `searchSong` yielded `null`, song hasn't been found
+        if (searchResult === null) {
+            return true;
+        }
+        
+        // If the queue is moving up, set `song` to the next song in queue
+        // Otherwise, create a song from the searchResult
+        if (searchResult !== undefined) {
+            let song = searchResult;
+            song.offset = 0;
+
+            // If there is a song playing, add to queue instead
+            if (this.currentSong) {
+                await this.addToQueue(textChannel, song);
+                return true;
+            }
+
+            this.currentSong = song;
+        } 
+
+        // If the `play` function has been called with a `playNext` flag set to true,
+        // we must erase the current playing song
+        if (playNext) {
+            this.currentSong = null;
+            
+            // There are no more songs to play, return
+            if (this.queue.length === 0) {
+                return true;
+            }
+            
+            this.currentSong = this.queue.shift();
+        }
+
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Now playing '${this.currentSong.title}'...`
+        });
+
+        await this.joinVoiceChannel(member);
+
+        this.voiceConnection.play(
+            ytdl(this.currentSong.url, {
+                filter: 'audioonly',
+                quality: 'highestaudio',
+            }),
+            { seek: this.currentSong.offset },
+        ).on('finish', async () => {
+            this.play(textChannel, member, {playNext: true});
+        }).on('error', async () => {
+            TeacherClient.sendError(textChannel, {
+                message: `Could not stream song '${this.currentSong.title}'.`
+            });
+            
+            this.play(textChannel, member, {playNext: true});
+        });
+
+        return true;
+    }
+
+    /// Replays a song by moving the offset to 0
+    async replay(textChannel, member) {
+        if (!this.isPlaying(textChannel)) {
+            return;
+        }
+
+        this.currentSong.offset = 0;
+        this.play(textChannel, member);
+    }
+
     /// Pauses or resumes song
     async pause(textChannel) {
-        if (!this.isPlaying()) {
+        if (!this.isPlaying(textChannel)) {
             return;
         }
 
@@ -251,7 +251,7 @@ export class MusicModule extends TeacherModule {
 
     /// Skips a song and plays the first one in the queue
     async skip(textChannel) {
-        if (!this.isPlaying()) {
+        if (!this.isPlaying(textChannel)) {
             return;
         }
 
