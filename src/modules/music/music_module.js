@@ -24,8 +24,6 @@ export class MusicModule extends TeacherModule {
         this.queue = [];
 
         this.volume = 100;
-
-        this.isPlaying = true;
     }
 
     async handleMessage(message) {
@@ -40,8 +38,12 @@ export class MusicModule extends TeacherModule {
                         {searchResult: await this.searchSong(message.channel, message.author, songName),}
                     ),
                 },
+                'replay': async () => await this.replay(message.channel, message.member),
                 'pause': async () => await this.pause(message.channel),
                 'skip': async () => await this.skip(message.channel),
+                'remove': {
+                    '$identifier': async (identifier) => await this.removeFromQueue(message.channel, identifier),
+                },
                 
                 'forward': {
                     '$time': async (time) => await this.forward(message.channel, message.member,
@@ -54,13 +56,7 @@ export class MusicModule extends TeacherModule {
                     ),
                 },
 
-                'queue': {
-                    '': async () => await this.displayQueue(message.channel),
-                    'remove': {
-                        '': async () => await this.removeFromQueue(message.channel, Math.max(0, this.queue.length - 1)),
-                        '$identifier': async (identifier) => await this.removeFromQueue(message.channel, identifier),
-                    }
-                },
+                'queue': async () => await this.displayQueue(message.channel),
             }
         });
     }
@@ -116,7 +112,7 @@ export class MusicModule extends TeacherModule {
             this.play(textChannel, member, {playNext: true});
         }).on('error', async () => {
             TeacherClient.sendError(textChannel, {
-                message: `Could not stream song '${this.currentSong.title}'`
+                message: `Could not stream song '${this.currentSong.title}'.`
             });
             
             this.play(textChannel, member, {playNext: true});
@@ -125,31 +121,41 @@ export class MusicModule extends TeacherModule {
         return true;
     }
 
+    /// Replays a song by moving the offset to 0
+    async replay(textChannel, member) {
+        if (!this.isPlaying()) {
+            return;
+        }
+
+        this.currentSong.offset = 0;
+        this.play(textChannel, member);
+    }
+
     /// Searches for a song, asks the user to pick the song and returns `YTSearch` or `undefined`
     async searchSong(textChannel, user, songName) {
         if (songName === undefined) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'You have not specified a song name'
+                message: 'You have not specified a song name.'
             });
             return null;
         }
 
         if (songName.length <= 3) {
             TeacherClient.sendTip(textChannel, {
-                message: `The song name you've specified is very short. It may be difficult to find the requested song`,
+                message: `The song name you've specified is very short. It may be difficult to find the requested song.`,
             });
         }
 
         if (songName.length > 40) {
             TeacherClient.sendError(textChannel, {
-                message: `That does not look like a song name`,
+                message: `That does not look like a song name.`,
             });
             return null;
         }
         
         if (songName.startsWith('https://') || songName.startsWith('http://')) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'Playing from links is not supported. Please search a song by its name',
+                message: 'Playing from links is not supported. Please search a song by its .',
             });
             return null;
         }
@@ -162,14 +168,14 @@ export class MusicModule extends TeacherModule {
         } catch {
             TeacherClient.sendError(textChannel, {
                 message: 'An error occurred while attempting to resolve the name of a song to its url.\n\n' +
-                         'Consider renewing the YouTube token',
+                         'Consider renewing the YouTube token.',
             });
             return null;
         }
         
         if (searchResults.length === 0) {
             TeacherClient.sendTip(textChannel, {
-                message: 'No results found. Try refining your search',
+                message: 'No results found. Try refining your search.',
             });
             return null;
         } 
@@ -177,7 +183,7 @@ export class MusicModule extends TeacherModule {
         TeacherClient.sendEmbed(textChannel, {
             // Generate fields
             fields: {
-                name: 'Select a song below by writing its index',
+                name: 'Select a song below by writing its index.',
                 value: Array.from(Array(searchResults.length), (_, i) => `${i + 1} ~ ${searchResults[i].title}`).join('\n\n'),
             }
         });
@@ -194,7 +200,7 @@ export class MusicModule extends TeacherModule {
         // If no message has been written
         if (index === undefined) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'You did not write an index',
+                message: 'You did not write an index.',
             });
             return null;
         }
@@ -202,7 +208,7 @@ export class MusicModule extends TeacherModule {
         // If the index is not a number
         if (isNaN(index)) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'Not a valid index',
+                message: 'Not a valid index.',
             });
             return null;
         }
@@ -210,7 +216,7 @@ export class MusicModule extends TeacherModule {
         // If the index is out of range
         if (index <= 0 || index > searchResults.length) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'Index is out of range',
+                message: 'Index is out of range.',
             });
             return null;
         }
@@ -220,6 +226,10 @@ export class MusicModule extends TeacherModule {
 
     /// Pauses or resumes song
     async pause(textChannel) {
+        if (!this.isPlaying()) {
+            return;
+        }
+
         if (this.voiceConnection.dispatcher.paused) {
             // TODO: Fix this disgusting hack
             // https://github.com/discordjs/discord.js/issues/5300
@@ -234,17 +244,14 @@ export class MusicModule extends TeacherModule {
 
         this.voiceConnection.dispatcher.pause();
         TeacherClient.sendEmbed(textChannel, {
-            message: 'Paused song',
+            message: 'Paused song.',
         });
         return;
     }
 
     /// Skips a song and plays the first one in the queue
     async skip(textChannel) {
-        if (this.currentSong === null) {
-            TeacherClient.sendWarning(textChannel, {
-                message: `You cannot skip a song when there is no song being played`
-            });
+        if (!this.isPlaying()) {
             return;
         }
 
@@ -257,7 +264,7 @@ export class MusicModule extends TeacherModule {
 
         if (this.queue.length === 0) {
             TeacherClient.sendEmbed(textChannel, {
-                message: `There are no more songs to play`
+                message: 'There are no more songs to play.'
             });
         }
     }
@@ -271,7 +278,7 @@ export class MusicModule extends TeacherModule {
 
         if (this.currentSong === null) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'Cannot fast forward song because there is no song playing',
+                message: 'Cannot fast forward song because there is no song playing.',
             });
             return;
         }
@@ -280,7 +287,7 @@ export class MusicModule extends TeacherModule {
         this.currentSong.offset = Math.floor(this.currentSong.offset + this.voiceConnection.dispatcher.streamTime / 1000 + timeInSeconds);
 
         TeacherClient.sendEmbed(textChannel, {
-            message: `Fast forwarding song by ${timeInSeconds} seconds`,
+            message: `Fast-forwarding song by ${timeInSeconds} seconds...`,
         });
 
         this.play(textChannel, member);
@@ -294,7 +301,7 @@ export class MusicModule extends TeacherModule {
 
         if (this.currentSong === null) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'Cannot rewind song because there is no song playing',
+                message: 'Cannot rewind song because there is no song playing.',
             });
             return;
         }
@@ -307,11 +314,11 @@ export class MusicModule extends TeacherModule {
 
         if (this.currentSong.offset === 0) {
             TeacherClient.sendEmbed(textChannel, {
-                message: 'Rewinding to the beginning',
+                message: 'Rewinding to the beginning...',
             });
         } else {
             TeacherClient.sendEmbed(textChannel, {
-                message: `Rewinding song by ${timeInSeconds} second/s`,
+                message: `Rewinding song by ${timeInSeconds} second/s...`,
             });
         }
 
@@ -348,20 +355,34 @@ export class MusicModule extends TeacherModule {
         // Do not add if there already are enough songs in the queue
         if (this.queue.length >= config.default.maximumSongsInQueue) {
             TeacherClient.sendWarning(textChannel, {
-                message: `There are ${this.queue.length} songs queued up already. Please wait until the next song plays`,
+                message: `There are ${this.queue.length} songs queued up already. Please wait until the next song plays.`,
             });
             return;
         }
 
+        // Add the song to the queue
         this.queue.push(song);
+
         TeacherClient.sendEmbed(textChannel, {
-            message: `Added '${song.title}' to the queue [#${this.queue.length}]`,
+            message: `Added '${song.title}' to the queue. [#${this.queue.length}]`,
         });
     }
 
     async removeFromQueue(textChannel, identifier) {
+        if (this.queue.length === 0) {
+            TeacherClient.sendWarning(textChannel, {
+                message: `There are no songs in the queue.`,
+            });
+            return;
+        }
+        
+        if (isNaN(identifier)) {
+
+        }
+
         TeacherClient.sendEmbed(textChannel, {message: `Removing ${identifier} from queue...`});
     }
+
 
     async joinVoiceChannel(member) {
         // Set teacher's voice channel to the first user requesting to play music
@@ -369,7 +390,7 @@ export class MusicModule extends TeacherModule {
         // Join the voice channel the user is in
         this.voiceConnection = await this.voiceChannel.join();
         // Deafen teacher as there doesn't need to be extra traffic flowing through
-        await this.voiceConnection.voice.setSelfDeaf(true);
+        await this.voiceConnection?.voice?.setSelfDeaf(true);
     }
 
     
@@ -414,244 +435,34 @@ export class MusicModule extends TeacherModule {
                     continue;
                 default:
                     TeacherClient.sendWarning(textChannel, {
-                        message: `'${strings[i]}' is not a valid key`,
+                        message: `'${strings[i]}' is not a valid key.`,
                     });
-                    return;
+                    return null;
             }
         }
 
         return totalSeconds;
     }
 
-    /// Check if the user is in 
     isInVoiceChannel(textChannel, voiceChannel) {
-        if (voiceChannel) {
-            return true;
-        }
-
-        TeacherClient.sendWarning(textChannel, {
-            message: 'To play music you must first join a voice channel',
-        });
-        return false;
-    }
-}
-
-/*
-// Plays a song by accessing the queue
-async function playSong(text_channel, connection) {
-    if (song_queue.length === 0) {
-        return;
-    }
-
-    let current_song = song_queue[0];
-    
-    // Begin playing in channel
-    voice_connection = connection.play(current_song.song_player);
-    voice_connection.on('finish', () => {
-            // Remove the song that was just played
-            song_queue.shift();
-            // Proceed to next song
-            playSong(text_channel, connection);
-        });
-    voice_connection.on('error', error => {
-        if (error == 'Error: Video unavailable') {
-            text_channel.send({
-                embed: {
-                    color: color,
-                    description: `Song unavailable, skipping...`
-                }
+        if (!voiceChannel) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'To use the music module you must first join a voice channel.',
             });
-            // Remove the song that was just played
-            song_queue.shift();
-            // Proceed to next song
-            playSong(text_channel, connection);
+            return false;
         }
-    });
-    voice_connection.setVolumeLogarithmic(1);
-    text_channel.send({
-        embed: {
-            color: color,
-            description: `Now playing **${current_song.title}** [#${song_queue.length}]`
+
+        return true;
+    }
+
+    isPlaying(textChannel) {
+        if (this.currentSong === null) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'There is no song playing'
+            });
+            return false;
         }
-    });
 
-}
-
-// Skips a song by ending the current one
-async function skipSong(voice_channel, text_channel) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    // Ends playing which triggers 'finish' which we're awaiting in 'play_song'
-    voice_connection.end();
-
-    text_channel.send({
-        embed: {
-            color: color,
-            description: `Skipping **${song_queue[0].title}** [#${song_queue.length}]`
-        }
-    });
-}
-
-// Pauses a song
-async function pauseSong(voice_channel, text_channel) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    if (voice_connection.paused) {
-        voice_connection.resume();
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'Song resumed.'
-            }
-        });
-    } else {
-        voice_connection.pause();
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'Song paused.'
-            }
-        });
+        return true;
     }
 }
-
-// Clears song queue and leaves
-async function stopPlaying(voice_channel, text_channel) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    // Resets queue and stops playing
-    song_queue = [];
-    voice_connection.end();
-    voice_connection_channel = null;
-    // Leaves channel
-    voice_channel.leave();
-
-    text_channel.send({
-        embed: {
-            color: color,
-            description: `Goodbye!`
-        }
-    });
-}
-
-// Displays the queue
-async function displayQueue(voice_channel, text_channel) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    let titles = song_queue.map((song) => song.title);
-    titles.shift();
-
-    text_channel.send({
-        embed: {
-            color: color,
-            fields: [
-                (
-                    titles.length == 0 ?
-                    {
-                        name: 'No upcoming songs',
-                        value: 'The queue is empty'
-                    } :
-                    {
-                        name: 'Upcoming songs...',
-                        value: `${titles.join(`\n`)}`
-                    }
-                )
-            ]
-        }
-    });
-}
-
-// Start playing the current song again
-async function replaySong(voice_channel, text_channel) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    if (song_queue.length == 0) {
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'There is no song to replay.'
-            }
-        });
-        return;
-    }
-    // Readd the current song
-    song_queue.unshift(song_queue[0]);
-    playSong(text_channel, voice_connection);
-    text_channel.send({
-        embed: {
-            color: color,
-            description: 'Replaying current song!'
-        }
-    });
-}
-    
-// Removes song at specified index
-async function removeSong(voice_channel, text_channel, index_to_remove) {
-    if (!checkVoiceChannel(voice_channel, text_channel)) {
-        return;
-    }
-
-    // If the index is not a number
-    if (isNaN(index_to_remove)) {
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'Your index must be a number.'
-            }
-        });
-    // If index outside of bounds
-    } else if (index_to_remove > song_queue.length || index_to_remove < 2) {
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'Your index is either too high or too low. Please check the index of the song requested.'
-            }
-        });
-    } else {
-        // Removes the song with the index
-        song_queue.splice(index_to_remove - 1);
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'Removed song.'
-            }
-        });
-    }
-}
-
-// Check if the user is in a voice channel
-function checkVoiceChannel(voice_channel, text_channel) {
-    if (!voice_channel) {
-        text_channel.send({
-            embed: {
-                color: color,
-                description: 'You must be in a voice channel in order to play music.'
-            }
-        });
-        return false;
-    }
-    return true;
-}
-
-module.exports = { 
-    initialisePlaying, 
-    addToQueue, 
-    playSong, 
-    skipSong, 
-    pauseSong, 
-    replaySong,
-    stopPlaying, 
-    displayQueue, 
-    removeSong,
-}
-*/
