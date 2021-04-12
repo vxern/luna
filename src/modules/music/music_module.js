@@ -367,7 +367,7 @@ export class MusicModule extends TeacherModule {
             song = this.queue.splice(identifier - 1, 1)[0];
         } else {
             let index = this.queue.find(
-                (song) => song.title.split(' ').some(
+                (song) => song.title.toLowerCase().includes(identifier) || song.title.split(' ').some(
                     (term) => areSimilar(term, identifier)
                 )
             );
