@@ -63,7 +63,7 @@ export class RolesModule extends TeacherModule {
             
             if (roles.default.regions.includes(targetRole)) {
                 if (this.userHasEnoughRegions(user)) {
-                    TeacherClient.sendWarning(textChannel, {message: `You may not have more than ${roles.default.maximumRegions} region roles`});
+                    TeacherClient.sendWarning(textChannel, {message: `You may not have more than ${roles.default.maximumRegions} region roles.`});
                     return true;
                 }
 
@@ -72,7 +72,7 @@ export class RolesModule extends TeacherModule {
 
             if (roles.default.ethnicity.includes(targetRole)) {
                 if (this.userHasEnoughEthnicities(user)) {
-                    TeacherClient.sendWarning(textChannel, {message: `You may not be of more than ${roles.default.maximumEthnicities} Romanian ${roles.default.maximumEthnicities > 1 ? 'ethnicities' : 'ethnicity'}`});
+                    TeacherClient.sendWarning(textChannel, {message: `You may not be of more than ${roles.default.maximumEthnicities} Romanian ${roles.default.maximumEthnicities > 1 ? 'ethnicities' : 'ethnicity'}.`});
                     return true;
                 }
 
@@ -100,7 +100,7 @@ export class RolesModule extends TeacherModule {
                 this.removeRole(user, currentProficiency);
             }
 
-            TeacherClient.sendEmbed(textChannel, {message: `Your level is now ${targetRole}`});
+            TeacherClient.sendEmbed(textChannel, {message: `Your level is now ${targetRole}.`});
             return true;
         }
 
