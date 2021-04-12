@@ -307,7 +307,7 @@ export class MusicModule extends TeacherModule {
 
         if (this.currentSong.offset === 0) {
             TeacherClient.sendEmbed(textChannel, {
-                message: 'Rewinding song to the beginning',
+                message: 'Rewinding to the beginning',
             });
         } else {
             TeacherClient.sendEmbed(textChannel, {
@@ -319,9 +319,29 @@ export class MusicModule extends TeacherModule {
     }
 
 
-    /// Displays the upcoming songs
+    /// Displays the current as well as upcoming songs
     async displayQueue(textChannel) {
-        TeacherClient.sendEmbed(textChannel, {message: 'Displaying queue...'});
+        let informationalFields = [
+            {
+                name: 'Currently Playing',
+                value: this.currentSong?.title || 'Nothing',
+            },
+        ];
+
+        if (this.queue.length !== 0) {
+            informationalFields.push({
+                name: 'Up Next',
+                value: Array.from(
+                    // Show at most `maximumSearchResults` songs
+                    Array(Math.min(config.default.maximumSearchResults, this.queue.length)), 
+                    (_, i) => `${i + 1} ~ ${this.queue[i].title}`
+                ).join('\n\n'),
+            });
+        }
+
+        TeacherClient.sendEmbed(textChannel, {
+            fields: informationalFields,
+        });
     }
 
     async addToQueue(textChannel, song) {
