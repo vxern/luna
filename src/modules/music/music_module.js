@@ -23,8 +23,6 @@ export class MusicModule extends TeacherModule {
 
         this.currentSong = null;
         this.queue = [];
-
-        this.volume = 100;
     }
 
     async handleMessage(message) {
@@ -47,14 +45,13 @@ export class MusicModule extends TeacherModule {
                 },
                 
                 'forward': {
-                    '$time': async (time) => await this.forward(message.channel, message.member,
-                        this.resolveTimeQuery(message.channel, time),
-                    ),
+                    '$time': async (time) => await this.forward(message.channel, message.member, time),
                 },
                 'rewind': {
-                    '$time': async (time) => await this.rewind(message.channel, message.member,
-                        this.resolveTimeQuery(message.channel, time),
-                    ),
+                    '$time': async (time) => await this.rewind(message.channel, message.member, time),
+                },
+                'volume': {
+                    '$volume': async (volume) => await this.setVolume(message.channel, volume),
                 },
 
                 'queue': async () => await this.displayQueue(message.channel),
@@ -252,15 +249,14 @@ export class MusicModule extends TeacherModule {
 
 
     /// Moves the song along by a specified time
-    async forward(textChannel, member, timeInSeconds) {
-        if (timeInSeconds === null) {
+    async forward(textChannel, member, time) {
+        if (!this.isPlaying(textChannel)) {
             return;
         }
 
-        if (this.currentSong === null) {
-            TeacherClient.sendWarning(textChannel, {
-                message: 'Cannot fast forward song because there is no song playing.',
-            });
+        let timeInSeconds = this.resolveTimeQuery(textChannel, time),
+    
+        if (timeInSeconds === null) {
             return;
         }
 
@@ -275,15 +271,14 @@ export class MusicModule extends TeacherModule {
     }
 
     /// Moves the song back by a specified time
-    async rewind(textChannel, member, timeInSeconds) {
-        if (timeInSeconds === null) {
+    async rewind(textChannel, member, time) {
+        if (!this.isPlaying(textChannel)) {
             return;
         }
 
-        if (this.currentSong === null) {
-            TeacherClient.sendWarning(textChannel, {
-                message: 'Cannot rewind song because there is no song playing.',
-            });
+        let timeInSeconds = this.resolveTimeQuery(textChannel, time),
+    
+        if (timeInSeconds === null) {
             return;
         }
 
@@ -304,6 +299,16 @@ export class MusicModule extends TeacherModule {
         }
 
         this.play(textChannel, member);
+    }
+
+    async setVolume(textChannel, volume) {
+        let volumePerUnum = volume / 100;
+
+        this.voiceConnection.dispatcher.setVolume(volumePerUnum);
+
+        TeacherClient.sendEmbed(textChannel, {
+            message: `Set volume to ${volume}%.`,
+        });
     }
 
 

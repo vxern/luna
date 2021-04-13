@@ -1,6 +1,5 @@
 import { TeacherModule } from "../module.js";
 import { TeacherClient } from "../../teacher/teacher.js";
-import { areSimilar } from "../../language.js";
 
 export class ExtensionModule extends TeacherModule {
     async handleMessage(message) {
