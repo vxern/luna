@@ -302,6 +302,10 @@ export class MusicModule extends TeacherModule {
     }
 
     async setVolume(textChannel, volume) {
+        if (!this.isPlaying(textChannel)) {
+            return;
+        }
+        
         let volumePerUnum = volume / 100;
 
         this.voiceConnection.dispatcher.setVolume(volumePerUnum);
