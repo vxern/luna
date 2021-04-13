@@ -1,6 +1,7 @@
 import { TeacherModule } from "../module.js";
 import { TeacherClient } from "../../teacher/teacher.js";
 
+import * as teacherConfig from '../../teacher/teacher_config.js';
 import * as config from './information.js';
 
 export class InformationModule extends TeacherModule {
@@ -14,9 +15,9 @@ export class InformationModule extends TeacherModule {
 
         Client.on('guildMemberRemove', (member) => this.handleLeave(member));
 
-        Client.on('guildBanAdd', (_, member) => this.handleBan(member));
+        Client.on('guildBanAdd', (_, user) => this.handleBan(user));
 
-        Client.on('guildBanRemove', (_, member) => this.handleUnban(member));
+        Client.on('guildBanRemove', (_, user) => this.handleUnban(user));
     }
 
     /// Handles users joining
@@ -27,7 +28,7 @@ export class InformationModule extends TeacherModule {
 
         TeacherClient.sendEmbed(this.joinsAndLeaves, {
             message: `${member.user.username} joined! :grin:`,
-            color: 0x00bd68,
+            color: teacherConfig.default.accentColorGreen,
         });
     }
 
@@ -39,31 +40,31 @@ export class InformationModule extends TeacherModule {
 
         TeacherClient.sendEmbed(this.joinsAndLeaves, {
             message: `${member.user.username} left. :sob:`,
-            color: 0xe82d20,
+            color: teacherConfig.default.accentColorRed,
         });
     }
 
     /// Handles users being banned
-    async handleBan(member) {
+    async handleBan(user) {
         if (this.bans === undefined) {
             return;
         }
 
         TeacherClient.sendEmbed(this.bans, {
-            message: `${member.user.username} was banned. :sob:`,
-            color: 0xe82d20,
+            message: `${user.username} was banned. :sob:`,
+            color: teacherConfig.default.accentColorRed,
         });
     }
 
     /// Handles users being unbanned
-    async handleUnban(member) {
+    async handleUnban(user) {
         if (this.bans === undefined) {
             return;
         }
 
         TeacherClient.sendEmbed(this.bans, {
-            message: `${member.user.username} was unbanned. :sob:`,
-            color: 0xe82d20,
+            message: `${user.username} was unbanned. :grin:`,
+            color: teacherConfig.default.accentColorGreen,
         });
     }
 }

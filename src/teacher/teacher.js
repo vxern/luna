@@ -82,7 +82,7 @@ export class TeacherClient {
         title = undefined,
         thumbnail = undefined,
         message = undefined,
-        color = config.default.accentColorSuccess,
+        color = config.default.accentColorNormal,
         fields = undefined,
     }) {
         if (fields === undefined && message === undefined) {
