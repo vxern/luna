@@ -66,4 +66,8 @@ export class TeacherModule {
         // Otherwise, if `identifiedResult` is not a function, resolve it
         return await this.resolveCommand(passedMessage, identifiedResult);
     }
+
+    channelByName(channels, name) {
+        return channels.find((channel) => channel.name === name);
+    }
 }
