@@ -254,7 +254,7 @@ export class MusicModule extends TeacherModule {
             return;
         }
 
-        let timeInSeconds = this.resolveTimeQuery(textChannel, time),
+        let timeInSeconds = this.resolveTimeQuery(textChannel, time);
     
         if (timeInSeconds === null) {
             return;
@@ -276,7 +276,7 @@ export class MusicModule extends TeacherModule {
             return;
         }
 
-        let timeInSeconds = this.resolveTimeQuery(textChannel, time),
+        let timeInSeconds = this.resolveTimeQuery(textChannel, time);
     
         if (timeInSeconds === null) {
             return;
@@ -305,7 +305,28 @@ export class MusicModule extends TeacherModule {
         if (!this.isPlaying(textChannel)) {
             return;
         }
-        
+
+        if (isNaN(volume)) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Volume must be an integer.',
+            });
+            return;
+        }
+
+        if (volume < 0) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Negative volumes are not supported.',
+            });
+            return;
+        }
+
+        if (volume > config.default.maximumVolume) {
+            TeacherClient.sendWarning(textChannel, {
+                message: `${config.default.maximumVolume}% is the maximum volume`,
+            });
+            return;
+        }
+
         let volumePerUnum = volume / 100;
 
         this.voiceConnection.dispatcher.setVolume(volumePerUnum);
@@ -325,6 +346,7 @@ export class MusicModule extends TeacherModule {
             },
         ];
 
+        // Push 'up next' section if the queue is not empty
         if (this.queue.length !== 0) {
             informationalFields.push({
                 name: 'Up Next',
