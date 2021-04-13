@@ -4,10 +4,6 @@ import { Client as DiscordClient } from 'discord.js';
 import { ExtensionModule } from '../modules/extension/extension_module.js';
 import { MusicModule } from '../modules/music/music_module.js';
 import { RolesModule } from '../modules/roles/roles_module.js';
-/*
-import GameModule from '../modules/game/game';
-import WordChainModule from '../modules/word_chain/word_chain';
-*/
 
 import { removeNonAlphanumeric } from '../language.js';
 
@@ -19,24 +15,20 @@ const Client = new DiscordClient();
 
 export class TeacherClient {
     constructor() {
-        // Modules used by teacher
-        this.teacherModules = [
-            new ExtensionModule(),
-            new InformationModule(),
-            new MusicModule(),
-            new RolesModule(),
-        ];
-
         // Set up at launch
         Client.on('ready', () => {
             Client.user.setStatus(config.default.status);
 
+            // Modules used by teacher
+            this.teacherModules = [
+                new ExtensionModule(),
+                new InformationModule(Client),
+                new MusicModule(),
+                new RolesModule(),
+            ];
+
             console.log(`Teacher is ready to serve with ${this.teacherModules.length} module/s.`);
         });
-
-        Client.on('guildMemberAdd', (member) => this.handleJoin(member));
-
-        Client.on('guildMemberRemove', (member) => this.handleLeave(member));
 
         // Begin handling messages
         Client.on('message', (message) => this.handleMessage(message));
@@ -45,32 +37,6 @@ export class TeacherClient {
     /// Authenticates the client using the Discord secret specified in environment variables
     async login() {
         await Client.login(process.env.DISCORD_SECRET);
-    }
-
-    /// Handles users joining the server
-    async handleJoin(member) {
-        // Iterate over modules to find the suitable join handler
-        this.teacherModules.forEach(async (teacherModule) => {
-            try {
-                // If the join has been handled, return
-                if (await teacherModule.handleJoin(member)) {
-                    return;
-                }
-            } catch {}
-        });
-    }
-
-    /// Handles users leaving the server
-    async handleLeave(member) {
-        // Iterate over modules to find the suitable leave handler
-        this.teacherModules.forEach(async (teacherModule) => {
-            try {
-                // If the leave has been handled, return
-                if (await teacherModule.handleLeave(member)) {
-                    return;
-                }
-            } catch {}
-        });
     }
 
     /// Handles messages written to the server
@@ -104,7 +70,6 @@ export class TeacherClient {
         // Iterate over modules to find the suitable message handler
         this.teacherModules.forEach(async (teacherModule) => {
             try {
-                // If the message has been handled, return
                 if (await teacherModule.handleMessage(message)) {
                     return;
                 } 
