@@ -34,13 +34,9 @@ export class TeacherClient {
             console.log(`Teacher is ready to serve with ${this.teacherModules.length} module/s.`);
         });
 
-        Client.on('guildMemberAdd', (member) => {
-            console.log(member);
-        });
+        Client.on('guildMemberAdd', (member) => this.handleJoin(member));
 
-        Client.on('guildMemberRemove', (member) => {
-            console.log(member);
-        });
+        Client.on('guildMemberRemove', (member) => this.handleLeave(member));
 
         // Begin handling messages
         Client.on('message', (message) => this.handleMessage(message));
@@ -49,6 +45,32 @@ export class TeacherClient {
     /// Authenticates the client using the Discord secret specified in environment variables
     async login() {
         await Client.login(process.env.DISCORD_SECRET);
+    }
+
+    /// Handles users joining the server
+    async handleJoin(member) {
+        // Iterate over modules to find the suitable join handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                // If the join has been handled, return
+                if (await teacherModule.handleJoin(member)) {
+                    return;
+                }
+            } catch {}
+        });
+    }
+
+    /// Handles users leaving the server
+    async handleLeave(member) {
+        // Iterate over modules to find the suitable leave handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                // If the leave has been handled, return
+                if (await teacherModule.handleLeave(member)) {
+                    return;
+                }
+            } catch {}
+        });
     }
 
     /// Handles messages written to the server
@@ -81,10 +103,12 @@ export class TeacherClient {
 
         // Iterate over modules to find the suitable message handler
         this.teacherModules.forEach(async (teacherModule) => {
-            // If the message has been handled, return
-            if (await teacherModule.handleMessage(message)) {
-                return;
-            }
+            try {
+                // If the message has been handled, return
+                if (await teacherModule.handleMessage(message)) {
+                    return;
+                } 
+            } catch {}
         });
     }
 
