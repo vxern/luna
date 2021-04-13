@@ -12,8 +12,8 @@ import WordChainModule from '../modules/word_chain/word_chain';
 import { removeNonAlphanumeric } from '../language.js';
 
 // Teacher config
-import * as channels from '../config/channels.js';
 import * as config from './teacher_config.js';
+import { InformationModule } from '../modules/information/information_module.js';
 
 const Client = new DiscordClient();
 
@@ -21,7 +21,8 @@ export class TeacherClient {
     constructor() {
         // Modules used by teacher
         this.teacherModules = [
-            new ExtensionModule(Client.user),
+            new ExtensionModule(),
+            new InformationModule(),
             new MusicModule(),
             new RolesModule(),
         ];
@@ -31,6 +32,14 @@ export class TeacherClient {
             Client.user.setStatus(config.default.status);
 
             console.log(`Teacher is ready to serve with ${this.teacherModules.length} module/s.`);
+        });
+
+        Client.on('guildMemberAdd', (member) => {
+            console.log(member);
+        });
+
+        Client.on('guildMemberRemove', (member) => {
+            console.log(member);
         });
 
         // Begin handling messages
@@ -55,7 +64,7 @@ export class TeacherClient {
         }
 
         // Prevents the bot from responding in an excluded channel
-        if (channels.default.excludedChannels.includes(removeNonAlphanumeric(message.channel.name))) {
+        if (config.default.excludedChannels.includes(removeNonAlphanumeric(message.channel.name))) {
             return;
         }
 
@@ -63,7 +72,7 @@ export class TeacherClient {
         message.content = message.content.toLowerCase().trim().replace(/ +/g, ' ');
 
         // If the message does not begin with the specified prefix
-        if (!message.content.startsWith(config.default.prefix) && !channels.default.unprefixedChannels.includes(message.channel.name)) {
+        if (!message.content.startsWith(config.default.prefix) && !config.default.unprefixedChannels.includes(message.channel.name)) {
             return;
         }
 
@@ -130,168 +139,3 @@ export class TeacherClient {
         });
     }
 }
-
-/*
-Client.login(authorization.auth_key);
-
-Client.on('ready', () => {
-    Client.user.setActivity('Moara Cuvintelor');
-
-    let word_chain_channel = Client.channels.cache.find(channel => channel.id === word_chain_channel_id);
-    // Collect words that have been written into #word-chain
-    word_chain.beginHandlingChain(word_chain_channel);
-
-    console.log('Ready!');
-});
-
-Client.on('error', e => {console.error(e)});
-
-Client.on('message', async(message) => {
-    // If the user is a bot
-    if (message.author.bot) {
-        return;
-    }
-    // If the message is outside the allowed channels
-    if (!channels.includes(message.channel.id)) {
-        return;
-    }
-    // Prevents the bot from responding to its own messages
-    if (message.member.id === Client.user.id) {
-        return;
-    }
-
-    // Make message lowercase
-    message.content = message.content.toLowerCase();
-    // Extract arguments
-    let arguments = message.content.split(' ');
-    // Remove all empty entries
-    arguments = arguments.filter(
-        (value) => {
-            return (value !== null && value !== '')
-        });
-    let command = arguments[0];
-
-    // If the user instantiated a game, redirect to game
-    if (game.users.has(message.member.id)) {
-        game.handleChoice(message.member.id, message.channel, message.content);
-        return;
-    }
-
-    // If the message is found in the word chain channel, redirect to word_chain
-    if (message.channel.id === word_chain_channel_id) {
-        word_chain.handleChain(message.channel, message);
-        return;
-    }
-    
-    switch (command) {
-        // Role related
-        case 'roles':
-            roles.displayAvailableRoles(message.member, message.channel);
-            return;
-
-        // Info related
-        case 'commands':
-        case 'help':
-            displayAvailableCommands(message.channel);
-            return;
-        case 'info':
-            displayInfo(message.channel, message.guild);
-            return;
-
-        // Minigame related
-        case 'learn':
-            text_channel.send({
-                embed: {
-                    color: 0xfaa61a, 
-                    description: "This command is not yet available. This may be due to testing or other reasons."
-                }
-            });
-            //game.beginGame(message.member.id, message.channel);
-            return;
-
-        // Music related
-        case 'play':
-            // Removes command from arguments
-            arguments.shift();
-            let song_name = arguments.join(' ');
-            music.initialisePlaying(message.member.voice.channel, message.channel, song_name);
-            return;
-        case 'skip':
-            music.skipSong(message.member.voice.channel, message.channel);
-            return;
-        case 'pause':
-            music.pauseSong(message.member.voice.channel, message.channel);
-            return;
-        case 'replay':
-            music.replaySong(message.member.voice.channel, message.channel);
-            return;
-        case 'stop':
-            music.stopPlaying(message.member.voice.channel, message.channel);
-            return;
-        case 'queue':
-            music.displayQueue(message.member.voice.channel, message.channel);
-            return;
-        case 'remove':
-            // Removes command from arguments
-            arguments.shift();
-            let index_to_remove = arguments.join(' ');
-            music.removeSong(message.member.voice.channel, message.channel, index_to_remove);
-            return;
-
-        // Role related
-        default:
-            // As the arguments do not contain a command, we do not have to shift
-            let target_role = arguments.join(' ');
-            roles.resolveRole(message.member, message.channel, target_role);
-            return;
-    }
-});
-
-async function displayInfo(text_channel, guild) {
-    let memberCount = guild.memberCount;
-    text_channel.send({embed: {
-        color: 0x4e4ecb, 
-        thumbnail: {
-            url: guild.iconURL()
-        }, 
-        title: 'Learn Romanian', 
-        description: 'The biggest Discord server dedicated to the Romanian language.',
-        fields: [
-            {
-                name: 'Members',
-                value: memberCount
-            },
-        ]
-    }});
-}
-
-async function displayAvailableCommands(text_channel) {
-    text_channel.send({
-        embed: {
-            color: 0xfaa61a, 
-            fields: [
-                {
-                    name: 'Help | Commands', 
-                    value: 'Displays this list'
-                },
-                {
-                    name: 'Learn', 
-                    value: 'Starts a minigame in which the user chooses the correct word'
-                },
-                {
-                    name: 'Play | Skip | Stop | Remove [id] | Queue', 
-                    value: 'Plays music'
-                },
-                {
-                    name: 'Roles', 
-                    value: 'Displays list of assignable roles'
-                },
-                {
-                    name: 'Info', 
-                    value: 'Displays info about the server'
-                }
-            ]
-        }
-    });
-}
-*/

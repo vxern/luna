@@ -322,7 +322,7 @@ export class MusicModule extends TeacherModule {
 
         if (volume > config.default.maximumVolume) {
             TeacherClient.sendWarning(textChannel, {
-                message: `${config.default.maximumVolume}% is the maximum volume`,
+                message: `${config.default.maximumVolume}% is the maximum volume.`,
             });
             return;
         }
@@ -493,7 +493,7 @@ export class MusicModule extends TeacherModule {
     isPlaying(textChannel) {
         if (this.currentSong === null) {
             TeacherClient.sendWarning(textChannel, {
-                message: 'There is no song playing'
+                message: 'There is no song playing.'
             });
             return false;
         }
