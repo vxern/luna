@@ -20,7 +20,8 @@ export class DefinitionModule extends TeacherModule {
         // Supplant word into the url template
         let url = encodeURI(config.default.dexonlineURL.replace('{word}', word));
 
-        axios.get(url).then((response) => {
+        axios.get(url)
+        .then((response) => {
             if (response.status !== 200) {
                 TeacherClient.sendError(textChannel, {
                     message: 'For some obscure reason, dexonline.ro chose to throw an error. :unamused:',
@@ -28,6 +29,16 @@ export class DefinitionModule extends TeacherModule {
                 return;
             }
             
+            // The longest definition is likely to contain the most useful data
+            let longestDefinition = response.data.definitions.reduce(
+                (current, previous) => current.internalRep.length > previous.internalRep.length ? current : previous
+            );
+
+            let fullDefinitionWithNoise = longestDefinition.internalRep;
+
+            let definitionsWithNoise = fullDefinitionWithNoise.match(/(%.+?%)|(\$.+?\$)|(@[\p{L},.]+?@)|@([0-9]+.)|(#.+?#)/gmu);
+
+            console.log(definitionsWithNoise);
             /*
             TeacherClient.sendEmbed(textChannel, {
                 fields: {
