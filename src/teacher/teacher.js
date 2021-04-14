@@ -2,14 +2,15 @@ import { Client as DiscordClient } from 'discord.js';
 
 // Teacher modules
 import { ExtensionModule } from '../modules/extension/extension_module.js';
+import { InformationModule } from '../modules/information/information_module.js';
 import { MusicModule } from '../modules/music/music_module.js';
+import { DefinitionModule } from '../modules/definition/definition_module.js';
 import { RolesModule } from '../modules/roles/roles_module.js';
 
 import { removeNonAlphanumeric } from '../language.js';
 
 // Teacher config
 import * as config from './teacher_config.js';
-import { InformationModule } from '../modules/information/information_module.js';
 
 const Client = new DiscordClient();
 
@@ -24,6 +25,7 @@ export class TeacherClient {
                 new ExtensionModule(),
                 new InformationModule(Client),
                 new MusicModule(),
+                new DefinitionModule(),
                 new RolesModule(),
             ];
 
