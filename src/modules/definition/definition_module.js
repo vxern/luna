@@ -1,5 +1,4 @@
 import axios from 'axios';
-import cheerio from 'cheerio';
 
 import { TeacherModule } from '../module.js';
 import { TeacherClient } from '../../teacher/teacher.js';
@@ -28,30 +27,8 @@ export class DefinitionModule extends TeacherModule {
                 });
                 return;
             }
-
-            const $ = cheerio.load(response.data);
-
-            let definitionRaw = 
-                // Find definition wrappers
-                $('div.defWrapper')
-                // Navigate to paragraph > span
-                .find('p > span')
-                // Get the first definition wrapper
-                .first();
-
-            let textRaw = definitionRaw.text();
-
-            let phrases = textRaw.match(/[-\p{L}!$%^&*_+|~=`:";'<>?,.\/ ]+/gu);
             
-            let definitions = [];
-
-            phrases.forEach((phrase) => {
-                if (phrase.startsWith('.')) {
-                    definitions.push(phrase.substring(2));
-                    return;
-                }
-            });
-            
+            /*
             TeacherClient.sendEmbed(textChannel, {
                 fields: {
                     name: `Definiții pentru ${word}`,
@@ -61,7 +38,7 @@ export class DefinitionModule extends TeacherModule {
                         (_, i) => `${i + 1} ~ ${definitions[i]}`
                     ).join('\n'),
                 }
-            });
+            });*/
         }).catch((error) => {
             if (error.response.status === 404) {
                 TeacherClient.sendError(textChannel, {
