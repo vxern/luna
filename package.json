@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
+    "axios": "^0.21.1",
+    "cheerio": "*",
     "dependencies": "^0.0.1",
     "discord.js": "^12.5.3",
     "fastest-levenshtein": "^1.0.12",
