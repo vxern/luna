@@ -93,6 +93,9 @@ export class MusicModule extends TeacherModule {
         try {
             // Obtain search results
             searchResults = (await searcher.search(songName)).currentPage.slice(0, config.default.maximumSearchResults);
+
+            // Replace encoded quote marks
+            searchResults.map((song) => song.title = song.title.replace('&quot;', `'`));
         } catch {
             TeacherClient.sendError(textChannel, {
                 message: 'An error occurred while attempting to resolve the name of a song to its url.\n\n' +
@@ -177,6 +180,7 @@ export class MusicModule extends TeacherModule {
             ytdl(this.currentSong.url, {
                 filter: 'audioonly',
                 quality: 'highestaudio',
+                type: 'opus',
             }),
             { seek: this.currentSong.offset },
         ).on('finish', async () => {
