@@ -103,7 +103,7 @@ export class DefinitionModule extends TeacherModule {
             if (response.data.definitions.length === 0) {
                 // There must be at least one main translation, otherwise something has gone wrong
                 TeacherClient.sendError(textChannel, {
-                    message: `Nu a fost găsită nicio definiție pentru cuvântul ${word}.`,
+                    message: `Nu există o definiție pentru cuvântul ${word}.`,
                 });
                 return;
             }
@@ -183,13 +183,13 @@ export class DefinitionModule extends TeacherModule {
 
             if (error.response.status === 404) {
                 TeacherClient.sendError(textChannel, {
-                    message: `Din păcate, definiția cuvântului ${word} nu a fost găsită.`,
+                    message: `N-am putut găsi definiția cuvântului ${word}.`,
                 });
                 return;
             }
 
             TeacherClient.sendError(textChannel, {
-                message: 'A eșuat încercarea de a citi definiția.',
+                message: 'Încercarea de a citi definiția a eșuat.',
             });
             return;
         });
