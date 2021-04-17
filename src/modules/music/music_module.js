@@ -1,4 +1,4 @@
-import ytdl from 'ytdl-core-discord';
+import ytdl from 'ytdl-core';
 import { YTSearcher } from 'ytsearcher';
 import { areSimilar } from '../../language.js';
 
