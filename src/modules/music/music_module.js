@@ -1,4 +1,4 @@
-import ytdl from 'ytdl-core';
+import ytdl from 'ytdl-core-discord';
 import { YTSearcher } from 'ytsearcher';
 import { areSimilar } from '../../language.js';
 
@@ -180,9 +180,11 @@ export class MusicModule extends TeacherModule {
             ytdl(this.currentSong.url, {
                 filter: 'audioonly',
                 quality: 'highestaudio',
-                type: 'opus',
             }),
-            { seek: this.currentSong.offset },
+            { 
+                type: 'opus',
+                seek: this.currentSong.offset, 
+            },
         ).on('finish', async () => {
             this.play(textChannel, member, {playNext: true});
         }).on('error', async () => {
