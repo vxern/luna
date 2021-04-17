@@ -48,7 +48,7 @@ export class InformationModule extends TeacherModule {
         }
 
         TeacherClient.sendEmbed(this.bans, {
-            message: `${user.username} was banned. :sob:`,
+            message: `${user.username} was banned.`,
             color: teacherConfig.default.accentColorRed,
         });
     }
@@ -60,7 +60,7 @@ export class InformationModule extends TeacherModule {
         }
 
         TeacherClient.sendEmbed(this.bans, {
-            message: `${user.username} was unbanned. :grin:`,
+            message: `${user.username} was unbanned.`,
             color: teacherConfig.default.accentColorGreen,
         });
     }
