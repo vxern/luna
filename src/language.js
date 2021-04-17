@@ -21,12 +21,13 @@ export function areSimilar(subject, object) {
         return false;
     }
 
-    function regularize(target) {
+    function arrangeLettersInAlphabeticalOrder(target) {
         return target.split('').sort().join().trim();
     }
 
     // If the words contain the same letters
-    if (regularize(subject) === regularize(object)) {
+    if (arrangeLettersInAlphabeticalOrder(subject) === 
+        arrangeLettersInAlphabeticalOrder(object)) {
         return true;
     }
 
