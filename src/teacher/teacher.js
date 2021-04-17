@@ -18,7 +18,12 @@ export class TeacherClient {
     constructor() {
         // Set up at launch
         Client.on('ready', () => {
-            Client.user.setStatus(config.default.status);
+            Client.user.setPresence({
+                activity: {
+                    name: config.default.status,
+                },
+                status: 'idle',
+            });
 
             // Modules used by teacher
             this.teacherModules = [

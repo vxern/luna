@@ -2,7 +2,7 @@ export default
 {
     // Meta
     'prefix': 'mollie',
-    'status': 'Learning JavaScript',
+    'status': 'Say my name.',
 
     // Messages
     'accentColorNormal': 0x5c6bc0,
