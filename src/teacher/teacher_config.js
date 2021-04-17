@@ -15,5 +15,11 @@ export default
     // Channels
     'excludedCategories': [],
     'excludedChannels': [],
-    'unprefixedChannels': ['development', 'get-role', 'interact-with-bots', 'voice-chat'],
+    'unprefixedChannels': [
+        'development', 
+        'get-role', 
+        'interact-with-bots', 
+        'voice-chat', 
+        'programming',
+    ],
 }
