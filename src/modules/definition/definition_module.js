@@ -154,7 +154,11 @@ export class DefinitionModule extends TeacherModule {
                 ).join('\n');
             } else {
                 // Split at new lines
-                let extractedDefinitions = longestDefinition.replace(numberPoint, '').split('\n').splice(2);
+                let extractedDefinitions = longestDefinition.replace(numberPoint, '').split('\n');
+
+                // If a definition is ultra short, do not splice it where splicing would erase it, but rather keep the short definition intact
+                extractedDefinitions = extractedDefinitions.splice(Math.min(extractedDefinitions.length - 1, 2));
+
                 // Discard overflow of definitions
                 longestDefinition = Array.from(
                     // Show at most `maximumDefinitions` definitions

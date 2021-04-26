@@ -22,7 +22,7 @@ export class TeacherClient {
                 activity: {
                     name: config.default.status,
                 },
-                status: 'idle',
+                status: 'online',
             });
 
             // Modules used by teacher
