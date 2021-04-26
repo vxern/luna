@@ -12,7 +12,7 @@ export class InformationModule extends TeacherModule {
         this.bans = this.channelByName(Client.channels.cache, config.default.bans);
 
         Client.on('guildMemberAdd', (member) => this.handleJoin(member));
-        Client.on('guildMemberRemove', (member) => this.handleLeave(member));
+        // Client.on('guildMemberRemove', (member) => this.handleLeave(member));
         Client.on('guildBanAdd', (_, user) => this.handleBan(user));
         Client.on('guildBanRemove', (_, user) => this.handleUnban(user));
     }
