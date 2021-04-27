@@ -184,7 +184,9 @@ export class MusicModule extends TeacherModule {
             {seek: this.currentSong.offset, },
         ).on('finish', async () => {
             this.play(textChannel, member, {playNext: true});
-        }).on('error', async () => {
+        }).on('error', async (error) => {
+            console.log(error);
+
             TeacherClient.sendError(textChannel, {
                 message: `Could not stream song '${this.currentSong.title}'.`
             });
