@@ -110,6 +110,8 @@ export class DefinitionModule extends TeacherModule {
 
             // For example @1.@ or @2@
             let numberPoint = /(@[0-9]\.?@)+/g;
+            // For example (reg.; s.n.) or (pop.)
+            let typeIdentifier = /\([^\(\)]*\.[^\(\)]*\)/g;
 
             // Find the content of the entry with the most definitions available
             let longestDefinition = response.data.definitions
@@ -144,8 +146,15 @@ export class DefinitionModule extends TeacherModule {
                     .filter(definitionWithNoise => !definitionWithNoise.match(numberPoint))
                     // Remove the unneeded metadata from the beginning of the definition
                     .splice(1)
-                    // Get only the first sentence of each definition with noise
-                    .map(definitionWithNoise => definitionWithNoise.split('.')[0] + '.');
+                    // Get only the first sentence from each definition with noise
+                    .map(definitionWithNoise => definitionWithNoise.split('. ')[0] + '.');
+
+                for (let extractedDefinition of extractedDefinitions) {
+                    if (extractedDefinition.match(typeIdentifier)) {
+                        extractedDefinition = extractedDefinition.split(typeIdentifier)[1];
+                    }
+                }
+
                 // Create printable array by adding indexes and newlines
                 longestDefinition = Array.from(
                     // Show at most `maximumDefinitions` definitions
@@ -158,6 +167,9 @@ export class DefinitionModule extends TeacherModule {
 
                 // If a definition is ultra short, do not splice it where splicing would erase it, but rather keep the short definition intact
                 extractedDefinitions = extractedDefinitions.splice(Math.min(extractedDefinitions.length - 1, 2));
+
+                // Remove extra information in the form of etymologies
+                extractedDefinitions[0] = extractedDefinitions[0].split(']')[1];
 
                 // Discard overflow of definitions
                 longestDefinition = Array.from(
