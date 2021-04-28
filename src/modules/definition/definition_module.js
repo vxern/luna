@@ -169,7 +169,9 @@ export class DefinitionModule extends TeacherModule {
                 extractedDefinitions = extractedDefinitions.splice(Math.min(extractedDefinitions.length - 1, 2));
 
                 // Remove extra information in the form of etymologies
-                extractedDefinitions[0] = extractedDefinitions[0].split(']')[1];
+                if (extractedDefinitions[0].includes('[')) {
+                    extractedDefinitions[0] = extractedDefinitions[0].split(']')[1];
+                }
 
                 // Discard overflow of definitions
                 longestDefinition = Array.from(
