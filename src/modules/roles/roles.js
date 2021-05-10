@@ -16,6 +16,6 @@ export default
         'diaspora'
     ],
     'extension': [
-        'voicechatter', 'daily word'
+        'voicechatter', 'daily word', 'correct me'
     ],
 }
