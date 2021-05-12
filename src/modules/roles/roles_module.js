@@ -1,6 +1,6 @@
 import { TeacherModule } from '../module.js';
 import { TeacherClient } from '../../teacher/teacher.js';
-import { capitaliseWords, areSimilar, joinArrayCoherently } from '../../language.js';
+import { capitaliseWords, joinArrayCoherently } from '../../language.js';
 
 import * as roles from './roles.js';
 
@@ -169,7 +169,6 @@ export class RolesModule extends TeacherModule {
                 },
             ] : 
             []
-            
         ]});
     }
 
