@@ -8,7 +8,9 @@ export function capitaliseWords(target) {
 }
 
 /// Checks two terms for similarity
-export function areSimilar(subject, object) {
+///
+/// [allowance] - How distant the terms can be to be still accepted as 'similar'
+export function areSimilar(subject, object, allowance) {
     if (subject === object) {
         return true;
     }
@@ -31,7 +33,7 @@ export function areSimilar(subject, object) {
         return true;
     }
 
-    return distance(subject, object) < 2;
+    return distance(subject, object) < (allowance + 1 || 2);
 }
 
 /// Join array so that it is orthographically correct
