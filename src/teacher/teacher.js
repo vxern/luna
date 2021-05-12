@@ -1,5 +1,7 @@
 import { Client as DiscordClient } from 'discord.js';
 
+import { FaunaDatabase } from '../fauna/database.js';
+
 // Teacher modules
 import { ExtensionModule } from '../modules/extension/extension_module.js';
 import { InformationModule } from '../modules/information/information_module.js';
@@ -11,7 +13,9 @@ import { removeNonAlphanumeric } from '../language.js';
 
 // Teacher config
 import * as config from './teacher_config.js';
+import { SocialModule } from '../modules/social/social_module.js';
 
+const Database = new FaunaDatabase();
 const Client = new DiscordClient();
 
 export class TeacherClient {
@@ -32,13 +36,17 @@ export class TeacherClient {
                 new MusicModule(),
                 new DefinitionModule(),
                 new RolesModule(),
+                new SocialModule(Database),
             ];
 
             console.log(`Teacher is ready to serve with ${this.teacherModules.length} module/s.`);
         });
 
-        // Begin handling messages
         Client.on('message', (message) => this.handleMessage(message));
+        Client.on('guildMemberAdd', (member) => this.handleJoin(member));
+        Client.on('guildMemberRemove', (member) => this.handleLeave(member));
+        Client.on('guildBanAdd', (_, user) => this.handleBan(user));
+        Client.on('guildBanRemove', (_, user) => this.handleUnban(user));
     }
 
     /// Authenticates the client using the Discord secret specified in environment variables
@@ -80,6 +88,44 @@ export class TeacherClient {
                 if (await teacherModule.handleMessage(message)) {
                     return;
                 } 
+            } catch {}
+        });
+    }
+
+    async handleJoin(member) {
+        Database.
+
+        // Iterate over modules to find the suitable join handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                await teacherModule.handleJoin(member);
+            } catch {}
+        });
+    }
+
+    async handleLeave(member) {
+        // Iterate over modules to find the suitable leave handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                await teacherModule.handleLeave(member);
+            } catch {}
+        });
+    }
+
+    async handleBan(user) {
+        // Iterate over modules to find the suitable ban handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                await teacherModule.handleBan(user);
+            } catch {}
+        });
+    }
+
+    async handleUnban(user) {
+        // Iterate over modules to find the suitable unban handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                await teacherModule.handleUnban(user);
             } catch {}
         });
     }

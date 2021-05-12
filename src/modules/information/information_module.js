@@ -7,61 +7,40 @@ import * as config from './information.js';
 export class InformationModule extends TeacherModule {
     constructor(Client) {
         super();
-        
-        this.joinsAndLeaves = this.channelByName(Client.channels.cache, config.default.joinsAndLeaves);
-        this.bans = this.channelByName(Client.channels.cache, config.default.bans);
 
-        Client.on('guildMemberAdd', (member) => this.handleJoin(member));
-        // Client.on('guildMemberRemove', (member) => this.handleLeave(member));
-        Client.on('guildBanAdd', (_, user) => this.handleBan(user));
-        Client.on('guildBanRemove', (_, user) => this.handleUnban(user));
+        this.logs = this.channelByName(Client.channels.cache, config.default.logs);
+
+        // `logs` must not be undefined
+        if (this.logs === undefined) {
+            console.error('A logging channel has not been specified.');
+            process.exit(1);
+        }
     }
 
     /// Handles users joining
     async handleJoin(member) {
-        if (this.joinsAndLeaves === undefined) {
-            return;
-        }
-
-        TeacherClient.sendEmbed(this.joinsAndLeaves, {
-            message: `${member.user.username} joined! :grin:`,
-            color: teacherConfig.default.accentColorGreen,
-        });
+        this.log(`${member.user.username} joined.`);
     }
 
     /// Handles users leaving
     async handleLeave(member) {
-        if (this.joinsAndLeaves === undefined) {
-            return;
-        }
-
-        TeacherClient.sendEmbed(this.joinsAndLeaves, {
-            message: `${member.user.username} left. :sob:`,
-            color: teacherConfig.default.accentColorRed,
-        });
+        this.log(`${member.user.username} left.`);
     }
 
     /// Handles users being banned
     async handleBan(user) {
-        if (this.bans === undefined) {
-            return;
-        }
-
-        TeacherClient.sendEmbed(this.bans, {
-            message: `${user.username} was banned.`,
-            color: teacherConfig.default.accentColorRed,
-        });
+        this.log(`${user.username} was banned.`);
     }
 
     /// Handles users being unbanned
     async handleUnban(user) {
-        if (this.bans === undefined) {
-            return;
-        }
+        this.log(`${user.username} was unbanned.`);
+    }
 
-        TeacherClient.sendEmbed(this.bans, {
-            message: `${user.username} was unbanned.`,
-            color: teacherConfig.default.accentColorGreen,
+    /// Writes a log message to the log channel
+    static async log(message) {
+        TeacherClient.sendEmbed(this.logs, {
+            message: message,
         });
     }
 }
