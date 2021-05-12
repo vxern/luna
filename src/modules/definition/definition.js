@@ -8,5 +8,5 @@ export default
     'dexonlineURL': 'https://dexonline.ro/definitie/{word}/json',
 
     'maximumTranslations': 3,
-    'maximumDefinitions': 6,
+    'maximumDefinitions': 3,
 }
