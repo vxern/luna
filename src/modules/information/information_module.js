@@ -38,7 +38,7 @@ export class InformationModule extends TeacherModule {
     }
 
     /// Writes a log message to the log channel
-    static async log(message) {
+    async log(message) {
         TeacherClient.sendEmbed(this.logs, {
             message: message,
         });

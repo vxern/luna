@@ -93,8 +93,6 @@ export class TeacherClient {
     }
 
     async handleJoin(member) {
-        Database.
-
         // Iterate over modules to find the suitable join handler
         this.teacherModules.forEach(async (teacherModule) => {
             try {
