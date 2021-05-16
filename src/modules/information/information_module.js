@@ -1,8 +1,12 @@
 import { TeacherModule } from "../module.js";
 import { TeacherClient } from "../../teacher/teacher.js";
 
-import * as teacherConfig from '../../teacher/teacher_config.js';
 import * as config from './information.js';
+
+const joinedSymbol = '+';
+const leftSymbol = '-';
+const bannedSymbol = '!';
+const unbannedSymbol = '!~';
 
 export class InformationModule extends TeacherModule {
     constructor(Client) {
@@ -19,22 +23,22 @@ export class InformationModule extends TeacherModule {
 
     /// Handles users joining
     async handleJoin(member) {
-        this.log(`${member.user.username} joined.`);
+        this.log(`[${joinedSymbol}] ${member.user.username} joined.`);
     }
 
     /// Handles users leaving
     async handleLeave(member) {
-        this.log(`${member.user.username} left.`);
+        this.log(`[${leftSymbol}] ${member.user.username} left.`);
     }
 
     /// Handles users being banned
     async handleBan(user) {
-        this.log(`${user.username} was banned.`);
+        this.log(`[${bannedSymbol}] ${user.username} was banned.`);
     }
 
     /// Handles users being unbanned
     async handleUnban(user) {
-        this.log(`${user.username} was unbanned.`);
+        this.log(`[${unbannedSymbol}] ${user.username} was unbanned.`);
     }
 
     /// Writes a log message to the log channel
