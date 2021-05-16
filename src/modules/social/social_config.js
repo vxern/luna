@@ -9,4 +9,3 @@ export default
         100: '🌠',
     },
 }
-ߔ
