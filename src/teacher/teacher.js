@@ -43,6 +43,7 @@ export class TeacherClient {
         });
 
         Client.on('message', (message) => this.handleMessage(message));
+        Client.on('userUpdate', (oldUser, newUser) => this.handleUserUpdate(oldUser, newUser));
         Client.on('guildMemberAdd', (member) => this.handleJoin(member));
         Client.on('guildMemberRemove', (member) => this.handleLeave(member));
         Client.on('guildBanAdd', (_, user) => this.handleBan(user));
@@ -52,6 +53,15 @@ export class TeacherClient {
     /// Authenticates the client using the Discord secret specified in environment variables
     async login() {
         await Client.login(process.env.DISCORD_SECRET);
+    }
+
+    async handleUserUpdate(oldUser, newUser) {
+        // Iterate over modules to find the suitable user update handler
+        this.teacherModules.forEach(async (teacherModule) => {
+            try {
+                await teacherModule.handleUserUpdate(oldUser, newUser);
+            } catch {}
+        });
     }
 
     /// Handles messages written to the server

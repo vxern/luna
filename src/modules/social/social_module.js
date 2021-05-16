@@ -11,6 +11,12 @@ export class SocialModule extends TeacherModule {
         this.database = database;
     }
 
+    /// The module should prevent users from setting their own star symbol in the name
+    async handleUserUpdate(oldUser, newUser) {
+        console.log(oldUser);
+        console.log(newUser);
+    }
+
     async handleMessage(message) {
         return await super.resolveCommand(message.content, {
             'thank': {
@@ -57,8 +63,12 @@ export class SocialModule extends TeacherModule {
 
         const userThanks = (await this.database.getUserInformation(userId)).data.thanks;
 
+        // In order to prevent naming conflicts, the previous username must have its previously awarded symbol removed from it
         const usernamePreviousUnsanitised = targetMember.nickname ?? targetMember.user.username;
-        const usernamePrevious = userThanks > Object.keys(config.default.tiers)[0] ? usernamePreviousUnsanitised.split(' ').splice(1).join(' ') : usernamePreviousUnsanitised;
+        const usernamePrevious = 
+            userThanks > Object.keys(config.default.tiers)[0] ? 
+            usernamePreviousUnsanitised.split(' ').splice(1).join(' ') : 
+            usernamePreviousUnsanitised;
         
         // If a user has crossed a thank tier threshold, reward them with it
         for (const tier of Object.entries(config.default.tiers).reverse()) {

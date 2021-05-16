@@ -1,7 +1,7 @@
 import { TeacherModule } from "../module.js";
 import { TeacherClient } from "../../teacher/teacher.js";
 
-import * as config from './information.js';
+import * as config from './information_config.js';
 
 const joinedSymbol = '+';
 const leftSymbol = '-';

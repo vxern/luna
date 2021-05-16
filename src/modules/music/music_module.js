@@ -6,7 +6,7 @@ import { TeacherClient } from '../../teacher/teacher.js';
 import { TeacherModule } from "../module.js";
 
 // Music configs
-import * as config from './music.js';
+import * as config from './music_config.js';
 
 // Construct searcher for finding youtube videos
 const searcher = new YTSearcher({
