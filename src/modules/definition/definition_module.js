@@ -6,7 +6,7 @@ import { TeacherClient } from '../../teacher/teacher.js';
 
 import { capitaliseWords, areSimilar, joinArrayCoherently } from '../../language.js';
 
-import definition, * as config from './definition.js';
+import definition, * as config from './definition_config.js';
 
 export class DefinitionModule extends TeacherModule {
     async handleMessage(message) {

@@ -2,7 +2,7 @@ import { TeacherModule } from '../module.js';
 import { TeacherClient } from '../../teacher/teacher.js';
 import { capitaliseWords, joinArrayCoherently } from '../../language.js';
 
-import * as roles from './roles.js';
+import * as roles from './roles_config.js';
 
 // Concatenate the roles specified in roles.js into a single array
 const allRoles = [].concat(
