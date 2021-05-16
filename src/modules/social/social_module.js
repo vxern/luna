@@ -1,7 +1,7 @@
 import { TeacherModule } from "../module.js";
 import { TeacherClient } from "../../teacher/teacher.js";
-import { FaunaDatabase } from "../../fauna/database.js";
-import { areSimilar } from "../../language.js";
+
+import * as config from './social_config.js';
 
 const userIdentifierMatch = /<@!?([0-9]+)>/;
 
@@ -16,12 +16,7 @@ export class SocialModule extends TeacherModule {
             'thank': {
                 '$targetUserIdentifier': async (targetUserIdentifier) => await this.thankUser(message.channel, message.member.user, targetUserIdentifier),
             },
-            'leaderboard': async () => await this.displayLeaderboard(message.channel),
         });
-    }
-
-    async displayLeaderboard() {
-        
     }
 
     async thankUser(textChannel, originUser, targetUserIdentifier) {
@@ -33,10 +28,18 @@ export class SocialModule extends TeacherModule {
         }
 
         const userId = targetUserIdentifier.match(userIdentifierMatch)[1];
+        const targetMember = textChannel.guild.members.cache.find((member) => member.id === userId);
 
         if (originUser.id === userId) {
             TeacherClient.sendWarning(textChannel, {
                 message: 'You may not thank yourself.',
+            });
+            return;
+        }
+
+        if (originUser.bot || targetMember.user.bot) {
+            TeacherClient.sendWarning(textChannel, {
+                message: 'Bots cannot participate in thanking.',
             });
             return;
         }
@@ -53,6 +56,18 @@ export class SocialModule extends TeacherModule {
         }
 
         const userThanks = (await this.database.getUserInformation(userId)).data.thanks;
+
+        const usernamePreviousUnsanitised = targetMember.nickname ?? targetMember.user.username;
+        const usernamePrevious = userThanks > Object.keys(config.default.tiers)[0] ? usernamePreviousUnsanitised.split(' ').splice(1).join(' ') : usernamePreviousUnsanitised;
+        
+        // If a user has crossed a thank tier threshold, reward them with it
+        for (const tier of Object.entries(config.default.tiers).reverse()) {
+            if (userThanks >= tier[0]) {
+                // TODO: The original nickname could be 32 characters long, which is the limit
+                targetMember.setNickname(`${tier[1]} ${usernamePrevious}`);
+                break;
+            }
+        }
 
         TeacherClient.sendEmbed(textChannel, {
             message: `${originUser} has thanked ${targetUserIdentifier}. :star:` +
