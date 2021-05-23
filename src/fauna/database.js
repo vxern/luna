@@ -92,9 +92,7 @@ export class FaunaDatabase {
 
         // Checks if the origin user is eligible for thanking the target user by checking if the origin user has already thanked
         // them in the specified time frame, and if the origin user does not have the target user in their [lastThanked] map.
-        const isEligibleToVote = 
-            (isNaN(hourDifference) ? true : hourDifference >= config.default.thankCooldown) && 
-            !(targetUserId in originUser.data.lastThanked);
+        const isEligibleToVote = isNaN(hourDifference) ? true : hourDifference >= config.default.thankCooldown;
 
         if (!isEligibleToVote) {
             TeacherClient.sendWarning(textChannel, {
