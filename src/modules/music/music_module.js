@@ -147,6 +147,7 @@ export class MusicModule extends TeacherModule {
         if (searchResult !== undefined) {
             let song = searchResult;
             song.offset = 0;
+            song.volume = this.currentSong.volume;
 
             // If there is a song playing, add to queue instead
             if (this.currentSong) {
@@ -181,7 +182,10 @@ export class MusicModule extends TeacherModule {
                 filter: 'audioonly',
                 quality: 'highestaudio',
             }),
-            {seek: this.currentSong.offset, },
+            { 
+                seek: this.currentSong.offset,
+                volume: this.currentSong.volume,
+            },
         ).on('finish', async () => {
             this.play(textChannel, member, {playNext: true});
         }).on('error', async (error) => {
@@ -335,6 +339,7 @@ export class MusicModule extends TeacherModule {
         let volumePerUnum = volume / 100;
 
         this.voiceConnection.dispatcher.setVolume(volumePerUnum);
+        this.currentSong.volume = volumePerUnum;
 
         TeacherClient.sendEmbed(textChannel, {
             message: `Set volume to ${volume}%.`,
