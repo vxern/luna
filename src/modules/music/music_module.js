@@ -147,7 +147,7 @@ export class MusicModule extends TeacherModule {
         if (searchResult !== undefined) {
             let song = searchResult;
             song.offset = 0;
-            song.volume = this.currentSong.volume;
+            song.volume = this.currentSong.volume ?? 1;
 
             // If there is a song playing, add to queue instead
             if (this.currentSong) {
