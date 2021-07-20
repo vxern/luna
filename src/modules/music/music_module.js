@@ -179,8 +179,8 @@ export class MusicModule extends TeacherModule {
 
         this.voiceConnection.play(
             ytdl(this.currentSong.url, {
-                filter: 'audioandvideo',
-                quality: 'lowest',
+                filter: 'audioonly',
+                quality: 'highest',
             }),
             { 
                 seek: this.currentSong.offset,
