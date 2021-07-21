@@ -2,7 +2,7 @@ import { MynaClient } from './client/client';
 
 const Client: MynaClient = new MynaClient();
 
-const requiredEnv: Array<string> = ['DISCORD_SECRET', /*'FAUNA_SECRET', 'YOUTUBE_SECRET'*/];
+const requiredEnv: Array<string> = ['DISCORD_SECRET', 'FAUNA_SECRET', /*'YOUTUBE_SECRET'*/];
 const presentEnv: Array<boolean> = requiredEnv.map(value => value in process.env);
 
 // If there is an environment variable not present
