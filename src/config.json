@@ -1,8 +1,7 @@
 {
   "presenceCycleIntervalInSeconds": 4,
 
-  "summoner": "myna",
-  "prefix": null,
+  "alias": "myna",
 
   "thankIntervalInHours": 4,
 
@@ -11,5 +10,7 @@
   "accentColorWarning": "0xffff00",
   "accentColorError": "0xff0000",
   "accentColorGreen": "0x00bd68",
-  "accentColorRed": "0xe82d20"
+  "accentColorRed": "0xe82d20",
+
+  "excludedChannels": []
 }

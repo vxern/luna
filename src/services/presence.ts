@@ -3,10 +3,10 @@ import { ClientUser } from "discord.js";
 import config from '../config.json';
 
 const statuses: Array<string> = [
-  `Use '${config.summoner}' to interact with Myna`,
-  `Type '${config.summoner} help' for help`,
-  `View your achievements using '${config.summoner} achievements'`,
-  `Look up a word using '${config.summoner} word <word>'`
+  `Use '${config.alias}' to interact with Myna`,
+  `Type '${config.alias} help' for help`,
+  `View your achievements using '${config.alias} achievements'`,
+  `Look up a word using '${config.alias} word <word>'`
 ];
 
 let currentStatus: number = 0;
