@@ -4,6 +4,7 @@ import { MynaClient } from '../client/client';
 import { default as moment } from 'moment';
 
 import config from '../config.json';
+import { Embed } from '../structs/embed';
 
 const $ = fauna.query;
 
@@ -65,9 +66,9 @@ export class FaunaDatabase {
 
     // Both entries must exist to proceed with thanking
     if (casterEntry === undefined || targetEntry === undefined) {
-      MynaClient.error(textChannel, {
+      MynaClient.error(textChannel, new Embed({
         message: `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`
-      });
+      }));
       return false;
     }
 
@@ -82,9 +83,9 @@ export class FaunaDatabase {
   
     if (!isEligibleToVote) {
       const hoursLeftToVote = config.thankIntervalInHours - hourDifference;
-      MynaClient.warn(textChannel, {
+      MynaClient.warn(textChannel, new Embed({
         message: `You must wait ${hoursLeftToVote == 1 ? 'one more hour' : hoursLeftToVote + ' more hours'} to thank the same person again.`
-      });
+      }));
       return false;
     }
 
