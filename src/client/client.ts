@@ -1,7 +1,7 @@
 import { Client as DiscordClient, TextChannel, EmbedField } from 'discord.js';
 
 import { cyclePresence } from '../services/presence';
-import { Embed } from './embed';
+import { Embed } from '../structs/embed';
 
 import config from '../config.json';
 
