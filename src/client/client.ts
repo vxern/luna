@@ -51,15 +51,24 @@ export class MynaClient {
     }
 
     // Transform the message content into a digestible format
-    let messageCleaned: string = message.content.toLowerCase().trim().replace(/ +/g, ' ');
+    let messageTrimmed: string = message.content.trim().replace(/ +/g, ' ');
 
     // If the message doesn't begin with the specified alias
-    if (!messageCleaned.startsWith(config.alias)) {
+    if (!messageTrimmed.toLowerCase().startsWith(config.alias)) {
       return;
     }
 
     // Remove the prefix to leave just the parsable content
-    messageCleaned = messageCleaned.replace(config.alias + ' ', '');
+    const args = messageTrimmed.split(' ');
+    args.shift();
+    message.content = args.join(' ');
+
+    if (message.content.length === 0) {
+      MynaClient.info(message.channel, new Embed({
+        message: 'No command was provided',
+      }));
+      return;
+    }
   
     this.callHandlers('handleMessage', [message]);
   }
@@ -86,9 +95,17 @@ export class MynaClient {
 
   static async tip(textChannel: TextChannel, embed: Embed) {
     if (embed.message !== undefined) {
-      embed.message = `:bulb: ` + embed.message;
+      embed.message = `:information_source: ` + embed.message;
     }
     embed.color = config.accentColorTip;
+    this.sendEmbed(textChannel, embed);
+  }
+
+  static async info(textChannel: TextChannel, embed: Embed) {
+    if (embed.message !== undefined) {
+      embed.message = `:bulb: ` + embed.message;
+    }
+    embed.color = config.accentColorNormal;
     this.sendEmbed(textChannel, embed);
   }
 
