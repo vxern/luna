@@ -13,7 +13,7 @@ let currentStatus: number = 0;
 
 export async function cyclePresence(user: ClientUser): Promise<void> {
   user.setStatus('online');
-  setInterval(() => setPresence(user), config.presenceCycleIntervalSeconds * 1000);
+  setInterval(() => setPresence(user), config.presenceCycleIntervalInSeconds * 1000);
 }
 
 async function setPresence(user: ClientUser): Promise<void> {

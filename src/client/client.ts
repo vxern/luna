@@ -1,10 +1,10 @@
 import { Client as DiscordClient } from 'discord.js';
 
-import { cyclePresence } from '../services/presence_changer';
+import { cyclePresence } from '../services/presence';
 
 export class MynaClient {
-  modules!: Array<any>;
-  client: DiscordClient;
+  private modules!: Array<any>;
+  private client: DiscordClient;
 
   constructor() {
     this.client = new DiscordClient();

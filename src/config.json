@@ -1,6 +1,8 @@
 {
-  "presenceCycleIntervalSeconds": 4,
+  "presenceCycleIntervalInSeconds": 4,
 
   "summoner": "myna",
-  "prefix": null
+  "prefix": null,
+
+  "thankIntervalInHours": 4 
 }
