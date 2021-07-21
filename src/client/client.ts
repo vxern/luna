@@ -1,6 +1,9 @@
-import { Client as DiscordClient } from 'discord.js';
+import { Client as DiscordClient, TextChannel, EmbedField } from 'discord.js';
 
 import { cyclePresence } from '../services/presence';
+import { Embed } from './embed';
+
+import config from '../config.json';
 
 export class MynaClient {
   private modules!: Array<any>;
@@ -22,5 +25,39 @@ export class MynaClient {
 
   async login(): Promise<void> {
     await this.client.login(process.env.DISCORD_SECRET);
+  }
+
+  static async sendEmbed(textChannel: TextChannel, embed: Embed) {
+    textChannel.send({embed: {
+      title: embed.title,
+      thumbnail: {url: embed.thumbnail},
+      description: embed.message,
+      color: embed.color,
+      fields: embed.fields,
+    }})
+  }
+
+  static async tip(textChannel: TextChannel, embed: Embed) {
+    if (embed.message !== undefined) {
+      embed.message = `:bulb: ` + embed.message;
+    }
+    embed.color = config.accentColorTip;
+    this.sendEmbed(textChannel, embed);
+  }
+
+  static async warn(textChannel: TextChannel, embed: Embed) {
+    if (embed.message !== undefined) {
+      embed.message = `:warning: ` + embed.message;
+    }
+    embed.color = config.accentColorWarning;
+    this.sendEmbed(textChannel, embed);
+  }
+
+  static async error(textChannel: TextChannel, embed: Embed) {
+    if (embed.message !== undefined) {
+      embed.message = `:exclamation: ` + embed.message;
+    }
+    embed.color = config.accentColorError;
+    this.sendEmbed(textChannel, embed);
   }
 }
