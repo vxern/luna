@@ -7,13 +7,16 @@ export class Embed {
   thumbnail?: string;
   message?: string;
   private _color!: number;
+
   public get color(): string {
     return this._color.toString();
   }
+  
   public set color(value: string) {
     this._color = Number(value);
   }
-  fields?: EmbedField[];
+
+  fields?: Array<EmbedField>;
 
   constructor({
     title = undefined,
@@ -21,6 +24,12 @@ export class Embed {
     message = undefined,
     color = config.accentColorNormal,
     fields = undefined
+  }: {
+    title?: string,
+    thumbnail?: string,
+    message?: string,
+    color?: string,
+    fields?: Array<EmbedField>,
   }) {
     this.title = title;
     this.thumbnail = thumbnail;
