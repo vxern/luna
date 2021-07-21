@@ -1,10 +1,11 @@
 import { ClientUser, TextChannel } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
-import { MynaClient } from '../client/client';
 import { default as moment } from 'moment';
 
-import config from '../config.json';
+import { MynaClient } from '../client/client';
 import { Embed } from '../structs/embed';
+
+import config from '../config.json';
 
 const $ = fauna.query;
 

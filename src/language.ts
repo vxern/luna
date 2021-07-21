@@ -11,4 +11,8 @@ export class Language {
 
     return joined;
   }
+
+  static removeNonAlphanumeric(target: string) {
+    return target.replace(/\W/g, '');
+  }
 }
