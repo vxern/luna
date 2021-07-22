@@ -1,0 +1,20 @@
+{
+  "maximumRegionRoles": 2,
+  "maximumEthnicityRoles": 1,
+
+  "proficiency": [
+    "beginner", "intermediate", "advanced", "native"
+  ],
+  "regions": [
+    "ardeal", "banat", "basarabia", "bucovina", "crisana", "dobrogea", "maramures", "moldova", "muntenia", "oltenia", "transilvania"
+  ],
+  "ethnicities": [
+    "aromanian", "istroromanian", "meglenoromanian"
+  ],
+  "abroad": [
+    "diasporan"
+  ],
+  "miscellaneous": [
+    "voicechatter", "daily word", "correct me"
+  ]
+}
