@@ -1,6 +1,7 @@
 import { Client as DiscordClient, TextChannel, Message } from 'discord.js';
 
-import { MynaModule } from '../modules/module';
+import { Handler, MynaModule } from '../modules/module';
+import { RolesModule } from '../modules/roles';
 
 import { cyclePresence } from '../services/presence';
 import { Embed } from '../structs/embed';
@@ -23,7 +24,9 @@ export class MynaClient {
 
     this.client.on('message', (message: Message) => this.handleMessage(message));
 
-    this.modules = [];
+    this.modules = [
+      new RolesModule()
+    ];
 
     console.info(`Myna is ready to serve with ${this.modules.length} modules.`);
   }
@@ -70,18 +73,18 @@ export class MynaClient {
       return;
     }
   
-    this.callHandlers('handleMessage', [message]);
-  }
+  this.callHandlers('handleMessage', [message]);
+}
 
-  async callHandlers(functionName: string, args: Array<any>): Promise<void> {
-    const applicable = this.modules.filter((module: MynaModule) => functionName in module);
-    
-    applicable.forEach(async (value: MynaModule) => {
-      if (await value[functionName](args)) {
-        return;
-      }
-    });
-  }
+async callHandlers(functionName: string, args: Array<any>): Promise<void> {
+  const applicable = this.modules.filter((module: MynaModule) => functionName in module);
+  
+  applicable.forEach(async (value: MynaModule) => {
+    if (await (value[functionName] as Handler)(args)) {
+      return;
+    }
+  });
+}
 
   static async sendEmbed(textChannel: TextChannel, embed: Embed) {
     textChannel.send({embed: {
