@@ -1,5 +1,11 @@
-type Handler = (args: Array<any>) => Promise<boolean>
+export type Handler = (args: Array<any>) => Promise<boolean>
 
-export class MynaModule {
-  [functionName: string]: Handler;
+export abstract class MynaModule {
+  [functionName: string]: Handler | Object;
+  abstract commandTree: Object;
+  args: any;
+
+  constructor(args: Object) {
+    this.args = args;
+  }
 }
