@@ -1,6 +1,6 @@
 {
   "name": "myna",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "A powerful, fast and cleanly implemented Discord bot written in TypeScript for the Learn Romanian Discord server",
   "type": "module",
   "main": "index.js",

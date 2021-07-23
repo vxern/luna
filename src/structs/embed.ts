@@ -8,15 +8,15 @@ export class Embed {
   message?: string;
   private _color!: number;
 
-  public get color(): string {
-    return this._color.toString();
+  public get color() {
+    return this._color;
   }
   
-  public set color(value: string) {
+  public set color(value: string | number) {
     this._color = Number(value);
   }
 
-  fields?: Array<EmbedField>;
+  fields?: EmbedField[];
 
   constructor({
     title = undefined,
@@ -29,7 +29,7 @@ export class Embed {
     thumbnail?: string,
     message?: string,
     color?: string,
-    fields?: Array<EmbedField>,
+    fields?: EmbedField[],
   }) {
     this.title = title;
     this.thumbnail = thumbnail;
