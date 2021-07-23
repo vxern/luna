@@ -10,7 +10,7 @@ import { Language } from '../language';
 import config from '../config.json';
 
 export class MynaClient {
-  private modules!: Array<MynaModule>;
+  private modules!: MynaModule[];
   private client: DiscordClient;
 
   constructor() {
@@ -22,7 +22,7 @@ export class MynaClient {
   async initialize(): Promise<void> {
     cyclePresence(this.client.user!);
 
-    this.client.on('message', (message: Message) => this.handleMessage(message));
+    this.client.on('message', (message) => this.handleMessage(message));
 
     this.modules = [
       new RolesModule()
@@ -48,8 +48,8 @@ export class MynaClient {
 
     message.channel = message.channel as TextChannel;
 
-    // If the message was submitted 
-    if (!(Language.removeNonAlphanumeric(message.channel.name) in config.excludedChannels)) {
+    // If the message was submitted in an excluded channel
+    if (Language.removeNonAlphanumeric(message.channel.name) in config.excludedChannels) {
       return;
     }
 
@@ -73,18 +73,74 @@ export class MynaClient {
       return;
     }
   
-  this.callHandlers('handleMessage', [message]);
-}
+    this.resolveMessageToCommand(message);
+  }
 
-async callHandlers(functionName: string, args: Array<any>): Promise<void> {
-  const applicable = this.modules.filter((module: MynaModule) => functionName in module);
-  
-  applicable.forEach(async (value: MynaModule) => {
-    if (await (value[functionName] as Handler)(args)) {
+  async callHandlers(functionName: string, args: any[]): Promise<void> {
+    const applicable = this.modules.filter((module) => functionName in module);
+
+    applicable.forEach(async (module) => {
+      if (await (module[functionName] as Handler)(args)) {
+        return;
+      }
+    });
+  }
+
+  async resolveMessageToCommand(message: Message) {
+    const args = message.content.split(' ');
+    const foremostArgument = args.shift();
+    message.content = args.join(' ');
+
+    // Find branches with a key corresponding to the foremost argument, with the [requirement]
+    // yielding true and concatenate them into a single array
+    const matchedBranches = ([] as [string, any][]).concat(...this.modules
+      // Ensure that the module's [requirement] is met, otherwise exclude its [commandTree]
+      .filter(async (module) => {
+        let requirementMet: boolean;
+
+        if (typeof module.requirement === 'boolean') {
+          requirementMet = module.requirement;
+        } else {
+          requirementMet = await (module.requirement as Handler)();  
+        }
+
+        if (requirementMet) {
+          module.args = {
+            'textChannel': message.channel as TextChannel,
+            'member': message.member,
+            'message': message,
+          }
+        }
+
+        return requirementMet;
+      })
+      // From each module extract its [commandTree] into entries
+      .map((module) => Object.entries(module.commandTree))
+      // Find branches which start either with an argument introducer or the command name
+      .map((commandTreeBranches) => commandTreeBranches.filter(
+        ([key, _]) => key.startsWith('%') || key === foremostArgument)
+      )
+    );
+
+    // If branches have been found corresponding to the command
+    if (matchedBranches.length === 0) {
       return;
     }
-  });
-}
+
+    matchedBranches.forEach(async ([command, callback]) => {
+      let result;
+
+      if (command.startsWith('$')) {
+        result = await callback(message.content);
+      } else {
+        result = await callback();
+      }
+
+      if (result) {
+        return;
+      }
+    });
+  }
 
   static async sendEmbed(textChannel: TextChannel, embed: Embed) {
     textChannel.send({embed: {
