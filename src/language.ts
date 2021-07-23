@@ -3,7 +3,7 @@ export class Language {
     return target.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
   }
 
-  static join(array: Array<String>, operator: 'and' | 'or' = 'and') {
+  static join(array: string[], operator: 'and' | 'or' = 'and') {
     const lastElement = array.pop();
     let joined = array.join(', ');
     

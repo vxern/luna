@@ -6,10 +6,11 @@ import { Embed } from '../structs/embed';
 
 import { Language } from '../language';
 
+import config from '../config.json';
 import roles from '../roles.json';
 
 // Concatenate the roles specified in [roles.json] into a single array
-const allRoles: Array<string> = ([] as Array<string>).concat(
+const allRoles = ([] as string[]).concat(
   roles.proficiency,
   roles.regions,
   roles.ethnicities,
@@ -24,7 +25,7 @@ export class RolesModule extends MynaModule {
   };
 
   displayRoles() {
-    let fields: Array<EmbedField> = [
+    let fields: EmbedField[] = [
       {
         name: 'Proficiency',
         value: roles.proficiency.join(', '),
@@ -71,8 +72,8 @@ export class RolesModule extends MynaModule {
 
     const indexOfProficiencyRole = roles.proficiency.indexOf(roleName);
 
-    const roleTagsToUpgradeTo: Array<string> = this.getTagsOfProficiencyRolesBetterThan(indexOfProficiencyRole);
-    const roleTagsToDowngradeTo: Array<string> = this.getTagsOfProficiencyRolesWorseThan(indexOfProficiencyRole);
+    const roleTagsToUpgradeTo: string[] = this.getTagsOfProficiencyRolesBetterThan(indexOfProficiencyRole);
+    const roleTagsToDowngradeTo: string[] = this.getTagsOfProficiencyRolesWorseThan(indexOfProficiencyRole);
 
     if (roleTagsToUpgradeTo.length !== 0) {
       upgradeMessage += Language.join(roleTagsToUpgradeTo);
@@ -117,7 +118,7 @@ export class RolesModule extends MynaModule {
     if (roles.ethnicities.includes(roleName)) {
       if (this.hasEnoughEthnicityRoles()) {
         MynaClient.warn(this.args['textChannel'], new Embed({
-          message: `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time`,
+          message: `You may not be of more than ${config.maximumEthnicityRoles} Romanian ethnicities at any given time`,
         }));
         return true;
       }
@@ -128,7 +129,7 @@ export class RolesModule extends MynaModule {
     if (roles.regions.includes(roleName)) {
       if (this.hasEnoughRegionRoles()) {
         MynaClient.warn(this.args['textChannel'], new Embed({
-          message: `You may not have more than ${roles.maximumRegionRoles} region roles at any given time`,
+          message: `You may not have more than ${config.maximumRegionRoles} region roles at any given time`,
         }));
         return true;
       }
@@ -220,13 +221,13 @@ export class RolesModule extends MynaModule {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
       (role) => roles.regions.includes(role.name.toLowerCase())
-    ).size >= roles.maximumEthnicityRoles;
+    ).size >= config.maximumEthnicityRoles;
   }
 
   hasEnoughRegionRoles(): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
       (role) => roles.regions.includes(role.name.toLowerCase())
-    ).size >= roles.maximumRegionRoles;
+    ).size >= config.maximumRegionRoles;
   }
 }
