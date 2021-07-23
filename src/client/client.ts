@@ -127,7 +127,7 @@ export class MynaClient {
       return;
     }
 
-    matchedBranches.forEach(async ([command, callback]) => {
+    for (const [command, callback] of matchedBranches) {
       let result;
 
       if (command.startsWith('$')) {
@@ -139,7 +139,7 @@ export class MynaClient {
       if (result) {
         return;
       }
-    });
+    }
   }
 
   static async sendEmbed(textChannel: TextChannel, embed: Embed) {

@@ -24,20 +24,20 @@ export class RolesModule extends MynaModule {
     '%roleName': (roleName: string) => this.resolveRole(roleName),
   };
 
-  displayRoles() {
+  displayRoles(): boolean {
     let fields: EmbedField[] = [
       {
         name: 'Proficiency',
         value: roles.proficiency.join(', '),
         inline: true,
       },
-    ]
+    ];
 
     if (this.hasProficiency()) {
       fields.push(
         ...Object.entries(roles).map<EmbedField>(([key, value]) => {
           return {
-            name: key,
+            name: Language.capitaliseWords(key),
             value: (value as string[]).join(', '),
             inline: true,
           }
@@ -46,6 +46,7 @@ export class RolesModule extends MynaModule {
     }
 
     MynaClient.info(this.args['textChannel'], new Embed({fields: fields}));
+    return true;
   }
 
   async resolveRole(roleName: string): Promise<boolean> {
