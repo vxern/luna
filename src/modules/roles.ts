@@ -6,7 +6,6 @@ import { Embed } from '../structs/embed';
 
 import { Language } from '../language';
 
-import config from '../config.json';
 import roles from '../roles.json';
 
 // Concatenate the roles specified in [roles.json] into a single array
@@ -35,7 +34,7 @@ export class RolesModule extends MynaModule {
 
     if (this.hasProficiency()) {
       fields.push(
-        ...Object.entries(roles).map<EmbedField>(([key, value]) => {
+        ...Object.entries(roles).slice(3).map<EmbedField>(([key, value]) => {
           return {
             name: Language.capitaliseWords(key),
             value: (value as string[]).join(', '),
@@ -51,6 +50,8 @@ export class RolesModule extends MynaModule {
 
   async resolveRole(roleName: string): Promise<boolean> {
     roleName = roleName.toLowerCase();
+
+    console.info(roleName);
 
     // If the sought role is not found in [allRoles]
     if (!allRoles.includes(roleName)) {
@@ -119,7 +120,7 @@ export class RolesModule extends MynaModule {
     if (roles.ethnicities.includes(roleName)) {
       if (this.hasEnoughEthnicityRoles()) {
         MynaClient.warn(this.args['textChannel'], new Embed({
-          message: `You may not be of more than ${config.maximumEthnicityRoles} Romanian ethnicities at any given time`,
+          message: `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time`,
         }));
         return true;
       }
@@ -130,7 +131,7 @@ export class RolesModule extends MynaModule {
     if (roles.regions.includes(roleName)) {
       if (this.hasEnoughRegionRoles()) {
         MynaClient.warn(this.args['textChannel'], new Embed({
-          message: `You may not have more than ${config.maximumRegionRoles} region roles at any given time`,
+          message: `You may not have more than ${roles.maximumRegionRoles} region roles at any given time`,
         }));
         return true;
       }
@@ -142,7 +143,7 @@ export class RolesModule extends MynaModule {
       message = `You are now a ${roleName}`;
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({message: `:partying_face: ${message} :partying_face:`}));
+    MynaClient.info(this.args['textChannel'], new Embed({message: message + ` :partying_face:`}));
     return true;
   }
 
@@ -166,7 +167,7 @@ export class RolesModule extends MynaModule {
       message = `You are no longer a ${capitalisedRoleName}`;
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({message: `:sob: ${message} :sob:`}));
+    MynaClient.info(this.args['textChannel'], new Embed({message: message + ` :sob:`}));
     return true;
   }
 
@@ -222,13 +223,13 @@ export class RolesModule extends MynaModule {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
       (role) => roles.regions.includes(role.name.toLowerCase())
-    ).size >= config.maximumEthnicityRoles;
+    ).size >= roles.maximumEthnicityRoles;
   }
 
   hasEnoughRegionRoles(): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
       (role) => roles.regions.includes(role.name.toLowerCase())
-    ).size >= config.maximumRegionRoles;
+    ).size >= roles.maximumRegionRoles;
   }
 }

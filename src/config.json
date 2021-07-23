@@ -13,7 +13,5 @@
   "accentColorRed": "0xe82d20",
 
   "excludedChannels": [],
-
-  "maximumRegionRoles": 2,
-  "maximumEthnicityRoles": 1
+  "aliaslessChannels": ["get-role"]
 }

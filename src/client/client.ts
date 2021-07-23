@@ -57,7 +57,8 @@ export class MynaClient {
     let messageTrimmed: string = message.content.trim().replace(/ +/g, ' ');
 
     // If the message doesn't begin with the specified alias
-    if (!messageTrimmed.toLowerCase().startsWith(config.alias)) {
+    if (!messageTrimmed.toLowerCase().startsWith(config.alias) && 
+        !config.aliaslessChannels.includes(message.channel.name)) {
       return;
     }
 
@@ -88,8 +89,9 @@ export class MynaClient {
 
   async resolveMessageToCommand(message: Message) {
     const args = message.content.split(' ');
-    const foremostArgument = args.shift();
+    const foremostArgument = args[0];
     message.content = args.join(' ');
+
 
     // Find branches with a key corresponding to the foremost argument, with the [requirement]
     // yielding true and concatenate them into a single array
@@ -130,7 +132,7 @@ export class MynaClient {
     for (const [command, callback] of matchedBranches) {
       let result;
 
-      if (command.startsWith('$')) {
+      if (command.startsWith('%')) {
         result = await callback(message.content);
       } else {
         result = await callback();
@@ -161,10 +163,6 @@ export class MynaClient {
   }
 
   static async info(textChannel: TextChannel, embed: Embed) {
-    if (embed.message !== undefined) {
-      embed.message = `:bulb: ` + embed.message;
-    }
-    embed.color = config.accentColorNormal;
     this.sendEmbed(textChannel, embed);
   }
 
