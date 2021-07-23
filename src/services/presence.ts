@@ -3,7 +3,7 @@ import { ClientUser } from "discord.js";
 import config from '../config.json';
 
 const statuses: Array<string> = [
-  `Use '${config.alias}' to interact with Myna`,
+  `Use '${config.alias}' to interact with me`,
   `Type '${config.alias} help' for help`,
   `View your achievements using '${config.alias} achievements'`,
   `Look up a word using '${config.alias} word <word>'`

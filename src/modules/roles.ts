@@ -1,7 +1,7 @@
 import { EmbedField, GuildMember, Role } from 'discord.js';
 
-import { MynaModule } from './module';
-import { MynaClient } from '../client/client';
+import { LunaModule } from './module';
+import { LunaClient } from '../client/client';
 import { Embed } from '../structs/embed';
 
 import { Language } from '../language';
@@ -17,7 +17,7 @@ const allRoles = ([] as string[]).concat(
   roles.miscellaneous,
 );
 
-export class RolesModule extends MynaModule {
+export class RolesModule extends LunaModule {
   commandTree = {
     'roles': () => this.displayRoles(),
     '%roleName': (roleName: string) => this.resolveRole(roleName),
@@ -44,7 +44,7 @@ export class RolesModule extends MynaModule {
       );
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({fields: fields}));
+    LunaClient.info(this.args['textChannel'], new Embed({fields: fields}));
     return true;
   }
 
@@ -91,7 +91,7 @@ export class RolesModule extends MynaModule {
       message += downgradeMessage;
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({message: message}));
+    LunaClient.info(this.args['textChannel'], new Embed({message: message}));
     return true;
   }
 
@@ -119,7 +119,7 @@ export class RolesModule extends MynaModule {
 
     if (roles.ethnicities.includes(roleName)) {
       if (this.hasEnoughEthnicityRoles()) {
-        MynaClient.warn(this.args['textChannel'], new Embed({
+        LunaClient.warn(this.args['textChannel'], new Embed({
           message: `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time`,
         }));
         return true;
@@ -130,7 +130,7 @@ export class RolesModule extends MynaModule {
 
     if (roles.regions.includes(roleName)) {
       if (this.hasEnoughRegionRoles()) {
-        MynaClient.warn(this.args['textChannel'], new Embed({
+        LunaClient.warn(this.args['textChannel'], new Embed({
           message: `You may not have more than ${roles.maximumRegionRoles} region roles at any given time`,
         }));
         return true;
@@ -143,7 +143,7 @@ export class RolesModule extends MynaModule {
       message = `You are now a ${roleName}`;
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({message: message + ` :partying_face:`}));
+    LunaClient.info(this.args['textChannel'], new Embed({message: message + ` :partying_face:`}));
     return true;
   }
 
@@ -167,7 +167,7 @@ export class RolesModule extends MynaModule {
       message = `You are no longer a ${capitalisedRoleName}`;
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({message: message + ` :sob:`}));
+    LunaClient.info(this.args['textChannel'], new Embed({message: message + ` :sob:`}));
     return true;
   }
 
@@ -179,7 +179,7 @@ export class RolesModule extends MynaModule {
       await this.removeProficiencyRole(currentProficiencyRole);
     }
 
-    MynaClient.info(this.args['textChannel'], new Embed({message: `Your level is now ${roleName}`}));
+    LunaClient.info(this.args['textChannel'], new Embed({message: `Your level is now ${roleName}`}));
     return true;
   }
 

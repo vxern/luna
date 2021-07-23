@@ -1,6 +1,6 @@
-import { MynaClient } from './client/client';
+import { LunaClient } from './client/client';
 
-const Client: MynaClient = new MynaClient();
+const Client: LunaClient = new LunaClient();
 
 const requiredEnv = ['DISCORD_SECRET', 'FAUNA_SECRET', /*'YOUTUBE_SECRET'*/];
 const presentEnv = requiredEnv.map(value => value in process.env);

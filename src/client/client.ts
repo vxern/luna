@@ -1,6 +1,6 @@
 import { Client as DiscordClient, TextChannel, Message } from 'discord.js';
 
-import { Handler, MynaModule } from '../modules/module';
+import { Handler, LunaModule as LunaModule } from '../modules/module';
 import { RolesModule } from '../modules/roles';
 
 import { cyclePresence } from '../services/presence';
@@ -9,8 +9,8 @@ import { Language } from '../language';
 
 import config from '../config.json';
 
-export class MynaClient {
-  private modules!: MynaModule[];
+export class LunaClient {
+  private modules!: LunaModule[];
   private client: DiscordClient;
 
   constructor() {
@@ -68,7 +68,7 @@ export class MynaClient {
     message.content = args.join(' ');
 
     if (message.content.length === 0) {
-      MynaClient.info(message.channel, new Embed({
+      LunaClient.info(message.channel, new Embed({
         message: 'No command was provided',
       }));
       return;

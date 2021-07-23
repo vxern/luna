@@ -2,7 +2,7 @@ import { ClientUser, TextChannel } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
 import { default as moment } from 'moment';
 
-import { MynaClient } from '../client/client';
+import { LunaClient } from '../client/client';
 import { Embed } from '../structs/embed';
 
 import config from '../config.json';
@@ -67,7 +67,7 @@ export class FaunaDatabase {
 
     // Both entries must exist to proceed with thanking
     if (casterEntry === undefined || targetEntry === undefined) {
-      MynaClient.error(textChannel, new Embed({
+      LunaClient.error(textChannel, new Embed({
         message: `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`
       }));
       return false;
@@ -84,7 +84,7 @@ export class FaunaDatabase {
   
     if (!isEligibleToVote) {
       const hoursLeftToVote = config.thankIntervalInHours - hourDifference;
-      MynaClient.warn(textChannel, new Embed({
+      LunaClient.warn(textChannel, new Embed({
         message: `You must wait ${hoursLeftToVote == 1 ? 'one more hour' : hoursLeftToVote + ' more hours'} to thank the same person again.`
       }));
       return false;
