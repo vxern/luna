@@ -12,5 +12,8 @@
   "accentColorGreen": "0x00bd68",
   "accentColorRed": "0xe82d20",
 
-  "excludedChannels": []
+  "excludedChannels": [],
+
+  "maximumRegionRoles": 2,
+  "maximumEthnicityRoles": 1
 }

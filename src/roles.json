@@ -1,7 +1,4 @@
 {
-  "maximumRegionRoles": 2,
-  "maximumEthnicityRoles": 1,
-
   "proficiency": [
     "beginner", "intermediate", "advanced", "native"
   ],
