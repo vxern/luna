@@ -1,7 +1,7 @@
 import { Client as DiscordClient, TextChannel, Message } from 'discord.js';
 
 import { Handler, LunaModule as LunaModule } from '../modules/module';
-import { MusicModule } from '../modules/music';
+import { MusicModule } from '../modules/music/music';
 import { RolesModule } from '../modules/roles';
 
 import { cyclePresence } from '../services/presence';
@@ -132,23 +132,24 @@ export class LunaClient {
       .map((module) => Object.entries(module.commandTree).filter(branchIsMatch))
     );
 
+    message.channel = message.channel as TextChannel;
+
     // If branches have been found corresponding to the command
     if (matchedBranches.length === 0) {
+      LunaClient.warn(message.channel, new Embed({
+        message: 'Unknown command',
+      }));
       return;
     }
 
-    for (const [command, callback] of matchedBranches) {
-      if (!command.split(' ')[0].startsWith('$')) {
-        args.shift();
-      }
-      message.content = args.join(' ');
+    const [command, callback] = matchedBranches[0];
 
-      const result = await callback(message.content);
-
-      if (result) {
-        return;
-      }
+    if (!command.split(' ')[0].startsWith('$')) {
+      args.shift();
     }
+    message.content = args.join(' ');
+    
+    callback(message.content);
   }
 
   static async sendEmbed(textChannel: TextChannel, embed: Embed) {
