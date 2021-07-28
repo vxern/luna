@@ -37,4 +37,8 @@ export class Embed {
     this.color = color;
     this.fields = fields;
   }
+
+  static singleField(field: EmbedField) {
+    return new Embed({fields: [field]});
+  }
 }
