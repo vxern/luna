@@ -2,7 +2,7 @@ import { EmbedField, GuildMember, Role } from 'discord.js';
 
 import { LunaModule } from './module';
 import { LunaClient } from '../client/client';
-import { Embed } from '../structs/embed';
+import { Embed } from '../client/embed';
 
 import { Language } from '../language';
 
@@ -34,7 +34,7 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({fields: fields}));
   }
 
- resolveRole(roleName: string) {
+  resolveRole(roleName: string) {
     roleName = roleName.toLowerCase();
 
     // If the sought role is not found in [allRoles]
