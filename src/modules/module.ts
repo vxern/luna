@@ -1,10 +1,8 @@
 import { LunaClient } from "../client/client";
-import { Embed } from "../structs/embed";
-
-export type Handler = (args?: any[]) => Promise<boolean>
+import { Embed } from "../client/embed";
 
 export abstract class LunaModule {
-  [functionName: string]: Handler | Object;
+  [functionName: string]: Function | Object;
   readonly requirement: Function | boolean = true;
   readonly beforeExecutingCommand: Function = () => {};
   abstract readonly commandTree: Object;

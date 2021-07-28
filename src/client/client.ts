@@ -1,6 +1,6 @@
 import { Client as DiscordClient, TextChannel, Message } from 'discord.js';
 
-import { Handler, LunaModule as LunaModule } from '../modules/module';
+import { LunaModule as LunaModule } from '../modules/module';
 import { MusicModule } from '../modules/music/music';
 import { RolesModule } from '../modules/roles';
 
@@ -88,7 +88,7 @@ export class LunaClient {
     const applicable = this.modules.filter((module) => functionName in module);
 
     applicable.forEach(async (module) => {
-      if (await (module[functionName] as Handler)(args)) {
+      if (await (module[functionName] as Function)(args)) {
         return;
       }
     });
