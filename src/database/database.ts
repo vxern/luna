@@ -3,7 +3,7 @@ import { default as fauna, Client as FaunaClient } from 'faunadb';
 import { default as moment } from 'moment';
 
 import { LunaClient } from '../client/client';
-import { Embed } from '../structs/embed';
+import { Embed } from '../client/embed';
 
 import config from '../config.json';
 

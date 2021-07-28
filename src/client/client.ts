@@ -5,7 +5,7 @@ import { MusicModule } from '../modules/music/music';
 import { RolesModule } from '../modules/roles';
 
 import { cyclePresence } from '../services/presence';
-import { Embed } from '../structs/embed';
+import { Embed } from './embed';
 import { Language } from '../language';
 
 import config from '../config.json';
