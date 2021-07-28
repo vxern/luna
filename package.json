@@ -1,6 +1,6 @@
 {
-  "name": "myna",
-  "version": "0.0.4",
+  "name": "luna",
+  "version": "0.0.5",
   "description": "A powerful, fast and cleanly implemented Discord bot written in TypeScript for the Learn Romanian Discord server",
   "type": "module",
   "main": "index.js",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vxern/myna.git"
+    "url": "git+https://github.com/vxern/luna.git"
   },
   "keywords": [],
   "author": "Dorian Oszczęda <vxern@wordcollector.co.uk>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vxern/myna/issues"
+    "url": "https://github.com/vxern/luna/issues"
   },
-  "homepage": "https://github.com/vxern/myna#readme",
+  "homepage": "https://github.com/vxern/luna#readme",
   "devDependencies": {
     "ts-node": "^10.1.0",
     "ts-node-dev": "^1.1.8",
@@ -27,7 +27,9 @@
   "dependencies": {
     "@types/node": "^16.3.3",
     "discord.js": "^12.5.3",
+    "fastest-levenshtein": "^1.0.12",
     "faunadb": "^4.3.0",
-    "moment": "^2.29.1"
+    "moment": "^2.29.1",
+    "ytsearcher": "^1.2.4"
   }
 }
