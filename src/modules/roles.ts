@@ -9,40 +9,27 @@ import { Language } from '../language';
 import roles from '../roles.json';
 
 // Concatenate the roles specified in [roles.json] into a single array
-const allRoles = ([] as string[]).concat(
-  roles.proficiency,
-  roles.regions,
-  roles.ethnicities,
-  roles.abroad,
-  roles.miscellaneous,
-);
+const allRoles = [
+  ...roles.proficiency,
+  ...roles.regions,
+  ...roles.ethnicities,
+  ...roles.abroad,
+  ...roles.miscellaneous,
+];
 
 export class RolesModule extends LunaModule {
-  commandTree = {
-    'roles': () => this.displayRoles(),
-    '%roleName': (roleName: string) => this.resolveRole(roleName),
+  readonly commandTree = {
+    'roles ~ Display a list of available roles': () => this.displayRoles(),
+    '$rolename ~ Assign the role with the name <rolename> to yourself': (roleName: string) => this.resolveRole(roleName),
   };
 
   displayRoles(): boolean {
-    let fields: EmbedField[] = [
-      {
-        name: 'Proficiency',
-        value: roles.proficiency.join(', '),
-        inline: true,
-      },
-    ];
-
-    if (this.hasProficiency()) {
-      fields.push(
-        ...Object.entries(roles).slice(3).map<EmbedField>(([key, value]) => {
-          return {
-            name: Language.capitaliseWords(key),
-            value: (value as string[]).join(', '),
-            inline: true,
-          }
-        })
-      );
-    }
+    const roleCategoriesToDisplay = Object.entries(roles).slice(2, this.hasProficiency() ? undefined : 2);
+    const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
+      name: Language.capitaliseWords(key),
+      value: (value as string[]).map((roleName) => this.toTag(this.findRole(roleName).id)).join(' '),
+      inline: true,
+    }});
 
     LunaClient.info(this.args['textChannel'], new Embed({fields: fields}));
     return true;
@@ -50,8 +37,6 @@ export class RolesModule extends LunaModule {
 
   async resolveRole(roleName: string): Promise<boolean> {
     roleName = roleName.toLowerCase();
-
-    console.info(roleName);
 
     // If the sought role is not found in [allRoles]
     if (!allRoles.includes(roleName)) {
@@ -68,7 +53,7 @@ export class RolesModule extends LunaModule {
       return await this.addOrReplaceProficiencyRole(roleName, currentProficiencyRole);
     }
 
-    let message = `Your level is already ${roleName} and you may instead `;
+    let message = `Your level is already ${this.toTag(this.findRole(roleName).id)}.\n\nInstead, you may `;
     let upgradeMessage = ':arrow_double_up: upgrade to ';
     let downgradeMessage = ':arrow_double_down: downgrade to ';
 
@@ -78,7 +63,7 @@ export class RolesModule extends LunaModule {
     const roleTagsToDowngradeTo: string[] = this.getTagsOfProficiencyRolesWorseThan(indexOfProficiencyRole);
 
     if (roleTagsToUpgradeTo.length !== 0) {
-      upgradeMessage += Language.join(roleTagsToUpgradeTo);
+      upgradeMessage += Language.join(roleTagsToUpgradeTo, 'or');
       message += upgradeMessage;
 
       if (roleTagsToDowngradeTo.length !== 0) {
@@ -87,7 +72,7 @@ export class RolesModule extends LunaModule {
     }
 
     if (roleTagsToDowngradeTo.length !== 0) {
-      downgradeMessage += Language.join(roleTagsToDowngradeTo);
+      downgradeMessage += Language.join(roleTagsToDowngradeTo, 'or');
       message += downgradeMessage;
     }
 
@@ -206,17 +191,19 @@ export class RolesModule extends LunaModule {
 
   getCurrentProficiencyRole(): Role | undefined {
     const member: GuildMember = this.args['member'];
-    return member.guild.roles.cache.find(
-      (role) => roles.proficiency.includes(role.name.toLowerCase())
-    );
+    return member.roles.cache.find((role) => roles.proficiency.includes(role.name.toLowerCase()));
   }
 
-  getTagsOfProficiencyRolesBetterThan(roleIndex: number) {
-    return roles.proficiency.filter((_, index) => index > roleIndex).map((roleName) => this.findRole(roleName).id);
+  getTagsOfProficiencyRolesBetterThan(roleIndex: number): string[] {
+    return roles.proficiency.filter((_, index) => index > roleIndex).map((roleName) => this.toTag(this.findRole(roleName).id));
   }
 
-  getTagsOfProficiencyRolesWorseThan(roleIndex: number) {
-    return roles.proficiency.filter((_, index) => index < roleIndex).map((roleName) => this.findRole(roleName).id);
+  getTagsOfProficiencyRolesWorseThan(roleIndex: number): string[] {
+    return roles.proficiency.filter((_, index) => index < roleIndex).map((roleName) => this.toTag(this.findRole(roleName).id));
+  }
+
+  toTag(id: string): string {
+    return `<@&${id}>`;
   }
 
   hasEnoughEthnicityRoles(): boolean {
