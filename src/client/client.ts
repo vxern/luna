@@ -1,6 +1,7 @@
 import { Client as DiscordClient, TextChannel, Message } from 'discord.js';
 
 import { Handler, LunaModule as LunaModule } from '../modules/module';
+import { MusicModule } from '../modules/music';
 import { RolesModule } from '../modules/roles';
 
 import { cyclePresence } from '../services/presence';
@@ -25,10 +26,11 @@ export class LunaClient {
     this.client.on('message', (message) => this.handleMessage(message));
 
     this.modules = [
-      new RolesModule()
+      new MusicModule(),
+      new RolesModule(),
     ];
 
-    console.info(`Myna is ready to serve with ${this.modules.length} modules.`);
+    console.info(`${Language.capitaliseWords(config.alias)} is ready to serve with ${this.modules.length} modules.`);
   }
 
   async login(): Promise<void> {
@@ -54,18 +56,23 @@ export class LunaClient {
     }
 
     // Transform the message content into a digestible format
-    let messageTrimmed: string = message.content.trim().replace(/ +/g, ' ');
+    let messageTrimmed: string = Language.normaliseSpaces(message.content);
+
+    const inAliaslessChannel = config.aliaslessChannels.includes(message.channel.name)
 
     // If the message doesn't begin with the specified alias
-    if (!messageTrimmed.toLowerCase().startsWith(config.alias) && 
-        !config.aliaslessChannels.includes(message.channel.name)) {
+    if (!messageTrimmed.toLowerCase().startsWith(config.alias) && !inAliaslessChannel) {
       return;
-    }
+    } 
 
     // Remove the prefix to leave just the parsable content
     const args = messageTrimmed.split(' ');
-    args.shift();
-    message.content = args.join(' ');
+    if (!inAliaslessChannel) {
+      args.shift();
+      message.content = args.join(' ');
+    } else {
+      message.content = messageTrimmed;
+    }
 
     if (message.content.length === 0) {
       LunaClient.info(message.channel, new Embed({
@@ -90,38 +97,39 @@ export class LunaClient {
   async resolveMessageToCommand(message: Message) {
     const args = message.content.split(' ');
     const foremostArgument = args[0];
-    message.content = args.join(' ');
 
+    const branchIsMatch = ([key, _]: [string, any]) => {key = key.split(' ')[0]; return key.startsWith('$') || key === foremostArgument};
 
     // Find branches with a key corresponding to the foremost argument, with the [requirement]
     // yielding true and concatenate them into a single array
     const matchedBranches = ([] as [string, any][]).concat(...this.modules
+      // Get modules with a command tree whose branch' command matches the message
+      .filter((module) => Object.entries(module.commandTree).some(branchIsMatch))
       // Ensure that the module's [requirement] is met, otherwise exclude its [commandTree]
-      .filter(async (module) => {
+      .filter((module) => {
         let requirementMet: boolean;
+
+        module.args = {
+          'textChannel': message.channel as TextChannel,
+          'voiceChannel': message.member?.voice.channel,
+          'member': message.member,
+          'message': message,
+        }
 
         if (typeof module.requirement === 'boolean') {
           requirementMet = module.requirement;
         } else {
-          requirementMet = await (module.requirement as Handler)();  
+          requirementMet = module.requirement();  
         }
 
         if (requirementMet) {
-          module.args = {
-            'textChannel': message.channel as TextChannel,
-            'member': message.member,
-            'message': message,
-          }
+          module.beforeExecutingCommand();
         }
 
         return requirementMet;
       })
-      // From each module extract its [commandTree] into entries
-      .map((module) => Object.entries(module.commandTree))
-      // Find branches which start either with an argument introducer or the command name
-      .map((commandTreeBranches) => commandTreeBranches.filter(
-        ([key, _]) => key.startsWith('%') || key === foremostArgument)
-      )
+      // Find branches whose commands match the message
+      .map((module) => Object.entries(module.commandTree).filter(branchIsMatch))
     );
 
     // If branches have been found corresponding to the command
@@ -130,13 +138,12 @@ export class LunaClient {
     }
 
     for (const [command, callback] of matchedBranches) {
-      let result;
-
-      if (command.startsWith('%')) {
-        result = await callback(message.content);
-      } else {
-        result = await callback();
+      if (!command.split(' ')[0].startsWith('$')) {
+        args.shift();
       }
+      message.content = args.join(' ');
+
+      const result = await callback(message.content);
 
       if (result) {
         return;
