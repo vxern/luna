@@ -1,1 +1,1 @@
-bot: ts-node src/index.ts
+bot: ts-node-dev src/index.ts
