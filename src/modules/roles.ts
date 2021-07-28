@@ -23,7 +23,7 @@ export class RolesModule extends LunaModule {
     '$rolename ~ Assign the role with the name <rolename> to yourself': (roleName: string) => this.resolveRole(roleName),
   };
 
-  displayRoles(): boolean {
+  displayRoles() {
     const roleCategoriesToDisplay = Object.entries(roles).slice(2, this.hasProficiency() ? undefined : 2);
     const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
       name: Language.capitaliseWords(key),
@@ -32,25 +32,24 @@ export class RolesModule extends LunaModule {
     }});
 
     LunaClient.info(this.args['textChannel'], new Embed({fields: fields}));
-    return true;
   }
 
-  async resolveRole(roleName: string): Promise<boolean> {
+ resolveRole(roleName: string) {
     roleName = roleName.toLowerCase();
 
     // If the sought role is not found in [allRoles]
     if (!allRoles.includes(roleName)) {
-      return false;
+      return;
     }
 
     // If the sought role is not a proficiency role
     if (!roles.proficiency.includes(roleName)) {
-      return await this.resolveNonProficiencyRole(roleName);
+      return this.resolveNonProficiencyRole(roleName);
     }
 
     if (!this.hasRole(roleName)) {
       const currentProficiencyRole = this.getCurrentProficiencyRole();
-      return await this.addOrReplaceProficiencyRole(roleName, currentProficiencyRole);
+      return this.addOrReplaceProficiencyRole(roleName, currentProficiencyRole);
     }
 
     let message = `Your level is already ${this.toTag(this.findRole(roleName).id)}.\n\nInstead, you may `;
@@ -77,26 +76,25 @@ export class RolesModule extends LunaModule {
     }
 
     LunaClient.info(this.args['textChannel'], new Embed({message: message}));
-    return true;
   }
 
-  async resolveNonProficiencyRole(roleName: string): Promise<boolean> {
+  resolveNonProficiencyRole(roleName: string) {
     // If the user does not have a proficiency role yet
     if (!this.hasProficiency()) {
-      return true;
+      return;
     }
 
     // If the user already has the sought role
     if (this.hasRole(roleName)) {
-      return await this.removeRole(roleName);
+      return this.removeRole(roleName);
     }
 
-    return await this.addRole(roleName);
+    return this.addRole(roleName);
   }
 
-  async addRole(roleName: string): Promise<boolean> {
+  addRole(roleName: string) {
     const member: GuildMember = this.args['member'];
-    await member.roles.add(this.findRole(roleName));
+    member.roles.add(this.findRole(roleName));
 
     const capitalisedRoleName = Language.capitaliseWords(roleName);
 
@@ -107,7 +105,7 @@ export class RolesModule extends LunaModule {
         LunaClient.warn(this.args['textChannel'], new Embed({
           message: `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time`,
         }));
-        return true;
+        return;
       }
 
       message = `You are now ${capitalisedRoleName}`;
@@ -118,7 +116,7 @@ export class RolesModule extends LunaModule {
         LunaClient.warn(this.args['textChannel'], new Embed({
           message: `You may not have more than ${roles.maximumRegionRoles} region roles at any given time`,
         }));
-        return true;
+        return;
       }
 
       message = `You are now from ${capitalisedRoleName}`;
@@ -129,12 +127,11 @@ export class RolesModule extends LunaModule {
     }
 
     LunaClient.info(this.args['textChannel'], new Embed({message: message + ` :partying_face:`}));
-    return true;
   }
 
-  async removeRole(roleName: string): Promise<boolean> {
+  removeRole(roleName: string) {
     const member: GuildMember = this.args['member'];
-    await member.roles.remove(this.findRole(roleName));
+    member.roles.remove(this.findRole(roleName));
 
     const capitalisedRoleName = Language.capitaliseWords(roleName);
 
@@ -153,25 +150,22 @@ export class RolesModule extends LunaModule {
     }
 
     LunaClient.info(this.args['textChannel'], new Embed({message: message + ` :sob:`}));
-    return true;
   }
 
-  async addOrReplaceProficiencyRole(roleName: string, currentProficiencyRole: Role | undefined): Promise<boolean> {
+  addOrReplaceProficiencyRole(roleName: string, currentProficiencyRole: Role | undefined) {
     const member: GuildMember = this.args['member'];
-    await member.roles.add(this.findRole(roleName));
+    member.roles.add(this.findRole(roleName));
 
     if (currentProficiencyRole !== undefined) {
-      await this.removeProficiencyRole(currentProficiencyRole);
+      this.removeProficiencyRole(currentProficiencyRole);
     }
 
     LunaClient.info(this.args['textChannel'], new Embed({message: `Your level is now ${roleName}`}));
-    return true;
   }
 
-  async removeProficiencyRole(proficiencyRole: Role): Promise<boolean> {
+  removeProficiencyRole(proficiencyRole: Role) {
     const member: GuildMember = this.args['member'];
-    await member.roles.remove(proficiencyRole);
-    return true;
+    member.roles.remove(proficiencyRole);
   }
 
   findRole(roleName: string): Role {
