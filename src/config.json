@@ -13,5 +13,8 @@
   "accentColorRed": "0xe82d20",
 
   "excludedChannels": [],
-  "aliaslessChannels": ["get-role"]
+  "aliaslessChannels": ["get-role"],
+
+  "maximumSearchResults": 10,
+  "queryTimeout": 30
 }
