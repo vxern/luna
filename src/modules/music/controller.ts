@@ -33,4 +33,8 @@ export class MusicController {
   usersPresent(): string[] {
     return this.voiceChannel!.members.map((member) => member.id);
   }
+
+  streamTimeInSeconds(): number {
+    return Math.floor(this.voiceConnection!.dispatcher.streamTime / 1000);
+  }
 }
