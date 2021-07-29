@@ -20,7 +20,7 @@ export class LunaClient {
     this.client.on('ready', () => this.initialize());
   }
 
-  async initialize(): Promise<void> {
+  initialize() {
     cyclePresence(this.client.user!);
 
     this.client.on('message', (message) => this.handleMessage(message));
@@ -33,11 +33,11 @@ export class LunaClient {
     console.info(`${Language.capitaliseWords(config.alias)} is ready to serve with ${this.modules.length} modules.`);
   }
 
-  async login(): Promise<void> {
+  async login() {
     await this.client.login(process.env.DISCORD_SECRET);
   }
 
-  async handleMessage(message: Message): Promise<void> {
+  handleMessage(message: Message) {
     // If the message was submitted by a bot
     if (message.author.bot) {
       return;
@@ -84,7 +84,7 @@ export class LunaClient {
     this.resolveMessageToCommand(message);
   }
 
-  async callHandlers(functionName: string, args: any[]): Promise<void> {
+  async callHandlers(functionName: string, args: any[]) {
     const applicable = this.modules.filter((module) => functionName in module);
 
     applicable.forEach(async (module) => {
@@ -94,11 +94,21 @@ export class LunaClient {
     });
   }
 
-  async resolveMessageToCommand(message: Message) {
+  resolveMessageToCommand(message: Message) {
     const args = message.content.split(' ');
-    const foremostArgument = args[0];
+    const foremostCommand = args[0];
 
-    const branchIsMatch = ([key, _]: [string, any]) => {key = key.split(' ')[0]; return key.startsWith('$') || key.split('|').includes(foremostArgument)};
+    const branchIsMatch = ([commandsWithTooltip, _]: [string, any]) => {
+      const commands = commandsWithTooltip
+        .split('~')[0]
+        .trimRight()
+        .split('|')
+        .map((command) => command.trim());
+      return commands[0].startsWith('$') || 
+        commands.includes(foremostCommand) ||
+        // A command can consist of two words, therefore it's necessary to check the whole content too 
+        commands.includes(message.content)
+    };
 
     // Find branches with a key corresponding to the foremost argument, with the [requirement]
     // yielding true and concatenate them into a single array
@@ -152,7 +162,7 @@ export class LunaClient {
     callback(message.content);
   }
 
-  static async sendEmbed(textChannel: TextChannel, embed: Embed) {
+  private static sendEmbed(textChannel: TextChannel, embed: Embed) {
     textChannel.send({embed: {
       title: embed.title,
       thumbnail: {url: embed.thumbnail},
@@ -162,7 +172,7 @@ export class LunaClient {
     }})
   }
 
-  static async tip(textChannel: TextChannel, embed: Embed) {
+  static tip(textChannel: TextChannel, embed: Embed) {
     if (embed.message !== undefined) {
       embed.message = `:information_source: ` + embed.message;
     }
@@ -170,11 +180,11 @@ export class LunaClient {
     this.sendEmbed(textChannel, embed);
   }
 
-  static async info(textChannel: TextChannel, embed: Embed) {
+  static info(textChannel: TextChannel, embed: Embed) {
     this.sendEmbed(textChannel, embed);
   }
 
-  static async warn(textChannel: TextChannel, embed: Embed) {
+  static warn(textChannel: TextChannel, embed: Embed) {
     if (embed.message !== undefined) {
       embed.message = `:warning: ` + embed.message;
     }
@@ -182,7 +192,7 @@ export class LunaClient {
     this.sendEmbed(textChannel, embed);
   }
 
-  static async error(textChannel: TextChannel, embed: Embed) {
+  static error(textChannel: TextChannel, embed: Embed) {
     if (embed.message !== undefined) {
       embed.message = `:exclamation: ` + embed.message;
     }
