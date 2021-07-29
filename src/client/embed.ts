@@ -7,15 +7,12 @@ export class Embed {
   thumbnail?: string;
   message?: string;
   private _color!: number;
-
   public get color() {
     return this._color;
   }
-  
   public set color(value: string | number) {
     this._color = Number(value);
   }
-
   fields?: EmbedField[];
 
   constructor({

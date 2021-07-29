@@ -3,9 +3,9 @@ import { YTSearcher } from "ytsearcher";
 
 import { Song } from "./song";
 
-/// Class used for storing all required information for playing and managing music
+/// Class used for storing required information for playing and managing music
 export class MusicController {
-  readonly searcher: YTSearcher = new YTSearcher(process.env.YOUTUBE_SECRET!);
+  public readonly searcher: YTSearcher = new YTSearcher(process.env.YOUTUBE_SECRET!);
 
   textChannel: TextChannel | undefined;
   voiceChannel: VoiceChannel | undefined;

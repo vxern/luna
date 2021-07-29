@@ -20,7 +20,7 @@ export class LunaClient {
     this.client.on('ready', () => this.initialize());
   }
 
-  initialize() {
+  private initialize() {
     cyclePresence(this.client.user!);
 
     this.client.on('message', (message) => this.handleMessage(message));
@@ -37,7 +37,7 @@ export class LunaClient {
     await this.client.login(process.env.DISCORD_SECRET);
   }
 
-  handleMessage(message: Message) {
+  private handleMessage(message: Message) {
     // If the message was submitted by a bot
     if (message.author.bot) {
       return;
@@ -84,17 +84,7 @@ export class LunaClient {
     this.resolveMessageToCommand(message);
   }
 
-  async callHandlers(functionName: string, args: any[]) {
-    const applicable = this.modules.filter((module) => functionName in module);
-
-    applicable.forEach(async (module) => {
-      if (await (module[functionName] as Function)(args)) {
-        return;
-      }
-    });
-  }
-
-  resolveMessageToCommand(message: Message) {
+  private resolveMessageToCommand(message: Message) {
     const args = message.content.split(' ');
     const foremostCommand = args[0];
 

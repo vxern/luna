@@ -154,6 +154,10 @@ export class MusicModule extends LunaModule {
       return;
     }
 
+    if (!this.userCanManageSong(this.controller.currentSong)) {
+      return;
+    }
+
     // Add the current song to the beginning of the song queue and start playing
     this.controller.songQueue.unshift(this.controller.currentSong);
     this.play();
@@ -169,6 +173,10 @@ export class MusicModule extends LunaModule {
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'There is no song to pause',
       }));
+      return;
+    }
+
+    if (!this.userCanManageSong(this.controller.currentSong!)) {
       return;
     }
 
@@ -194,6 +202,10 @@ export class MusicModule extends LunaModule {
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'There is no song to resume',
       }));
+      return;
+    }
+
+    if (!this.userCanManageSong(this.controller.currentSong!)) {
       return;
     }
 
@@ -250,6 +262,10 @@ export class MusicModule extends LunaModule {
       return;
     }
 
+    if (!this.userCanManageSong(this.controller.currentSong!)) {
+      return;
+    }
+
     LunaClient.info(this.controller.textChannel!, new Embed({
       message: `Song ${this.controller.currentSong!.title} skipped`,
     }));
@@ -267,10 +283,20 @@ export class MusicModule extends LunaModule {
     }
 
     if (this.controller.currentSong !== undefined) {
+      if (!this.userCanManageSong(this.controller.currentSong!)) {
+        return;
+      }
+
       this.controller.songQueue.unshift(this.controller.currentSong);
     }
 
-    this.controller.songQueue.unshift(this.controller.history.pop()!);
+    const songToUnskip = this.controller.history.pop()!;
+    // Allow the user to manage the song they've unskipped from history 
+    // if they previously could not
+    if (!this.userCanManageSong(songToUnskip)) {
+      songToUnskip.canBeManagedBy.push(this.args['member']!.id);
+    }
+    this.controller.songQueue.unshift(songToUnskip);
 
     this.play();
   }
@@ -306,14 +332,21 @@ export class MusicModule extends LunaModule {
       return;
     }
 
-    const removedSong = this.controller.songQueue.splice(index - 1, 1)[0];
+    index -= 1;
+    
+    if (!this.userCanManageSong(this.controller.songQueue[index])) {
+      return;
+    }
+
+    const removedSong = this.controller.songQueue.splice(index, 1)[0];
 
     LunaClient.info(this.controller.textChannel!, new Embed({
       message: `Song #${index} ~ ${removedSong.title} removed from the queue`,
     }));
   }
 
-  /// Validates that the user can use the music module as a whole by checking if they're in the same voice channel
+  /// Validates that the user can use the music module as a whole
+  /// by checking if they're in the same voice channel
   verifyVoiceChannel(): boolean {
     const voiceChannel: VoiceChannel = this.args['member'].voice.channel;
     
@@ -334,6 +367,20 @@ export class MusicModule extends LunaModule {
     if (voiceChannel.id !== this.controller.voiceChannel!.id) {
       LunaClient.warn(this.args['textChannel'], new Embed({
         message: 'You need to be in the same channel as the bot to use the music module'
+      }));
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Determines whether the user can manage a song based on whether
+  /// they have been present in the voice channel when
+  /// the song was requested
+  userCanManageSong(song: Song): boolean {
+    if (!song.canBeManagedBy.includes(this.args['member'].id)) {
+      LunaClient.warn(this.args['textChannel'], new Embed({
+        message: `You cannot manage a song which has been requested in your absence`
       }));
       return false;
     }
