@@ -66,11 +66,11 @@ export class Language {
     const minutesPart = Math.floor(seconds / 60);
     seconds -= minutesPart * 60;
     const secondsPart = seconds;
-    
+
     return hoursPart.toString() + assemblePart(minutesPart) + assemblePart(secondsPart);
 
     function assemblePart(part: number): string {
-      return (secondsPart < 10 ? ':0' : ':') + part.toString();
+      return (part < 10 ? ':0' : ':') + part.toString();
     }
   }
 

@@ -59,19 +59,15 @@ export abstract class LunaModule {
     for (let index = 0; index < integers.length; index++) {
       let multiplier = 1;
 
-      if (secondIdentifiers.includes(strings[index])) {
-        continue;
-      }
-
       if (minuteIdentifiers.includes(strings[index])) {
         multiplier = 60;
-        continue;
       }
 
       if (hourIdentifiers.includes(strings[index])) {
         multiplier = 60 * 60;
-        continue;
       }
+
+      seconds += integers[index] * multiplier;
 
       LunaClient.warn(this.args['textChannel'], new Embed({
         message: `'${strings[index]} is not a valid time specifier'`,
