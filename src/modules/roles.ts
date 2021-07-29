@@ -2,8 +2,8 @@ import { EmbedField, GuildMember, Role } from 'discord.js';
 
 import { LunaModule } from './module';
 import { LunaClient } from '../client/client';
-import { Embed } from '../client/embed';
 
+import { Embed } from '../client/embed';
 import { Language } from '../language';
 
 import roles from '../roles.json';
@@ -18,11 +18,12 @@ const allRoles = [
 ];
 
 export class RolesModule extends LunaModule {
-  readonly commandTree = {
+  public readonly commandTree = {
     'roles ~ Display a list of available roles': () => this.displayRoles(),
     '$rolename ~ Assign the role with the name <rolename> to yourself': (roleName: string) => this.resolveRole(roleName),
   };
 
+  /// Display a list of available roles
   displayRoles() {
     const roleCategoriesToDisplay = Object.entries(roles).slice(2, this.hasProficiency() ? undefined : 2);
     const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
@@ -34,7 +35,8 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({fields: fields}));
   }
 
- resolveRole(roleName: string) {
+  /// Resolve [roleName] to a `Role`; verify that the user can assign it; add it to user, otherwise, remove it
+  resolveRole(roleName: string) {
     roleName = roleName.toLowerCase();
 
     // If the sought role is not found in [allRoles]
@@ -78,6 +80,7 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({message: message}));
   }
 
+  /// Assign or unassign a non-proficiency role
   resolveNonProficiencyRole(roleName: string) {
     // If the user does not have a proficiency role yet
     if (!this.hasProficiency()) {
@@ -92,6 +95,7 @@ export class RolesModule extends LunaModule {
     return this.addRole(roleName);
   }
 
+  /// Add role to user by name
   addRole(roleName: string) {
     const member: GuildMember = this.args['member'];
     member.roles.add(this.findRole(roleName));
@@ -129,6 +133,7 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({message: message + ` :partying_face:`}));
   }
 
+  /// Remove role from user by name
   removeRole(roleName: string) {
     const member: GuildMember = this.args['member'];
     member.roles.remove(this.findRole(roleName));
@@ -152,6 +157,8 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({message: message + ` :sob:`}));
   }
 
+  /// Assign the user a proficiency role, or if the user already has one,
+  /// replace it with the newly requested proficiency role
   addOrReplaceProficiencyRole(roleName: string, currentProficiencyRole: Role | undefined) {
     const member: GuildMember = this.args['member'];
     member.roles.add(this.findRole(roleName));
@@ -163,43 +170,56 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({message: `Your level is now ${roleName}`}));
   }
 
+  /// Remove a proficiency role from the user
   removeProficiencyRole(proficiencyRole: Role) {
     const member: GuildMember = this.args['member'];
     member.roles.remove(proficiencyRole);
   }
 
+  /// Resolve the name of a role to a `Role` object
   findRole(roleName: string): Role {
     const member: GuildMember = this.args['member'];
     return member.guild.roles.cache.find((role) => role.name.toLowerCase() === roleName)!;
   }
 
+  /// Check if the user has a role by passing its name
   hasRole(roleName: string): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.some((role) => role.name.toLowerCase() === roleName);
   }
 
+  /// Check if the user has a proficiency role by passing its name
   hasProficiency(): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.some((role) => roles.proficiency.includes(role.name.toLowerCase()))
   }
 
+  /// Get the user's existent proficiency role
   getCurrentProficiencyRole(): Role | undefined {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.find((role) => roles.proficiency.includes(role.name.toLowerCase()));
   }
 
+  /// Get tags of roles which are 'better' than the given role's index
   getTagsOfProficiencyRolesBetterThan(roleIndex: number): string[] {
-    return roles.proficiency.filter((_, index) => index > roleIndex).map((roleName) => this.toTag(this.findRole(roleName).id));
+    return roles.proficiency.filter(
+      (_, index) => index > roleIndex).map((roleName) => this.toTag(this.findRole(roleName).id)
+    );
   }
 
+  /// Get tags of roles which are 'worse' than the given role's index
   getTagsOfProficiencyRolesWorseThan(roleIndex: number): string[] {
-    return roles.proficiency.filter((_, index) => index < roleIndex).map((roleName) => this.toTag(this.findRole(roleName).id));
+    return roles.proficiency.filter(
+      (_, index) => index < roleIndex).map((roleName) => this.toTag(this.findRole(roleName).id)
+    );
   }
 
+  /// Convert a role's ID to a Discord in-message tag
   toTag(id: string): string {
     return `<@&${id}>`;
   }
 
+  /// Check if the user already has the maximum number of ethnicity roles
   hasEnoughEthnicityRoles(): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
@@ -207,6 +227,7 @@ export class RolesModule extends LunaModule {
     ).size >= roles.maximumEthnicityRoles;
   }
 
+  /// Check if the user already has the maximum number of region roles
   hasEnoughRegionRoles(): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
