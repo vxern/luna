@@ -257,11 +257,19 @@ export class MusicModule extends LunaModule {
 
   /// Displays the current playing song
   displayNowPlaying() {
+    let songString = 'No song is playing currently';
+    
+    if (this.controller.currentSong !== undefined) {
+      songString = `${this.controller.currentSong.title} (${this.controller.currentSong.runningTimeAsString()})`;
+    }
+
+    if (this.controller.voiceConnection?.dispatcher.paused) {
+      songString = ':pause_button: ' + songString;
+    }
+
     LunaClient.info(this.controller.textChannel!, Embed.singleField({
       name: 'Now Playing',
-      value: this.controller.currentSong === undefined ? 
-        'No song is playing currently' : 
-        this.controller.currentSong!.title,
+      value: songString,
       inline: false,
     }));
   }
