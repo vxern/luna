@@ -1,6 +1,6 @@
 {
   "name": "luna",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A powerful, fast and cleanly implemented Discord bot written in TypeScript for the Learn Romanian Discord server",
   "type": "module",
   "main": "index.js",
@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/vxern/luna.git"
   },
-  "keywords": [],
+  "keywords": ["discord", "bot", "typescript", "javascript", "fast", "powerful", "language", "command tree"],
   "author": "Dorian Oszczęda <vxern@wordcollector.co.uk>",
   "license": "MIT",
   "bugs": {
@@ -29,7 +29,10 @@
     "discord.js": "^12.5.3",
     "fastest-levenshtein": "^1.0.12",
     "faunadb": "^4.3.0",
+    "ffmpeg-static": "^4.4.0",
     "moment": "^2.29.1",
+    "opusscript": "^0.0.8",
+    "ytdl-core": "^4.9.0",
     "ytsearcher": "^1.2.4"
   }
 }
