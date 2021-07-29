@@ -1,11 +1,12 @@
-import { Message, VoiceChannel } from "discord.js";
+import { Message, StreamOptions, VoiceChannel } from "discord.js";
 import ytdl from 'ytdl-core';
+import { YTSearch } from "ytsearcher";
 
 import { LunaClient } from "../../client/client";
+import { Embed } from "../../client/embed";
 import { LunaModule } from "../module";
 import { MusicController } from "./controller";
 
-import { Embed } from "../../client/embed";
 import { Language } from "../../language";
 import { Song } from "./song";
 
@@ -22,7 +23,7 @@ export class MusicModule extends LunaModule {
     'replay | play again | restart ~ Start playing the current song from the start': () => this.replay(),
     'pause | stop ~ Pause or unpause the current song': () => this.pause(),
     'resume | unpause | start ~ Resume the current song': () => this.resume(),
-    
+
     // Controlling the movement of songs between queues
     'queue | song queue | songqueue ~ Display the list of queued songs': () => this.displayQueue(),
     'now | now playing | playing ~ Display the current playing song': () => this.displayNowPlaying(),
@@ -32,10 +33,10 @@ export class MusicModule extends LunaModule {
     'remove ~ Remove a song from queue using its index': (indexOrName: string) => this.removeFromQueue(indexOrName),
 
     // Controlling the song flow
-    //'forward|fastforward ~ Fast-forward the song by a given duration':
-    //  (duration: string) => this.forward(this.resolveTimeQuery(duration)),
-    //'rewind ~ Rewind the song by a given duration':
-    //  (duration: string) => this.rewind(this.resolveTimeQuery(duration)),
+    'forward | fastforward ~ Fast-forward the song by a given duration':
+      (duration: string) => this.forward(this.resolveTimeQuery(duration)),
+    'rewind ~ Rewind the song by a given duration':
+      (duration: string) => this.rewind(this.resolveTimeQuery(duration)),
 
     // Controlling the playback attributes
     //'volume ~ Display or set the current volume': {
@@ -46,27 +47,33 @@ export class MusicModule extends LunaModule {
 
   private readonly controller: MusicController = new MusicController();
 
+  /// YTSearcher.search() is marked as a synchronous function, but in actuality it returns a Promise.
+  /// Awaiting the function without converting it to a promise yields a redundant usage tooltip.
+  private searchYouTube = async (songName: string) => await (
+    (this.controller.searcher.search(songName) as unknown) as Promise<YTSearch>
+  );
+
   /// Searches for a song by URL or by name
-  async search(songName: string): Promise<Song | undefined> {
-    if (songName.length === 0) {
+  async search(query: string): Promise<Song | undefined> {
+    if (query.length === 0) {
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'You did not provide a song name',
       }));
       return;
     }
+  
 
-    const youtubeUrl = youtubeUrlPattern.exec(songName)?.shift();
+    const youtubeUrl = youtubeUrlPattern.exec(query)?.shift() || await this.getVideoUrlByName(query);
 
-    if (youtubeUrl !== undefined) {
-      const videoDetails = (await ytdl.getInfo(youtubeUrl)).videoDetails!;
-      return new Song({
-        title: videoDetails.title,
-        url: videoDetails.video_url,
-        canBeManagedBy: this.controller.usersPresent(),
-      });
-    }
+    const videoInfo = await ytdl.getInfo(youtubeUrl!);
+    const videoDetails = videoInfo.videoDetails;
 
-    const searchResults = (await this.controller.searcher.search(songName)).currentPage?.slice(0, config.maximumSearchResults);
+    return Song.fromDetails(videoDetails, this.controller.usersPresent());
+  }
+
+  async getVideoUrlByName(songName: string): Promise<string | undefined> {
+    const search = await this.searchYouTube(songName);
+    const searchResults = search.currentPage?.slice(0, config.maximumSearchResults);
 
     if (searchResults === undefined) {
       LunaClient.warn(this.controller.textChannel!, new Embed({
@@ -78,6 +85,7 @@ export class MusicModule extends LunaModule {
     // Decode encoded quotation marks included in YouTube video titles
     searchResults.forEach((value) => value.title = value.title.replace(/&#39;/g, '\'').replace(/&quot;/g, '"'));
 
+    // Display the list of choices to the user
     LunaClient.info(this.controller.textChannel!, Embed.singleField({
       name: 'Select a song below by writing its index',
       value: searchResults.map(
@@ -86,28 +94,33 @@ export class MusicModule extends LunaModule {
       inline: false,
     }));
 
+    // Await a message with the index
     const message = await this.controller.textChannel?.awaitMessages(
       (message: Message) => message.author.id === this.args['member'].id,
       { max: 1, time: config.queryTimeout * 1000 },
     ).catch();
 
-    let index = Number(message?.first()?.content);
+    const indexString = message?.first()?.content;
+
+    // If no message has been written
+    if (indexString === undefined) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: 'You did not write an index',
+      }));
+      return;
+    }
+
+    const index = Number(indexString);
 
     if (!this.isIndexInBounds(index, searchResults.length)) {
       return;
     }
 
-    const video = searchResults[index - 1];
-
-    return new Song({
-      title: video.title,
-      url: video.url,
-      canBeManagedBy: this.controller.usersPresent(),
-    });
+    return searchResults[index - 1].url;
   }
 
   /// Plays the requested song or the next song in queue
-  async play(song?: Song) {
+  async play(song?: Song, message: boolean = true) {
     this.controller.voiceConnection = await this.controller.voiceChannel?.join();
 
     // If the user requested a song while 
@@ -122,12 +135,13 @@ export class MusicModule extends LunaModule {
       }
     }
 
-    if (this.controller.currentSong !== undefined) {
-      // Register the current song in the history of songs played
+    // If the current song is not Register the current song in the history of songs played
+    if (this.controller.isPlaying()) {
       this.controller.history.push(this.controller.currentSong!);
     }
 
-    // If there are no more songs to play
+    // If there are no more songs to play, remove the current song
+    // and stop the dispatcher
     if (this.controller.songQueue.length === 0) {
       this.controller.currentSong = undefined;
       this.controller.voiceConnection?.dispatcher?.end();
@@ -136,19 +150,25 @@ export class MusicModule extends LunaModule {
 
     this.controller.currentSong = this.controller.songQueue.shift();
 
-    const stream = ytdl(this.controller.currentSong!.url);
-    this.controller.voiceConnection!.play(stream, {
+    const streamOptions: StreamOptions = {
       seek: this.controller.currentSong!.offset,
       volume: this.controller.volume,
-    }).on('finish', () => this.play()).on('error', (_) => this.play())
+    }
+    const stream = ytdl(this.controller.currentSong!.url);
 
-    LunaClient.info(this.controller.textChannel!, new Embed({
-      message: `Now playing '${this.controller.currentSong!.title}'`,
-    }));
+    this.controller.voiceConnection!.play(stream, streamOptions)
+      .on('finish', () => this.play())
+      .on('error', (_) => this.play())
+
+    if (message) {
+      LunaClient.info(this.controller.textChannel!, new Embed({
+        message: `Now playing '${this.controller.currentSong!.title}'`,
+      }));
+    }
   }
 
   /// Restarts the current running song
-  replay() {
+  replay(message: boolean = true) {
     if (this.controller.currentSong === undefined) {
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'There is no song to replay',
@@ -162,11 +182,15 @@ export class MusicModule extends LunaModule {
 
     // Add the current song to the beginning of the song queue and start playing
     this.controller.songQueue.unshift(this.controller.currentSong);
-    this.play();
 
-    LunaClient.info(this.controller.textChannel!, new Embed({
-      message: `Replaying ${this.controller.currentSong!.title}...`,
-    }));
+    if (message) {
+      LunaClient.info(this.controller.textChannel!, new Embed({
+        message: `Replaying ${this.controller.currentSong!.title}...`,
+      }));
+    }
+
+    this.controller.currentSong = undefined;
+    this.play(undefined, false);
   }
 
   /// Pauses or unpauses the song playing
@@ -285,7 +309,7 @@ export class MusicModule extends LunaModule {
     }
 
     if (this.controller.currentSong !== undefined) {
-      if (!this.userCanManageSong(this.controller.currentSong!)) {
+      if (!this.userCanManageSong(this.controller.currentSong)) {
         return;
       }
 
@@ -295,8 +319,8 @@ export class MusicModule extends LunaModule {
     const songToUnskip = this.controller.history.pop()!;
     // Allow the user to manage the song they've unskipped from history 
     // if they previously could not
-    if (!this.userCanManageSong(songToUnskip)) {
-      songToUnskip.canBeManagedBy.push(this.args['member']!.id);
+    if (!songToUnskip.canBeManagedBy.includes(this.args['member'].id)) {
+      songToUnskip.canBeManagedBy.push(this.args['member'].id);
     }
     this.controller.songQueue.unshift(songToUnskip);
 
@@ -347,6 +371,72 @@ export class MusicModule extends LunaModule {
     }));
   }
 
+  /// Fast-forwards the song by a given number of seconds
+  forward(seconds: number | undefined) {
+    if (seconds === undefined) {
+      return;
+    }
+
+    if (!this.controller.isPlaying()) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: 'There is no song to fast-forward',
+      }));
+      return;
+    }
+
+    // How long the song has been running for since the last time it has been played
+    const currentOffset = this.controller.currentSong!.offset;
+    const streamTime = this.controller.streamTimeInSeconds();
+    const totalOffset = currentOffset + streamTime + seconds;
+
+    if (totalOffset >= this.controller.currentSong!.duration - 5) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: 'Cannot fast-forward beyond the song duration',
+      }));
+      return;
+    }
+
+    this.controller.currentSong!.offset = totalOffset;
+    this.replay(false);
+
+    LunaClient.info(this.controller.textChannel!, new Embed({
+      message: `Fast-forwarded the song by ${Language.secondsToExtendedFormat(seconds)} ~ ` + 
+               `${this.controller.currentSong!.runningTimeAsString()}`,
+    }));
+  }
+
+  /// Rewinds the song by a given number of seconds
+  rewind(seconds: number | undefined) {
+    if (seconds === undefined) {
+      return;
+    }
+
+    if (!this.controller.isPlaying()) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: 'There is no song to rewind',
+      }));
+      return;
+    }
+
+    // How long the song has been running for since the last time it has been played
+    const currentOffset = this.controller.currentSong!.offset;
+    const streamTime = this.controller.streamTimeInSeconds();
+    const totalOffset = currentOffset + streamTime - seconds;
+
+    if (totalOffset <= 5) {
+      this.controller.currentSong!.offset = 0;
+    } else {
+      this.controller.currentSong!.offset = totalOffset;
+    }
+
+    this.replay(false);
+
+    LunaClient.info(this.controller.textChannel!, new Embed({
+      message: `Rewound the song by ${Language.secondsToExtendedFormat(seconds)} ~ ` + 
+               `${this.controller.currentSong!.runningTimeAsString()}`,
+    }));
+  }
+
   /// Validates that the user can use the music module as a whole
   /// by checking if they're in the same voice channel
   verifyVoiceChannel(): boolean {
@@ -391,15 +481,7 @@ export class MusicModule extends LunaModule {
   }
 
   /// Validates whether a given index is in bounds
-  isIndexInBounds(index: number | undefined, arrayLength: number): boolean {
-    // If no message has been written
-    if (index === undefined) {
-      LunaClient.warn(this.controller.textChannel!, new Embed({
-        message: 'You did not write an index',
-      }));
-      return false;
-    }
-
+  isIndexInBounds(index: number, arrayLength: number): boolean {
     // If the index is not a number
     if (isNaN(index)) {
       LunaClient.warn(this.controller.textChannel!, new Embed({
