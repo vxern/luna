@@ -1,48 +1,66 @@
 import { distance } from 'fastest-levenshtein';
-import { Utils } from './utils';
 
+/// Class containing static utility language functions
 export class Language {
-  static capitaliseWords(target: string) {
+  /// Capitalise each word in the target string
+  static capitaliseWords(target: string): string {
     return target.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
   }
 
-  static highlightKeywords(target: string, phrase: string) {
+  /// Highlight all keywords of [phrase] in [target]
+  static highlightKeywords(target: string, phrase: string): string {
     // Extract keywords which should be highlighted in [target] from [phrase] in lowercase format
     const keywordsToHighlight = phrase.toLowerCase().split(' ');
-    // Lambda function calculating the maximum acceptable distance for two words be determined to be similar
+    // Maximum acceptable distance for another word be determined to be similar to this word
     const acceptableDistance = (word: string) => Math.max(Math.round(word.length / Math.E), 1);
-    // Lambda function determining whether a word is similar to a keyword in [keywordsToHighlight]
+    // Whether a word is similar to a keyword in [keywordsToHighlight]
     const similar = (word: string) => keywordsToHighlight.some((keyword) => distance(keyword, word.toLowerCase()) <= acceptableDistance(keyword));
     // Get the string keywords without unnecessary symbols
     const alphanumericOnlyKeywords = this.removeNonAlphanumeric(target).split(' ');
     // Find those words which when in lowercase format are similar to any of [keywordsToHighlight]
     const keywordsFound = [
       ...alphanumericOnlyKeywords.filter(similar), 
-      ...Utils.getKeywordPairs(alphanumericOnlyKeywords, 'even').filter(similar), 
-      ...Utils.getKeywordPairs(alphanumericOnlyKeywords, 'odd').filter(similar),
+      ...this.coupleKeywordPairs(alphanumericOnlyKeywords, 'even').filter(similar), 
+      ...this.coupleKeywordPairs(alphanumericOnlyKeywords, 'odd').filter(similar),
     ];
     // Highlight the necessary keywords in [target]
-    keywordsFound.forEach((keyword) => {target = target.replace(RegExp(keyword, 'g'), '**' + keyword + '**')});
+    keywordsFound.forEach((keyword) => {
+      target = target.replace(RegExp(keyword, 'g'), '**' + keyword + '**')
+    });
     return target;
   }
 
-  static join(array: string[], operator: 'and' | 'or' = 'and') {
+  /// Take an array, couple up elements in pairs, taking [set] as the basis for which elements constitute pairs
+  static coupleKeywordPairs(array: string[], set: 'even' | 'odd'): string[] {
+    const indexes = [...Array(array.length).keys()];
+    const belongsToSet = set === 'even' ? (index: number) => index % 2 === 0 : (index: number) => index % 2 !== 0;
+    const couplePair = (index: number) => array[index] + ' ' + array[index + 1];
+    return indexes.filter(belongsToSet).map(couplePair);
+  }
+
+  /// Join elements of an array in an orthographically correct manner
+  ///
+  /// ['apple'] -> apple
+  /// ['apple', 'banana'] -> apple and banana
+  /// ['apple', 'banana', 'carrot'] -> apple, banana and/or carrot
+  static join(array: string[], operator: 'and' | 'or') {
     const lastElement = array.pop();
     let joined = array.join(', ');
-    
+
     if (array.length > 0) {
       joined += ` ${operator} `;
     }
 
     joined += lastElement;
-
     return joined;
   }
 
+  /// Replace any amount of consecutive spaces with a single space
   static normaliseSpaces(target: string) {
     return target.trim().replace(/ +/g, ' ')
   }
 
+  /// Remove characters that are neither alphabetic nor numeric
   static removeNonAlphanumeric(target: string) {
     return this.normaliseSpaces(target.replace(/[^0-9a-zA-Z_ ]/g, ''));
   }
