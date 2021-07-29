@@ -55,6 +55,25 @@ export class Language {
     return joined;
   }
 
+  /// Converts a number of seconds to extended time format (hh:mm:ss)
+  ///
+  /// 39 seconds -> 0:39
+  /// 7 minutes 26 seconds -> 7:26
+  /// 1 hour 5 minutes 48 seconds -> 1:05:48
+  static secondsToExtendedFormat(seconds: number): string {
+    const hoursPart = Math.floor(seconds / 60 / 60);
+    seconds -= hoursPart * 60 * 60;
+    const minutesPart = Math.floor(seconds / 60);
+    seconds -= minutesPart * 60;
+    const secondsPart = seconds;
+    
+    return hoursPart.toString() + assemblePart(minutesPart) + assemblePart(secondsPart);
+
+    function assemblePart(part: number): string {
+      return (secondsPart < 10 ? ':0' : ':') + part.toString();
+    }
+  }
+
   /// Replace any amount of consecutive spaces with a single space
   static normaliseSpaces(target: string) {
     return target.trim().replace(/ +/g, ' ')
