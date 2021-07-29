@@ -1,5 +1,6 @@
 import { TextChannel, VoiceChannel, VoiceConnection } from "discord.js";
 import { YTSearcher } from "ytsearcher";
+import { Language } from "../../language";
 
 import { Song } from "./song";
 
@@ -34,7 +35,15 @@ export class MusicController {
     return this.voiceChannel!.members.map((member) => member.id);
   }
 
+  /// Converts the stream time (milliseconds) to seconds
   streamTimeInSeconds(): number {
     return Math.floor(this.voiceConnection!.dispatcher.streamTime / 1000);
+  }
+
+  /// Return the [song] running time together with the [song's] [duration] as a string 
+  runningTimeAsString(song: Song): string {
+    return Language.secondsToExtendedFormat(
+      this.currentSong!.offset + this.streamTimeInSeconds()
+    ) + ' / ' + Language.secondsToExtendedFormat(song.duration);
   }
 }

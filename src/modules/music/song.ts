@@ -1,7 +1,5 @@
 import { MoreVideoDetails } from "ytdl-core";
 
-import { Language } from "../../language";
-
 export class Song {
   /// Song title
   title: string;
@@ -19,10 +17,6 @@ export class Song {
     this.url = url;
     this.duration = length;
     this.canBeManagedBy = canBeManagedBy;
-  }
-
-  runningTimeAsString(): string {
-    return Language.secondsToExtendedFormat(this.offset) + ' / ' + Language.secondsToExtendedFormat(this.duration);
   }
 
   static fromDetails(videoDetails: MoreVideoDetails, usersPresent: string[]) {

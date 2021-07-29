@@ -33,10 +33,8 @@ export class MusicModule extends LunaModule {
     'remove ~ Remove a song from queue using its index': (indexOrName: string) => this.removeFromQueue(indexOrName),
 
     // Controlling the song flow
-    'forward | fastforward ~ Fast-forward the song by a given duration':
-      (duration: string) => this.forward(this.resolveTimeQuery(duration)),
-    'rewind ~ Rewind the song by a given duration':
-      (duration: string) => this.rewind(this.resolveTimeQuery(duration)),
+    'forward | fastforward ~ Fast-forward the song by a given duration': (duration: string) => this.forward(this.resolveTimeQuery(duration)),
+    'rewind ~ Rewind the song by a given duration': (duration: string) => this.rewind(this.resolveTimeQuery(duration)),
 
     // Controlling the playback attributes
     //'volume ~ Display or set the current volume': {
@@ -61,7 +59,6 @@ export class MusicModule extends LunaModule {
       }));
       return;
     }
-  
 
     const youtubeUrl = youtubeUrlPattern.exec(query)?.shift() || await this.getVideoUrlByName(query);
 
@@ -72,6 +69,8 @@ export class MusicModule extends LunaModule {
   }
 
   async getVideoUrlByName(songName: string): Promise<string | undefined> {
+    const memberId = this.args['member'].id; 
+
     const search = await this.searchYouTube(songName);
     const searchResults = search.currentPage?.slice(0, config.maximumSearchResults);
 
@@ -96,21 +95,19 @@ export class MusicModule extends LunaModule {
 
     // Await a message with the index
     const message = await this.controller.textChannel?.awaitMessages(
-      (message: Message) => message.author.id === this.args['member'].id,
+      (message: Message) => message.author.id === memberId && !isNaN(Number(message.content)),
       { max: 1, time: config.queryTimeout * 1000 },
     ).catch();
 
-    const indexString = message?.first()?.content;
-
     // If no message has been written
-    if (indexString === undefined) {
+    if (message === undefined) {
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'You did not write an index',
       }));
       return;
     }
 
-    const index = Number(indexString);
+    const index = Number(message?.first()?.content);
 
     if (!this.isIndexInBounds(index, searchResults.length)) {
       return;
@@ -135,7 +132,9 @@ export class MusicModule extends LunaModule {
       }
     }
 
-    // If the current song is not Register the current song in the history of songs played
+    // Register the current song in the history of songs played, ensuring
+    // that it is only added to history if the last song played wasn't the
+    // same as the current song
     if (this.controller.isPlaying()) {
       this.controller.history.push(this.controller.currentSong!);
     }
@@ -260,10 +259,10 @@ export class MusicModule extends LunaModule {
     let songString = 'No song is playing currently';
     
     if (this.controller.currentSong !== undefined) {
-      songString = `${this.controller.currentSong.title} (${this.controller.currentSong.runningTimeAsString()})`;
+      songString = `${this.controller.currentSong.title} (${this.controller.runningTimeAsString(this.controller.currentSong!)})`;
     }
 
-    if (this.controller.voiceConnection?.dispatcher.paused) {
+    if (this.controller.voiceConnection?.dispatcher?.paused) {
       songString = ':pause_button: ' + songString;
     }
 
@@ -392,6 +391,10 @@ export class MusicModule extends LunaModule {
       return;
     }
 
+    if (!this.userCanManageSong(this.controller.currentSong!)) {
+      return;
+    }
+
     // How long the song has been running for since the last time it has been played
     const currentOffset = this.controller.currentSong!.offset;
     const streamTime = this.controller.streamTimeInSeconds();
@@ -408,7 +411,7 @@ export class MusicModule extends LunaModule {
 
     LunaClient.info(this.controller.textChannel!, new Embed({
       message: `Fast-forwarded the song by ${Language.secondsToExtendedFormat(seconds)} ~ ` + 
-               `${this.controller.currentSong!.runningTimeAsString()}`,
+               `${this.controller.runningTimeAsString(this.controller.currentSong!)}`,
     }));
 
     this.replay(false);
@@ -424,6 +427,10 @@ export class MusicModule extends LunaModule {
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'There is no song to rewind',
       }));
+      return;
+    }
+
+    if (!this.userCanManageSong(this.controller.currentSong!)) {
       return;
     }
 
@@ -444,7 +451,7 @@ export class MusicModule extends LunaModule {
 
     LunaClient.info(this.controller.textChannel!, new Embed({
       message: `Rewound the song ${rewindMessage} ~ ` + 
-               `${this.controller.currentSong!.runningTimeAsString()}`,
+               `${this.controller.runningTimeAsString(this.controller.currentSong!)}`,
     }));
 
     this.replay(false);
@@ -480,10 +487,12 @@ export class MusicModule extends LunaModule {
   }
 
   /// Determines whether the user can manage a song based on whether
-  /// they have been present in the voice channel when
-  /// the song was requested
+  /// they have been present in the voice channel when the song was requested
   userCanManageSong(song: Song): boolean {
-    if (!song.canBeManagedBy.includes(this.args['member'].id)) {
+    if (!song.canBeManagedBy.includes(this.args['member'].id) && 
+        /// If all the users who could manage the song are no longer present, the
+        /// song will automatically be unlocked.
+        !this.controller.usersPresent().some((userId) => song.canBeManagedBy.includes(userId))) {
       LunaClient.warn(this.args['textChannel'], new Embed({
         message: `You cannot manage a song which has been requested in your absence`
       }));
