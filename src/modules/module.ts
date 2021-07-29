@@ -32,7 +32,7 @@ export abstract class LunaModule {
     // No parameters provided for either keys or values
     if (integers === null || strings === null) {
       LunaClient.warn(this.args['textChannel'], new Embed({
-        message: 'You have not provided a valid time description as one of the required terms is missing'
+        message: 'You have not provided a valid time description as one of the required terms is missing',
       }));
       return;
     }
@@ -40,7 +40,14 @@ export abstract class LunaModule {
     // The number of keys does not match the number of values
     if (integers.length !== strings.length) {
       LunaClient.warn(this.args['textChannel'], new Embed({
-        message: 'The number of time specifiers and values does not match'
+        message: 'The number of time specifiers and values does not match',
+      }));
+      return;
+    }
+
+    if (integers.includes(0)) {
+      LunaClient.warn(this.args['textChannel'], new Embed({
+        message: 'A time value cannot be 0',
       }));
       return;
     }
