@@ -98,7 +98,7 @@ export class LunaClient {
     const args = message.content.split(' ');
     const foremostArgument = args[0];
 
-    const branchIsMatch = ([key, _]: [string, any]) => {key = key.split(' ')[0]; return key.startsWith('$') || key === foremostArgument};
+    const branchIsMatch = ([key, _]: [string, any]) => {key = key.split(' ')[0]; return key.startsWith('$') || key.split('|').includes(foremostArgument)};
 
     // Find branches with a key corresponding to the foremost argument, with the [requirement]
     // yielding true and concatenate them into a single array
