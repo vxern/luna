@@ -73,6 +73,8 @@ export abstract class LunaModule {
         continue;
       }
 
+      seconds += integers[index] * multiplier;
+
       LunaClient.warn(this.args['textChannel'], new Embed({
         message: `'${strings[index]} is not a valid time specifier'`,
       }));

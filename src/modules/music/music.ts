@@ -397,12 +397,13 @@ export class MusicModule extends LunaModule {
     }
 
     this.controller.currentSong!.offset = totalOffset;
-    this.replay(false);
 
     LunaClient.info(this.controller.textChannel!, new Embed({
       message: `Fast-forwarded the song by ${Language.secondsToExtendedFormat(seconds)} ~ ` + 
                `${this.controller.currentSong!.runningTimeAsString()}`,
     }));
+
+    this.replay(false);
   }
 
   /// Rewinds the song by a given number of seconds
@@ -429,12 +430,12 @@ export class MusicModule extends LunaModule {
       this.controller.currentSong!.offset = totalOffset;
     }
 
-    this.replay(false);
-
     LunaClient.info(this.controller.textChannel!, new Embed({
       message: `Rewound the song by ${Language.secondsToExtendedFormat(seconds)} ~ ` + 
                `${this.controller.currentSong!.runningTimeAsString()}`,
     }));
+
+    this.replay(false);
   }
 
   /// Validates that the user can use the music module as a whole

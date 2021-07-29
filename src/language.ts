@@ -67,10 +67,14 @@ export class Language {
     seconds -= minutesPart * 60;
     const secondsPart = seconds;
     
+    console.log(hoursPart);
+    console.log(minutesPart);
+    console.log(secondsPart);
+
     return hoursPart.toString() + assemblePart(minutesPart) + assemblePart(secondsPart);
 
     function assemblePart(part: number): string {
-      return (secondsPart < 10 ? ':0' : ':') + part.toString();
+      return (part < 10 ? ':0' : ':') + part.toString();
     }
   }
 
