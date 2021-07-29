@@ -34,7 +34,7 @@ export class RolesModule extends LunaModule {
     LunaClient.info(this.args['textChannel'], new Embed({fields: fields}));
   }
 
-  resolveRole(roleName: string) {
+ resolveRole(roleName: string) {
     roleName = roleName.toLowerCase();
 
     // If the sought role is not found in [allRoles]
@@ -203,7 +203,7 @@ export class RolesModule extends LunaModule {
   hasEnoughEthnicityRoles(): boolean {
     const member: GuildMember = this.args['member'];
     return member.roles.cache.filter(
-      (role) => roles.regions.includes(role.name.toLowerCase())
+      (role) => roles.ethnicities.includes(role.name.toLowerCase())
     ).size >= roles.maximumEthnicityRoles;
   }
 
