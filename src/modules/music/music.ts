@@ -105,31 +105,38 @@ export class MusicModule extends LunaModule {
       { max: 1, time: config.queryTimeout * 1000 },
     );
 
-    let url = undefined;
-
-    responses.on('collect', (response: Message) => {
-      const index = Number(response.content);
-
-      if (!this.isIndexInBounds(index, searchResults.length)) {
-        return;
-      }
-
-      url = searchResults[index - 1].url;
+    const url = new Promise<string | undefined>((resolve) => {
+      responses.on('collect', (response: Message) => {
+        const index = Number(response.content);
+  
+        if (!this.isIndexInBounds(index, searchResults.length)) {
+          resolve(undefined);
+          return;
+        }
+  
+        resolve(searchResults[index - 1].url);
+      });
+  
+      responses.on('end', (collected) => {
+        if (collected.size !== 0) {
+          resolve(undefined);
+          return;
+        } 
+  
+        LunaClient.warn(this.controller.textChannel!, new Embed({
+          message: 'You did not write an index',
+        }));
+        
+        resolve(undefined);
+      });
+  
+      collector.on('end', () => {
+        responses.removeAllListeners();
+        resolve(undefined);
+      });
     });
 
-    responses.on('end', (collected) => {
-      if (collected.size !== 0) {
-        return;
-      } 
-
-      LunaClient.warn(this.controller.textChannel!, new Embed({
-        message: 'You did not write an index',
-      }));
-    });
-
-    collector.on('end', () => {
-      responses.removeAllListeners();
-    });
+    return await url;
   }
 
   /// Plays the requested song or the next song in queue
@@ -316,7 +323,7 @@ export class MusicModule extends LunaModule {
     }
 
     LunaClient.info(this.controller.textChannel!, new Embed({
-      message: `Song ${this.controller.currentSong!.title} skipped`,
+      message: `Skipped '${this.controller.currentSong!.title}'`,
     }));
 
     this.play();
