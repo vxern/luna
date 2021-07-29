@@ -152,8 +152,8 @@ export class LunaClient {
     callback(message.content);
   }
 
-  private static sendEmbed(textChannel: TextChannel, embed: Embed) {
-    textChannel.send({embed: {
+  private static async sendEmbed(textChannel: TextChannel, embed: Embed): Promise<Message> {
+    return textChannel.send({embed: {
       title: embed.title,
       thumbnail: {url: embed.thumbnail},
       description: embed.message,
@@ -162,31 +162,31 @@ export class LunaClient {
     }})
   }
 
-  static tip(textChannel: TextChannel, embed: Embed) {
+  static async tip(textChannel: TextChannel, embed: Embed): Promise<Message> {
     if (embed.message !== undefined) {
       embed.message = `:information_source: ` + embed.message;
     }
     embed.color = config.accentColorTip;
-    this.sendEmbed(textChannel, embed);
+    return this.sendEmbed(textChannel, embed);
   }
 
-  static info(textChannel: TextChannel, embed: Embed) {
-    this.sendEmbed(textChannel, embed);
+  static async info(textChannel: TextChannel, embed: Embed): Promise<Message> {
+    return this.sendEmbed(textChannel, embed);
   }
 
-  static warn(textChannel: TextChannel, embed: Embed) {
+  static async warn(textChannel: TextChannel, embed: Embed): Promise<Message> {
     if (embed.message !== undefined) {
       embed.message = `:warning: ` + embed.message;
     }
     embed.color = config.accentColorWarning;
-    this.sendEmbed(textChannel, embed);
+    return this.sendEmbed(textChannel, embed);
   }
 
-  static error(textChannel: TextChannel, embed: Embed) {
+  static async error(textChannel: TextChannel, embed: Embed): Promise<Message> {
     if (embed.message !== undefined) {
       embed.message = `:exclamation: ` + embed.message;
     }
     embed.color = config.accentColorError;
-    this.sendEmbed(textChannel, embed);
+    return this.sendEmbed(textChannel, embed);
   }
 }

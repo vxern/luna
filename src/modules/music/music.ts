@@ -69,7 +69,7 @@ export class MusicModule extends LunaModule {
   }
 
   async getVideoUrlByName(songName: string): Promise<string | undefined> {
-    const memberId = this.args['member'].id; 
+    const userId = this.args['member'].id; 
 
     const search = await this.searchYouTube(songName);
     const searchResults = search.currentPage?.slice(0, config.maximumSearchResults);
@@ -85,35 +85,51 @@ export class MusicModule extends LunaModule {
     searchResults.forEach((value) => value.title = value.title.replace(/&#39;/g, '\'').replace(/&quot;/g, '"'));
 
     // Display the list of choices to the user
-    LunaClient.info(this.controller.textChannel!, Embed.singleField({
+    const message = await LunaClient.info(this.controller.textChannel!, Embed.singleField({
       name: 'Select a song below by writing its index',
       value: searchResults.map(
         (result, index) => index + 1 + ' ~ ' + Language.highlightKeywords(result.title, songName)
       ).join('\n\n'),
       inline: false,
     }));
+    
+    await message.react('❌');
 
-    // Await a message with the index
-    const message = await this.controller.textChannel?.awaitMessages(
-      (message: Message) => message.author.id === memberId && !isNaN(Number(message.content)),
+    const collector = message.createReactionCollector(
+      (reaction, user) => reaction.emoji.name === '❌' && user.id === userId,
       { max: 1, time: config.queryTimeout * 1000 },
-    ).catch();
+    );
 
-    // If no message has been written
-    if (message === undefined) {
+    const responses = this.controller.textChannel!.createMessageCollector(
+      (message: Message) => message.author.id === userId && !isNaN(Number(message.content)),
+      { max: 1, time: config.queryTimeout * 1000 },
+    );
+
+    let url = undefined;
+
+    responses.on('collect', (response: Message) => {
+      const index = Number(response.content);
+
+      if (!this.isIndexInBounds(index, searchResults.length)) {
+        return;
+      }
+
+      url = searchResults[index - 1].url;
+    });
+
+    responses.on('end', (collected) => {
+      if (collected.size !== 0) {
+        return;
+      } 
+
       LunaClient.warn(this.controller.textChannel!, new Embed({
         message: 'You did not write an index',
       }));
-      return;
-    }
+    });
 
-    const index = Number(message?.first()?.content);
-
-    if (!this.isIndexInBounds(index, searchResults.length)) {
-      return;
-    }
-
-    return searchResults[index - 1].url;
+    collector.on('end', () => {
+      responses.removeAllListeners();
+    });
   }
 
   /// Plays the requested song or the next song in queue
