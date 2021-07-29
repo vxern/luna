@@ -432,14 +432,18 @@ export class MusicModule extends LunaModule {
     const streamTime = this.controller.streamTimeInSeconds();
     const totalOffset = currentOffset + streamTime - seconds;
 
+    let rewindMessage;
+
     if (totalOffset <= 5) {
       this.controller.currentSong!.offset = 0;
+      rewindMessage = 'to start';
     } else {
       this.controller.currentSong!.offset = totalOffset;
+      rewindMessage = `by ${Language.secondsToExtendedFormat(seconds)}`;
     }
 
     LunaClient.info(this.controller.textChannel!, new Embed({
-      message: `Rewound the song by ${Language.secondsToExtendedFormat(seconds)} ~ ` + 
+      message: `Rewound the song ${rewindMessage} ~ ` + 
                `${this.controller.currentSong!.runningTimeAsString()}`,
     }));
 
