@@ -1,5 +1,5 @@
 import { ClientUser, TextChannel } from 'discord.js';
-import { default as fauna, Client as FaunaClient } from 'faunadb';
+import { default as fauna, Client } from 'faunadb';
 import { default as moment } from 'moment';
 
 import { LunaClient } from '../client/client';
@@ -9,15 +9,17 @@ import config from '../config.json';
 
 const $ = fauna.query;
 
-export class FaunaDatabase {
+/// Interface for interaction with Fauna - a database API
+export class Database {
   private userCache: Map<string, UserEntry>;
-  private client: FaunaClient;
+  private client: Client;
 
   constructor() {
     this.userCache = new Map();
-    this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
+    this.client = new Client({secret: process.env.FAUNA_SECRET!});
   }
 
+  /// Create [user's] database entry
   async createUserEntry(user: ClientUser): Promise<UserEntry | undefined> {
     const response: any = await this.client.query(
       $.Call($.Function('CreateUser'), { 
@@ -39,12 +41,14 @@ export class FaunaDatabase {
     return userEntry;
   }
 
-  removeUserEntry(user: ClientUser): void {
+  /// Remove [user's] database entry
+  removeUserEntry(user: ClientUser) {
     this.client.query($.Delete($.Match($.Index('User'), user.id)));
 
     this.userCache.delete(user.id);
   }
 
+  /// Get [user's] database entry or create an entry
   async fetchUserEntryOrCreate(user: ClientUser): Promise<UserEntry | undefined> {
     if (this.userCache.has(user.id)) {
       return this.userCache.get(user.id)!;
@@ -61,7 +65,8 @@ export class FaunaDatabase {
     return response.data as UserEntry;
   }
 
-  async thankUser(textChannel: TextChannel, caster: ClientUser, target: ClientUser): Promise<boolean> {
+  /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target
+  async thankUser(textChannel: TextChannel, caster: ClientUser, target: ClientUser) {
     const casterEntry = await this.fetchUserEntryOrCreate(caster);
     const targetEntry = await this.fetchUserEntryOrCreate(target);
 
@@ -70,7 +75,7 @@ export class FaunaDatabase {
       LunaClient.error(textChannel, new Embed({
         message: `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`
       }));
-      return false;
+      return;
     }
 
     // Get the time difference between now and the time the caster thanked the target
@@ -87,23 +92,19 @@ export class FaunaDatabase {
       LunaClient.warn(textChannel, new Embed({
         message: `You must wait ${hoursLeftToVote == 1 ? 'one more hour' : hoursLeftToVote + ' more hours'} to thank the same person again.`
       }));
-      return false;
+      return;
     }
 
     // Register the target in caster's [lastThanked] array
     casterEntry.lastThanked.set(targetEntry.id, now.unix());
-
-    // Increment target's [thanks]
     targetEntry.thanks += 1;
 
     // Update both the caster's and the target's entries
-    const response: any = await this.client.query(
+    await this.client.query(
       $.Do([
         $.Update($.Match($.Index('UserByID'), casterEntry.id), {data: {lastThanked: casterEntry.lastThanked}}),
         $.Update($.Match($.Index('UserByID'), targetEntry.id), {data: {thanks: targetEntry.thanks}}),
       ])
     );
-
-    return true;
   }
 }
