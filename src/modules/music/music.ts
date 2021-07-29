@@ -127,8 +127,10 @@ export class MusicModule extends LunaModule {
       this.controller.history.push(this.controller.currentSong!);
     }
 
+    // If there are no more songs to play
     if (this.controller.songQueue.length === 0) {
-      console.log('No more songs to play');
+      this.controller.currentSong = undefined;
+      this.controller.voiceConnection?.dispatcher?.end();
       return;
     }
 
@@ -141,7 +143,7 @@ export class MusicModule extends LunaModule {
     }).on('finish', () => this.play()).on('error', (_) => this.play())
 
     LunaClient.info(this.controller.textChannel!, new Embed({
-      message: `Now playing ${this.controller.currentSong!.title}...`,
+      message: `Now playing '${this.controller.currentSong!.title}'`,
     }));
   }
 
@@ -181,18 +183,14 @@ export class MusicModule extends LunaModule {
     }
 
     if (this.controller.voiceConnection!.dispatcher.paused) {
-      // TODO: Fix this disgusting hack
-      // https://github.com/discordjs/discord.js/issues/5300
-      this.controller.voiceConnection!.dispatcher.resume();
-      this.controller.voiceConnection!.dispatcher.pause();
-      this.controller.voiceConnection!.dispatcher.resume();
+      this.resume();
       return;
     }
 
     this.controller.voiceConnection!.dispatcher.pause();
     
     LunaClient.info(this.controller.textChannel!, new Embed({
-      message: 'Paused' + this.controller.currentSong!.title,
+      message: `Paused '${this.controller.currentSong!.title}'`,
     }));
   }
 
@@ -209,10 +207,14 @@ export class MusicModule extends LunaModule {
       return;
     }
 
+    // TODO: Fix this disgusting hack
+    // https://github.com/discordjs/discord.js/issues/5300
+    this.controller.voiceConnection!.dispatcher.resume();
+    this.controller.voiceConnection!.dispatcher.pause();
     this.controller.voiceConnection!.dispatcher.resume();
 
     LunaClient.info(this.controller.textChannel!, new Embed({
-      message: 'Resumed' + this.controller.currentSong!.title,
+      message: `Resumed '${this.controller.currentSong!.title}'`,
     }));
   }
 
