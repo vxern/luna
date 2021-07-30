@@ -19,7 +19,7 @@ export class MusicModule extends LunaModule {
   public readonly requirement = () => this.verifyVoiceChannel();
   public readonly beforeExecutingCommand = () => this.controller.update(this.args['textChannel'], this.args['voiceChannel']);
   public readonly commandTree = {
-    // Controlling the play of music
+    // Controlling the playing of music
     'play ~ Play music either by providing a URL or searching using keywords': async (songName: string) => this.play(await this.search(songName)),
     'replay | play again | restart ~ Start playing the current song from the start': () => this.replay(),
     'pause | stop ~ Pause or unpause the current song': () => this.pause(),
@@ -38,10 +38,7 @@ export class MusicModule extends LunaModule {
     'rewind ~ Rewind the song by a given duration': (duration: string) => this.rewind(this.resolveTimeQuery(duration)),
 
     // Controlling the playback attributes
-    //'volume ~ Display or set the current volume': {
-    //  '': () => this.unimplemented(),
-    //  '$volume': () => this.unimplemented(),
-    //}
+    'volume ~ Change the current volume': (volume: string) => this.setVolume(volume),
   };
 
   private readonly controller: MusicController = new MusicController();
@@ -475,6 +472,43 @@ export class MusicModule extends LunaModule {
     }));
 
     this.replay(false);
+  }
+
+  /// Changes the song's volume
+  setVolume(volumeString: string) {
+    if (volumeString.length === 0) {
+      return;
+    }
+
+    if (!Utils.isNumber(volumeString)) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: 'The specified volume is not a number',
+      }));
+      return;
+    }
+
+    const volume = Number(volumeString);
+
+    if (volume <= 0) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: `It's not recommended to set the volume to a negative value`,
+      }));
+      return;
+    }
+
+    if (volume > config.maximumVolume) {
+      LunaClient.warn(this.controller.textChannel!, new Embed({
+        message: `The maximum volume is ${volume}%`,
+      }));
+      return;
+    }
+
+    this.controller.volume = volume / 100;
+    this.controller.voiceConnection?.dispatcher?.setVolume(this.controller.volume);
+
+    LunaClient.info(this.controller.textChannel!, new Embed({
+      message: `Volume set to ${volume}%`,
+    }));
   }
 
   /// Validates that the user can use the music module as a whole

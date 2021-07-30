@@ -16,5 +16,6 @@
   "aliaslessChannels": ["get-role"],
 
   "maximumSearchResults": 10,
-  "queryTimeout": 30
+  "queryTimeout": 30,
+  "maximumVolume": 150
 }
