@@ -113,6 +113,7 @@ export class LunaClient {
           'textChannel': message.channel as TextChannel,
           'voiceChannel': message.member?.voice.channel,
           'member': message.member,
+          'bot': this.client.user,
           'message': message,
         }
 

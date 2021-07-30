@@ -66,7 +66,7 @@ export class MusicModule extends LunaModule {
     const videoInfo = await ytdl.getInfo(youtubeUrl!);
     const videoDetails = videoInfo.videoDetails;
 
-    return Song.fromDetails(videoDetails, this.controller.usersPresent());
+    return Song.fromDetails(videoDetails, this.controller.usersPresent(this.args['bot'].id));
   }
 
   async getVideoUrlByName(songName: string): Promise<string | undefined> {
@@ -348,11 +348,7 @@ export class MusicModule extends LunaModule {
     }
 
     const songToUnskip = this.controller.history.pop()!;
-    // Allow the user to manage the song they've unskipped from history 
-    // if they previously could not
-    if (!songToUnskip.canBeManagedBy.includes(this.args['member'].id)) {
-      songToUnskip.canBeManagedBy.push(this.args['member'].id);
-    }
+    songToUnskip.canBeManagedBy = this.controller.usersPresent(this.args['bot'].id);
     this.controller.songQueue.unshift(songToUnskip);
 
     this.play();
@@ -516,7 +512,7 @@ export class MusicModule extends LunaModule {
     if (!song.canBeManagedBy.includes(this.args['member'].id) && 
         /// If all the users who could manage the song are no longer present, the
         /// song will automatically be unlocked.
-        !this.controller.usersPresent().some((userId) => song.canBeManagedBy.includes(userId))) {
+        this.controller.usersPresent(this.args['bot'].id).some((userId) => song.canBeManagedBy.includes(userId))) {
       LunaClient.warn(this.args['textChannel'], new Embed({
         message: `You cannot manage a song which has been requested in your absence`
       }));

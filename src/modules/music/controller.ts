@@ -31,8 +31,8 @@ export class MusicController {
   }
 
   /// Returns a list of IDs of users present in the voice channel at the time of execution
-  usersPresent(): string[] {
-    return this.voiceChannel!.members.map((member) => member.id);
+  usersPresent(botId: string): string[] {
+    return this.voiceChannel!.members.map((member) => member.id).filter((id) => id !== botId);
   }
 
   /// Converts the stream time (milliseconds) to seconds
