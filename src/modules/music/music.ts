@@ -6,9 +6,10 @@ import { LunaClient } from "../../client/client";
 import { Embed } from "../../client/embed";
 import { LunaModule } from "../module";
 import { MusicController } from "./controller";
-
 import { Language } from "../../language";
 import { Song } from "./song";
+
+import { Utils } from "../../utils";
 
 import config from '../../config.json';
 
@@ -101,7 +102,7 @@ export class MusicModule extends LunaModule {
     );
 
     const responses = this.controller.textChannel!.createMessageCollector(
-      (message: Message) => message.author.id === userId && !isNaN(Number(message.content)),
+      (message: Message) => message.author.id === userId && Utils.isNumber(message.content),
       { max: 1, time: config.queryTimeout * 1000 },
     );
 
