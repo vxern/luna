@@ -1,7 +1,10 @@
 import { ClientUser } from "discord.js";
 
+import { Service } from "./service";
+
 import config from '../config.json';
 
+const repositoryLink = `https://github.com/vxern/${config.alias}`;
 const statuses: Array<string> = [
   `Use '${config.alias}' to interact with me`,
   `Type '${config.alias} help' for help`,
@@ -9,25 +12,36 @@ const statuses: Array<string> = [
   `Look up a word using '${config.alias} word <word>'`,
 ];
 
-let currentStatus: number = 0;
+export class Presence extends Service {
+  private currentStatus: number = 0;
 
-/// Periodically update bot's presence, cycling through [statuses]
-export async function cyclePresence(user: ClientUser) {
-  user.setStatus('online');
-  setInterval(() => setPresence(user), config.presenceCycleIntervalInSeconds * 1000);
-}
-
-async function setPresence(user: ClientUser) {
-  user.setPresence({
-    activity: {
-      name: statuses[currentStatus],
-      type: 'PLAYING',
-    },
-  });
-
-  if (currentStatus === statuses.length - 1) {
-    currentStatus = 0;
-    return;
+  constructor(bot: ClientUser) {
+    super(bot);
+    this.bot.setStatus('online');
+    this.cyclePresence();
   }
-  currentStatus += 1;
+
+  /// Periodically update the bot's presence
+  private async cyclePresence() {
+    setInterval(() => {
+      this.bot.setPresence({activity: {
+        name: this.cycleStatus(),
+        type: 'PLAYING',
+        url: repositoryLink,
+      }});
+    }, config.presenceCycleIntervalInSeconds * 1000);
+  }
+
+  /// Cycles through [statuses] and returns the current status
+  private cycleStatus(): string {
+    const current = statuses[this.currentStatus];
+
+    if (this.currentStatus !== statuses.length - 1) {
+      this.currentStatus += 1;
+    } else {
+      this.currentStatus = 0;
+    }
+
+    return current;
+  }
 }
