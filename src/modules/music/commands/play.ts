@@ -24,13 +24,13 @@ export class Play extends Command<Music> {
   readonly searcher: YTSearcher = new YTSearcher(process.env.YOUTUBE_SECRET!);
 
   async request(message: Message) {
-    await this.module.bindToVoiceChannel(message.channel as TextChannel, message.member!.voice!.channel!);
-
     const listing = await this.resolveQueryToListing(message);
 
     if (listing === undefined) {
       return;
     }
+
+    await this.module.bindToVoiceChannel(message.channel as TextChannel, message.member!.voice!.channel!);
 
     this.play(listing);
   }
