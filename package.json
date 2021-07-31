@@ -12,7 +12,18 @@
     "type": "git",
     "url": "git+https://github.com/vxern/luna.git"
   },
-  "keywords": ["discord", "bot", "typescript", "javascript", "fast", "powerful", "language", "command tree"],
+  "keywords": [
+    "discord",
+    "bot",
+    "typescript",
+    "javascript",
+    "fast",
+    "powerful",
+    "language",
+    "command",
+    "module",
+    "modular"
+  ],
   "author": "Dorian Oszczęda <vxern@wordcollector.co.uk>",
   "license": "MIT",
   "bugs": {
@@ -32,6 +43,7 @@
     "ffmpeg-static": "^4.4.0",
     "moment": "^2.29.1",
     "opusscript": "^0.0.8",
+    "string-sanitizer": "^2.0.2",
     "ytdl-core": "^4.9.0",
     "ytsearcher": "^1.2.4"
   }
