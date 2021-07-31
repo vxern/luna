@@ -85,11 +85,14 @@ export class Client {
       );
 
     const matchedCommand = ([] as Command<Module>[]).concat(...this.modules
-      .filter((module) => module.requirementMet(message))
       // Fetch the lists of commands
       .map((module) => module.commands)
       // Find the commands whise identifier or aliases match the message content
       .map((commands) => commands.filter(commandMatchesQuery))
+      // Filter out the commands which belong to a module whise requirement hasn't been met
+      .filter((commands) => commands.filter(
+        (command) => command.module.requirementMet(message)
+      ))
     )[0] || undefined;
 
     if (matchedCommand === undefined) {
