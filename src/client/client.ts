@@ -101,7 +101,8 @@ export class Client {
     }
     
     if (!matchedCommand.identifier.startsWith('$')) {
-      if (message.content.split(' ').length !== matchedCommand.arguments.length) {
+      if (message.content.split(' ').length !== matchedCommand.arguments.length &&
+          matchedCommand.arguments.length !== 0) {
         Client.warn(message.channel as TextChannel, 
           `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} arguments.`
         );
