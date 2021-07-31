@@ -1,54 +1,44 @@
-import { TextChannel } from "discord.js";
+import { Message, TextChannel, User } from "discord.js";
 
-import { LunaClient } from "../client/client";
+import { Client } from "../client/client";
 import { Embed } from "../client/embed";
+import { Utils } from "../utils";
 
-const digits = /\d+/g;
-const words = /[a-zA-Z]+/g;
+import { Command } from "./command";
 
-export abstract class LunaModule {
-  [functionName: string]: Function | Object;
-  readonly requirement: Function | boolean = true;
-  readonly beforeExecutingCommand: Function = () => {};
-  abstract readonly commandTree: Object;
-  args: any;
+import config from '../config.json';
 
-  async unimplemented(): Promise<boolean> {
-    LunaClient.error(this.args['textChannel'], new Embed({
-      message: 'This function is not yet implemented',
-    }));
-    return true;
+export abstract class Module {
+  readonly requirement: ((message: Message) => boolean) | boolean = true;
+  abstract readonly commands: Command<Module>[];
+
+  async unimplemented(message: Message) {
+    Client.error(message.channel as TextChannel, 'This function is not yet implemented');
   }
   
   /// Parses a time query to a base number of seconds described by the query
-  resolveTimeQuery(query: string): number | undefined {
+  resolveTimeQuery(message: Message, query: string): number | undefined {
     let seconds = 0;
 
     // Extract the digits present in the query
-    let integers = query.match(digits)?.map((integer) => parseInt(integer)) || [];
+    const integers = Utils.extractNumbers(query);
     // Extract the strings present in the query
-    let strings = query.match(words) || [];
+    const strings = Utils.extractWords(query);
 
     // No parameters provided for either keys or values
-    if (integers === null || strings === null) {
-      LunaClient.warn(this.args['textChannel'], new Embed({
-        message: 'You have not provided a valid time description as one of the required terms is missing',
-      }));
+    if (integers.length === 0 || strings.length === 0) {
+      Client.warn(message.channel as TextChannel, 'You have not provided a valid time description as one of the required terms is missing');
       return;
     }
 
     // The number of keys does not match the number of values
     if (integers.length !== strings.length) {
-      LunaClient.warn(this.args['textChannel'], new Embed({
-        message: 'The number of time specifiers and values does not match',
-      }));
+      Client.warn(message.channel as TextChannel, 'The number of time specifiers and values does not match');
       return;
     }
 
     if (integers.includes(0)) {
-      LunaClient.warn(this.args['textChannel'], new Embed({
-        message: 'A time value cannot be 0',
-      }));
+      Client.warn(message.channel as TextChannel, 'A time value cannot be 0');
       return;
     }
 
@@ -68,14 +58,111 @@ export abstract class LunaModule {
       }
 
       if (multiplier === 1 && !secondIdentifiers.includes(strings[index])) {
-        LunaClient.warn(this.args['textChannel'], new Embed({
-          message: `'${strings[index]} is not a valid time specifier'`,
-        }));
+        Client.warn(message.channel as TextChannel, `'${strings[index]}' is not a valid time specifier'`);
       }
 
       seconds += integers[index] * multiplier;
     }
 
     return seconds;
+  }
+
+  /// Decides whether the requirement for usage of a module has been met
+  requirementMet(message: Message): boolean {
+    if (typeof this.requirement === 'boolean') {
+      return this.requirement;
+    }
+    
+    return this.requirement(message);
+  }
+
+  async browse<T>(originalMessage: Message, list: T[]): Promise<T | undefined> {
+    const browser = originalMessage.author;
+    const textChannel = originalMessage.channel as TextChannel;
+
+    const validReaction = (_: any, user: User) => user.id === browser.id;
+    const validSelection = (response: Message) => response.author.id === browser.id && Utils.isNumber(response.content);
+
+    const numberOfPages = Math.floor(list.length / config.itemsPerPage);
+    const pages = Utils.splitIntoChunks(list, numberOfPages);
+    let currentPage = 0;
+    
+    const isNotOnFirstPage = () => currentPage !== 0;
+    const isNotOnLastPage = () => currentPage !== pages.length - 1;
+
+    return await new Promise<T | undefined>(async (resolveUrl) => {
+      while (true) {
+        await new Promise<void>(async (updateList) => {
+          // Display the list of choices to the user
+          const pageMessage = await Client.send(textChannel, Embed.singleField({
+            name: 'Select a song below by writing its index',
+            value: pages[currentPage].map((listing, index) => `**${index + 1}** ~ ${listing.title}`).join('\n\n'),
+            inline: false,
+          }));
+
+          // If the current page is the first page, there should be no choice to move backwards
+          if (isNotOnFirstPage()) {
+            pageMessage.react('⬅️');
+          }
+
+          // Similarly, if the current page is the last page, there should be no choice to move forwards
+          if (isNotOnLastPage()) {
+            pageMessage.react('➡️');
+          }
+
+          pageMessage.react('❌');
+    
+          const reactions = pageMessage.createReactionCollector(validReaction);  
+          const responses = pageMessage.channel.createMessageCollector(validSelection, {time: config.queryTimeout * 1000});  
+  
+          let selection: T;
+
+          reactions.on('collect', async (reaction) => {
+            pageMessage.delete();
+            switch (reaction.emoji.name) {
+              case '⬅️':
+                if (isNotOnFirstPage()) {
+                  currentPage -= 1;
+                }
+                break;
+              case '➡️':
+                if (isNotOnLastPage()) {
+                  currentPage += 1;
+                }
+                break;
+              case '❌':
+                originalMessage.delete();
+                return closeBrowser();
+              default:
+                break;
+            }
+            updateList();
+          });
+
+          responses.on('collect', (response) => {
+            const index = Number(response.content);
+            
+            if (!Utils.isIndexInBounds(textChannel, index, config.itemsPerPage)) {
+              return;
+            }
+
+            selection = pages[currentPage][index - 1];
+            closeBrowser();
+          });
+
+          responses.on('end', () => {
+            if (selection === undefined) {
+              Client.warn(textChannel, 'Query timed out');
+            }
+          })
+
+          function closeBrowser() {
+            reactions.stop();
+            responses.stop();
+            resolveUrl(selection);
+          }
+        });
+      }
+    });
   }
 }
