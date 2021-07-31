@@ -83,7 +83,7 @@ export abstract class Module {
     const validReaction = (_: any, user: User) => user.id === browser.id;
     const validSelection = (response: Message) => response.author.id === browser.id && Utils.isNumber(response.content);
 
-    const numberOfPages = Math.round(list.length / config.itemsPerPage);
+    const numberOfPages = Math.ceil(list.length / config.itemsPerPage);
     const pages = Utils.splitIntoChunks(list, numberOfPages);
     let currentPage = 0;
     
