@@ -101,14 +101,14 @@ export class Client {
     }
     
     if (!matchedCommand.identifier.startsWith('$')) {
-      message.content = Utils.removeFirstWord(message.content);
-    }
+      if (message.content.split(' ').length !== matchedCommand.arguments.length) {
+        Client.warn(message.channel as TextChannel, 
+          `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} arguments.`
+        );
+        return;
+      }
 
-    if (message.content.split(' ').length !== matchedCommand.arguments.length) {
-      Client.warn(message.channel as TextChannel, 
-        `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} arguments.`
-      );
-      return;
+      message.content = Utils.removeFirstWord(message.content);
     }
 
     const neededDependencies = Utils.getNamesOfDependencies(matchedCommand.dependencies);
