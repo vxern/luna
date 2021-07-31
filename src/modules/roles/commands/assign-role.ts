@@ -15,9 +15,25 @@ export class AssignRole extends Command<Roles> {
   readonly description = 'Assigns or unassigns a role';
   readonly arguments = [];
   readonly dependencies = [];
-  readonly handler = this.resolveRole;
+  readonly handler = this.resolve;
 
-  /// Resolve [roleName] to a `Role`; verify that the user can assign it; add it to user, otherwise, remove it
+  /// Resolve message to a single or multiple `resolveRole` calls
+  async resolve(message: Message) {
+    if (message.content.includes(',')) {
+      const roleNames = message.content.split(',').map((roleName) => roleName.trim()).filter((roleName) => roleName.length !== 0);
+      
+      roleNames.forEach((roleName) => {
+        message.content = roleName;
+        this.resolveRole(message);
+      });
+
+      return;
+    }
+
+    this.resolveRole(message);
+  }
+
+  /// Resolve message to a `Role`; verify that the user can assign it; add it to the user, otherwise, remove it
   async resolveRole(message: Message) {
     const roleName = message.content.toLowerCase();
 
