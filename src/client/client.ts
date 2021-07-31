@@ -104,6 +104,13 @@ export class Client {
       message.content = Utils.removeFirstWord(message.content);
     }
 
+    if (message.content.split(' ').length !== matchedCommand.arguments.length) {
+      Client.warn(message.channel as TextChannel, 
+        `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} arguments.`
+      );
+      return;
+    }
+
     const neededDependencies = Utils.getNamesOfDependencies(matchedCommand.dependencies);
     const dependencies: [any, any][] = neededDependencies.map(
       (dependency) => [dependency, matchedCommand.module.commands.find(
