@@ -3,6 +3,7 @@ import { ClientUser } from "discord.js";
 import { Service } from "./service";
 
 import config from '../config.json';
+import { Client } from "../client/client";
 
 const repositoryLink = `https://github.com/vxern/${config.alias}`;
 const statuses: Array<string> = [
@@ -15,16 +16,15 @@ const statuses: Array<string> = [
 export class Presence extends Service {
   private currentStatus: number = 0;
 
-  constructor(bot: ClientUser) {
-    super(bot);
-    this.bot.setStatus('online');
+  async initialise() {
+    Client.bot.setStatus('online');
     this.cyclePresence();
   }
 
   /// Periodically update the bot's presence
   private async cyclePresence() {
     setInterval(() => {
-      this.bot.setPresence({activity: {
+      Client.bot.setPresence({activity: {
         name: this.cycleStatus(),
         type: 'PLAYING',
         url: repositoryLink,
