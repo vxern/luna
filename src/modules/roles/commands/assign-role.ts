@@ -1,11 +1,13 @@
 import { GuildMember, Message, Role, TextChannel } from "discord.js";
 
+import { Client } from "../../../client/client";
+
 import { Roles } from "../roles";
 import { Command } from "../../command";
 
-import roles from '../../../roles.json';
 import { Utils } from "../../../utils";
-import { Client } from "../../../client/client";
+
+import roles from '../../../roles.json';
 
 export class AssignRole extends Command<Roles> {
   readonly identifier = '$roleName';
