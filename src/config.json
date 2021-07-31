@@ -1,7 +1,7 @@
 {
-  "presenceCycleIntervalInSeconds": 4,
-
   "alias": "luna",
+
+  "presenceCycleIntervalInSeconds": 4,
 
   "thankIntervalInHours": 4,
 
@@ -15,7 +15,7 @@
   "excludedChannels": [],
   "aliaslessChannels": ["get-role"],
 
-  "maximumSearchResults": 10,
+  "itemsPerPage": 3,
   "queryTimeout": 30,
   "maximumVolume": 150
 }
