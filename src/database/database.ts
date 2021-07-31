@@ -1,9 +1,8 @@
 import { ClientUser, TextChannel } from 'discord.js';
-import { default as fauna, Client } from 'faunadb';
+import { default as fauna, Client as FaunaClient } from 'faunadb';
 import { default as moment } from 'moment';
 
-import { LunaClient } from '../client/client';
-import { Embed } from '../client/embed';
+import { Client } from '../client/client';
 
 import config from '../config.json';
 
@@ -12,11 +11,11 @@ const $ = fauna.query;
 /// Interface for interaction with Fauna - a database API
 export class Database {
   private userCache: Map<string, UserEntry>;
-  private client: Client;
+  private client: FaunaClient;
 
   constructor() {
     this.userCache = new Map();
-    this.client = new Client({secret: process.env.FAUNA_SECRET!});
+    this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
   }
 
   /// Create [user's] database entry
@@ -72,9 +71,7 @@ export class Database {
 
     // Both entries must exist to proceed with thanking
     if (casterEntry === undefined || targetEntry === undefined) {
-      LunaClient.error(textChannel, new Embed({
-        message: `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`
-      }));
+      Client.error(textChannel, `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`);
       return;
     }
 
@@ -89,9 +86,7 @@ export class Database {
   
     if (!isEligibleToVote) {
       const hoursLeftToVote = config.thankIntervalInHours - hourDifference;
-      LunaClient.warn(textChannel, new Embed({
-        message: `You must wait ${hoursLeftToVote == 1 ? 'one more hour' : hoursLeftToVote + ' more hours'} to thank the same person again.`
-      }));
+      Client.warn(textChannel, `You must wait ${hoursLeftToVote == 1 ? 'one more hour' : hoursLeftToVote + ' more hours'} to thank the same person again.`);
       return;
     }
 
