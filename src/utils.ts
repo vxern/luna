@@ -120,7 +120,13 @@ export class Utils {
 
   /// Returns an empty string if [arrayLength] equals 0, otherwise returns [value]
   static valueOrEmpty(value: string | number, arrayLength: number): string | number {
-    return arrayLength !== 0 ? value : '';
+    let defaultValue: any = '';
+    
+    if (typeof value === 'number') {
+      defaultValue = 0;
+    }
+
+    return arrayLength !== 0 ? value : defaultValue;
   }
 
   /// Decode encoded quotation marks included in YouTube video titles
