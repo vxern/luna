@@ -20,4 +20,14 @@ export abstract class Command<T extends Module> {
   constructor(module: T) {
     this.module = module;
   }
+
+  toString(): string {
+    let caller = this.identifier;
+
+    if (this.identifier.startsWith('$')) {
+      caller = `[${this.identifier.replace('$', '')}]`;
+    }
+
+    return `${caller} ~ ${this.description}`;
+  }
 }
