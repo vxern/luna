@@ -9,6 +9,7 @@ import { Command } from "./command";
 import config from '../config.json';
 
 export abstract class Module {
+  name!: string;
   readonly requirement: ((message: Message) => boolean) | boolean = true;
   abstract readonly commands: Command<Module>[];
 
