@@ -7,6 +7,7 @@ import { Command } from "../../command";
 
 import { Utils } from "../../../utils";
 
+import config from '../../../config.json';
 import roles from '../../../roles.json';
 
 export class AssignRole extends Command<Roles> {
@@ -31,6 +32,13 @@ export class AssignRole extends Command<Roles> {
     );
 
     if (roleNames.length === 0) {
+      return;
+    }
+
+    if (roleNames.length > config.maximumRolesAtOnce) {
+      Client.warn(message.channel as TextChannel, 
+        'You may not request more than five roles at once'
+      );
       return;
     }
 
@@ -61,7 +69,7 @@ export class AssignRole extends Command<Roles> {
 
     for (const roleName of roleNames) {
       message.content = roleName;
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, config.roleAssignmentDelay * 1000));
       this.resolveRole(message);
     }
 

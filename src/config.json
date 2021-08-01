@@ -15,6 +15,9 @@
   "excludedChannels": [],
   "aliaslessChannels": ["get-role"],
 
+  "roleAssignmentDelay": 1,
+  "maximumRolesAtOnce": 5,
+
   "itemsPerPage": 3,
   "queryTimeout": 30,
   "maximumVolume": 150
