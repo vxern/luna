@@ -19,8 +19,7 @@ export class Assignable extends Command<Roles> {
   readonly handler = this.displayAssignableRoles;
 
   async displayAssignableRoles(message: Message) {
-    const roleCategoriesToDisplay = Object.entries(roles)
-      .slice(2, Roles.hasProficiency(message.member!) ? undefined : 2);
+    const roleCategoriesToDisplay = Object.entries(roles).slice(3, Roles.hasProficiency(message.member!) ? undefined : 3);
       
     const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
       name: Utils.capitaliseWords(key),

@@ -1,6 +1,7 @@
 {
   "maximumRegionRoles": 2,
   "maximumEthnicityRoles": 1,
+  "moderator": "guide",
 
   "proficiency": [
     "beginner", "intermediate", "advanced", "native"
