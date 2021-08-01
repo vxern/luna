@@ -45,6 +45,7 @@ export class AssignRole extends Command<Roles> {
     const requestedFromCategory = (category: string[]) => roleNames.filter(
       (roleName) => category.includes(roleName)
     ).length;
+    
 
     if (requestedFromCategory(roles.proficiency) > 1) {
       Client.warn(message.channel as TextChannel, 
@@ -53,16 +54,20 @@ export class AssignRole extends Command<Roles> {
       return;
     }
 
-    if (requestedFromCategory(roles.ethnicities) > roles.maximumEthnicityRoles) {
+    const ethnicitiesRequested = requestedFromCategory(roles.ethnicities);
+
+    if (ethnicitiesRequested > roles.maximumEthnicityRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${roles.maximumEthnicityRoles} ethnicity in a list expression`
+        `You may not request more than ${roles.maximumEthnicityRoles} ${Utils.pluralise('ethnicity', ethnicitiesRequested, 'ethnicities')} in a list expression`
       );
       return;
     }
 
-    if (requestedFromCategory(roles.regions) > roles.maximumRegionRoles) {
+    const regionsRequested = requestedFromCategory(roles.regions);
+
+    if (regionsRequested > roles.maximumRegionRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${roles.maximumRegionRoles} region roles in a list expression`
+        `You may not request more than ${roles.maximumRegionRoles} ${Utils.pluralise('region', regionsRequested)} in a list expression`
       );
       return;
     }
