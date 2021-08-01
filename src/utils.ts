@@ -115,7 +115,7 @@ export class Utils {
 
   /// Pluralise if a word needs to be pluralised
   static pluralise(target: string, number: number, pluralForm?: string) {
-    return number > 1 ? (pluralForm !== undefined ? pluralForm : target + 's') : target;
+    return `${number} ${number > 1 ? (pluralForm !== undefined ? pluralForm : target + 's') : target}`;
   }
 
   /// Returns an empty string if [arrayLength] equals 0, otherwise returns [value]
@@ -156,9 +156,13 @@ export class Utils {
     return true;
   }
 
-  /// Extract the names of dependencies which have not been instantiated yet
-  static getNamesOfDependencies(dependencies: any[]): string[] {
-    return dependencies.map((name) => name.toString().split(' ')[1]);
+  /// Extract the names of objects or classes that have not been yet instantiated
+  static getNamesOfClasses(classes: any[]): string[] {
+    if (typeof classes[0] === 'object') {
+      return classes.map((name) => name.constructor.name);
+    }
+
+    return classes.map((name) => name.toString().split(' ')[1]);
   }
 
   static initialiseServices(services: Service[]) {
