@@ -33,19 +33,19 @@ export class Utils {
 
   /// Capitalises each word in the target string
   static capitaliseWords(target: string): string {
-    return target.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
+    return this.getWords(target).map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
   }
 
   /// Highlight all keywords of [phrase] in [target]
   static highlightKeywords(target: string, phrase: string): string {
     // Extract keywords which should be highlighted in [target] from [phrase] in lowercase format
-    const keywordsToHighlight = phrase.toLowerCase().split(' ');
+    const keywordsToHighlight = this.getWords(phrase.toLowerCase());
     // Maximum acceptable distance for another word be determined to be similar to this word
     const acceptableDistance = (word: string) => Math.max(Math.round(word.length / Math.E), 1);
     // Whether a word is similar to a keyword in [keywordsToHighlight]
     const similar = (word: string) => keywordsToHighlight.some((keyword) => distance(keyword, word.toLowerCase()) <= acceptableDistance(keyword));
     // Get the string keywords without unnecessary symbols
-    const alphanumericOnlyKeywords = string.sanitize.keepUnicode(target).split(' ');
+    const alphanumericOnlyKeywords = this.getWords(string.sanitize.keepUnicode(target));
     // Find those words which when in lowercase format are similar to any of [keywordsToHighlight]
     const keywordsFound = [
       ...alphanumericOnlyKeywords.filter(similar), 
@@ -105,7 +105,7 @@ export class Utils {
 
   /// Returns the target string after having removed the first word from it
   static removeFirstWord(target: string): string {
-    return target.split(' ').splice(1).join(' ').trim();
+    return this.getWords(target).splice(1).join(' ').trim();
   }
 
   /// Replace any amount of consecutive spaces with a single space
@@ -115,18 +115,12 @@ export class Utils {
 
   /// Pluralise if a word needs to be pluralised
   static pluralise(target: string, number: number, pluralForm?: string) {
-    return `${number} ${number > 1 ? (pluralForm !== undefined ? pluralForm : target + 's') : target}`;
+    return `${number !== 0 ? number : 'no'} ${number > 1 || number === 0 ? (pluralForm !== undefined ? pluralForm : target + 's') : target}`;
   }
 
   /// Returns an empty string if [arrayLength] equals 0, otherwise returns [value]
-  static valueOrEmpty(value: string | number, arrayLength: number): string | number {
-    let defaultValue: any = '';
-    
-    if (typeof value === 'number') {
-      defaultValue = 0;
-    }
-
-    return arrayLength !== 0 ? value : defaultValue;
+  static stringOrEmpty(value: string, arrayLength: number): string {
+    return arrayLength !== 0 ? value : '';
   }
 
   /// Decode encoded quotation marks included in YouTube video titles
@@ -162,13 +156,18 @@ export class Utils {
     return true;
   }
 
-  /// Extract the names of objects or classes that have not been yet instantiated
-  static getNamesOfClasses(classes: any[]): string[] {
-    if (typeof classes[0] === 'object') {
-      return classes.map((name) => name.constructor.name);
+  /// Extract the name of an object or class that has not yet been instantiated
+  static getNameOfClass(className: any): string {
+    if (typeof className === 'object') {
+      return className.constructor.name;
     }
 
-    return classes.map((name) => name.toString().split(' ')[1]);
+    return this.getWords(className.toString())[1];
+  }
+
+  /// split(' ') will return [''] if the string is empty, which is not the desired behaviour
+  static getWords(target: string): string[] {
+    return target.length === 0 ? [] : target.split(' ');
   }
 
   static initialiseServices(services: Service[]) {
