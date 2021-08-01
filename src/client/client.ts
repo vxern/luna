@@ -68,7 +68,6 @@ export class Client {
     }
 
     if (message.content.length === 0) {
-      // TODO: this.help(message.channel);
       return;
     }
   
@@ -99,15 +98,16 @@ export class Client {
       message.content = Utils.removeFirstWord(message.content);
     }
 
-    const numberOfArguments = Utils.valueOrEmpty(message.content.split(' ').length, message.content.length);
+    const numberOfArgumentsSupplied = Utils.valueOrEmpty(message.content.split(' ').length, message.content.length);
+    const numberOfArgumentsRequired = matchedCommand.arguments.length;
 
-    if ((numberOfArguments !== matchedCommand.arguments.length && matchedCommand.arguments.length !== 1 ) &&
-        matchedCommand.arguments.length !== 0) {
-      const orAliases = Utils.valueOrEmpty(` or (${Utils.join(matchedCommand.aliases, 'or')}) `, matchedCommand.aliases.length);
-      const requiredArguments = Utils.valueOrEmpty(matchedCommand.arguments.map((argument) => ` [${argument}]`).join(' '), matchedCommand.arguments.length);
+    const argumentMissingAndNotOptional = (numberOfArgumentsRequired === 1 && numberOfArgumentsSupplied === 0) && !matchedCommand.arguments[0].startsWith('optional:');
+    const argumentsDoNotMatch = numberOfArgumentsRequired !== numberOfArgumentsSupplied;
+
+    if (argumentMissingAndNotOptional && argumentsDoNotMatch) {
       Client.warn(message.channel as TextChannel,
-        `The \`${matchedCommand.identifier}\` command requires ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
-        'Usage: ' + matchedCommand.identifier + orAliases + requiredArguments
+        `The '${matchedCommand.identifier}' command requires ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
+        matchedCommand.usage
       );
       return;
     }
