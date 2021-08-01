@@ -24,13 +24,13 @@ export class CiteRule extends Command<Moderation> {
       return;
     }
 
-    const index = Number(message.content) - 1;
+    const index = Number(message.content);
 
     if (!Utils.isIndexInBounds(message.channel as TextChannel, index, rules.rules.length)) {
       return;
     }
 
-    const rule = rules.rules[index];
+    const rule = rules.rules[index - 1];
 
     Client.send(message.channel as TextChannel, new Embed({
       title: rule[0],
