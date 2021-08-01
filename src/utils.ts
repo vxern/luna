@@ -148,7 +148,7 @@ export class Utils {
     }
 
     // If the index is out of range
-    if (index <= 0 || index > arrayLength - 1) {
+    if (index <= 0 || index > arrayLength) {
       Client.warn(textChannel, 'Index is out of range');
       return false;
     }

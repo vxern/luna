@@ -46,7 +46,7 @@ export class Help extends Command<Information> {
     }
 
     Client.send(message.channel as TextChannel, new Embed({
-      title: `List of commands in the ${module.name} module`,
+      title: `List of commands of the ${module.name.toLowerCase()} module`,
       message: module.commands.map((command) => command.fullInformation).join('\n\n'),
     }));
   }
