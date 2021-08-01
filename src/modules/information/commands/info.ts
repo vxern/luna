@@ -3,13 +3,14 @@ import { default as moment } from 'moment';
 
 import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
+
+import { Information } from "../information";
+import { Roles } from "../../roles/roles";
+import { Command } from "../../command";
+
 import { Utils } from "../../../utils";
 
-import { Command } from "../../command";
-import { Information } from "../information";
-
 import roles from '../../../roles.json';
-import { Roles } from "../../roles/roles";
 
 export class Info extends Command<Information> {
   readonly identifier = 'info';
