@@ -20,11 +20,16 @@ export class AssignRole extends Command<Roles> {
   /// Resolve message to a single or multiple `resolveRole` calls
   async resolve(message: Message) {
     if (message.content.includes(',')) {
-      const roleNames = message.content.split(',').map((roleName) => roleName.trim()).filter((roleName) => roleName.length !== 0);
+      const roleNames = message.content.split(',').map(
+        (roleName) => roleName.trim()
+      ).filter(
+        (roleName) => roleName.length !== 0
+      );
       
       roleNames.forEach(async (roleName) => {
         message.content = roleName;
-        await this.resolveRole(message);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        this.resolveRole(message);
       });
 
       return;
@@ -49,7 +54,7 @@ export class AssignRole extends Command<Roles> {
 
     if (!this.hasRole(message.member!, roleName)) {
       const currentProficiencyRole = this.getCurrentProficiencyRole(message.member!);
-      return await this.addOrReplaceProficiencyRole(message.channel as TextChannel, message.member!, roleName, currentProficiencyRole);
+      return this.addOrReplaceProficiencyRole(message.channel as TextChannel, message.member!, roleName, currentProficiencyRole);
     }
 
     let baseMessage = `Your level is already ${
@@ -79,9 +84,8 @@ export class AssignRole extends Command<Roles> {
 
     Client.info(message.channel as TextChannel, baseMessage);
   }
-
   /// Assign or unassign a non-proficiency role
-  async resolveNonProficiencyRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
+  resolveNonProficiencyRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
     // If the user does not have a proficiency role yet
     if (!this.module.hasProficiency(member)) {
       return;
@@ -89,15 +93,15 @@ export class AssignRole extends Command<Roles> {
 
     // If the user already has the sought role
     if (this.hasRole(member, roleName)) {
-      return await this.removeRole(textChannel, member, roleName);
+      return this.removeRole(textChannel, member, roleName);
     }
 
-    return await this.addRole(textChannel, member, roleName);
+    return this.addRole(textChannel, member, roleName);
   }
 
   /// Add role to user by name
-  async addRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
-    await member.roles.add(this.module.findRole(member, roleName));
+  addRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
+    member.roles.add(this.module.findRole(member, roleName));
 
     const capitalisedRoleName = Utils.capitaliseWords(roleName);
 
@@ -129,8 +133,8 @@ export class AssignRole extends Command<Roles> {
   }
 
   /// Remove role from user by name
-  async removeRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
-    await member.roles.remove(this.module.findRole(member, roleName));
+  removeRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
+    member.roles.remove(this.module.findRole(member, roleName));
 
     const capitalisedRoleName = Utils.capitaliseWords(roleName);
 
@@ -153,24 +157,24 @@ export class AssignRole extends Command<Roles> {
 
   /// Assign the user a proficiency role, or if the user already has one,
   /// replace it with the newly requested proficiency role
-  async addOrReplaceProficiencyRole(
+  addOrReplaceProficiencyRole(
     textChannel: TextChannel, 
     member: GuildMember, 
     roleName: string, 
     currentProficiencyRole: Role | undefined
   ) {
-    await member.roles.add(this.module.findRole(member, roleName));
+    member.roles.add(this.module.findRole(member, roleName));
 
     if (currentProficiencyRole !== undefined) {
-      await this.removeProficiencyRole(member, currentProficiencyRole);
+      this.removeProficiencyRole(member, currentProficiencyRole);
     }
 
     Client.info(textChannel, `Your level is now ${roleName}`);
   }
 
   /// Remove a proficiency role from the user
-  async removeProficiencyRole(member: GuildMember, proficiencyRole: Role) {
-    await member.roles.remove(proficiencyRole);
+  removeProficiencyRole(member: GuildMember, proficiencyRole: Role) {
+    member.roles.remove(proficiencyRole);
   }
 
   /// Check if the user has a role by passing its name
