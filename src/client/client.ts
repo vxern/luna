@@ -6,6 +6,7 @@ import { Embed } from './embed';
 import { Command } from '../modules/command';
 import { Module } from '../modules/module';
 import { Information } from '../modules/information/information';
+import { Moderation } from '../modules/moderation/moderation';
 import { Music } from '../modules/music/music';
 import { Roles } from '../modules/roles/roles';
 
@@ -18,7 +19,7 @@ import config from '../config.json';
 
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
-  static modules: Module[] = Utils.instantiated([Information, Music, Roles]);
+  static modules: Module[] = Utils.instantiated([Information, Moderation, Music, Roles]);
   static services: Service[] = Utils.instantiated([Presence]);
 
   static bot: ClientUser;
