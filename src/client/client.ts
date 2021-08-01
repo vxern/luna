@@ -4,6 +4,7 @@ import * as string from 'string-sanitizer';
 import { Embed } from './embed';
 
 import { Module } from '../modules/module';
+import { Information } from '../modules/information/information';
 import { Music } from '../modules/music/music';
 import { Roles } from '../modules/roles/roles';
 
@@ -17,8 +18,8 @@ import { Command } from '../modules/command';
 
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
-  private modules: Module[] = Utils.instantiated([Music, Roles]);
-  private services: Service[] = Utils.instantiated([Presence]);
+  static modules: Module[] = Utils.instantiated([Information, Music, Roles]);
+  static services: Service[] = Utils.instantiated([Presence]);
 
   static bot: ClientUser;
 
@@ -30,9 +31,9 @@ export class Client {
 
     Client.bot = this.client.user!;
 
-    Utils.initialiseServices(this.services);
+    Utils.initialiseServices(Client.services);
 
-    console.info(`Ready to serve with ${this.modules.length} modules and ${this.services.length} services.`);
+    console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)} services.`);
   }
 
   private handleMessage(message: Message) {
@@ -84,7 +85,7 @@ export class Client {
         (alias) => messageLowercase.startsWith(alias)
       );
 
-    const matchedCommand = ([] as Command<Module>[]).concat(...this.modules
+    const matchedCommand = ([] as Command<Module>[]).concat(...Client.modules
       // Fetch the lists of commands and find those commands whise identifier or aliases match the message content
       .map((module) => module.commands.filter(commandMatchesQuery))
     )[0] || undefined;
@@ -105,7 +106,7 @@ export class Client {
       const orAliases = Utils.valueOrEmpty(` or (${Utils.join(matchedCommand.aliases, 'or')}) `, matchedCommand.aliases.length);
       const requiredArguments = Utils.valueOrEmpty(matchedCommand.arguments.map((argument) => ` [${argument}]`).join(' '), matchedCommand.arguments.length);
       Client.warn(message.channel as TextChannel,
-        `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
+        `The \`${matchedCommand.identifier}\` command requires ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
         'Usage: ' + matchedCommand.identifier + orAliases + requiredArguments
       );
       return;
@@ -116,7 +117,7 @@ export class Client {
       return;
     }
 
-    const neededDependencies = Utils.getNamesOfDependencies(matchedCommand.dependencies);
+    const neededDependencies = Utils.getNamesOfClasses(matchedCommand.dependencies);
     const dependencies: [any, any][] = neededDependencies.map(
       (dependency) => [dependency, matchedCommand.module.commands.find(
         (command) => Utils.capitaliseWords(command.identifier) === dependency,
