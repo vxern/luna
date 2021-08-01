@@ -85,14 +85,8 @@ export class Client {
       );
 
     const matchedCommand = ([] as Command<Module>[]).concat(...this.modules
-      // Fetch the lists of commands
-      .map((module) => module.commands)
-      // Find the commands whise identifier or aliases match the message content
-      .map((commands) => commands.filter(commandMatchesQuery))
-      // Filter out the commands which belong to a module whise requirement hasn't been met
-      .filter((commands) => commands.filter(
-        (command) => command.module.requirementMet(message)
-      ))
+      // Fetch the lists of commands and find those commands whise identifier or aliases match the message content
+      .map((module) => module.commands.filter(commandMatchesQuery))
     )[0] || undefined;
 
     if (matchedCommand === undefined) {
@@ -101,15 +95,25 @@ export class Client {
     }
     
     if (!matchedCommand.identifier.startsWith('$')) {
-      if (message.content.split(' ').length !== matchedCommand.arguments.length &&
-          matchedCommand.arguments.length !== 0) {
-        Client.warn(message.channel as TextChannel, 
-          `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} arguments.`
-        );
-        return;
-      }
-
       message.content = Utils.removeFirstWord(message.content);
+    }
+
+    const numberOfArguments = Utils.valueOrEmpty(message.content.split(' ').length, message.content.length);
+
+    if (numberOfArguments !== matchedCommand.arguments.length &&
+        matchedCommand.arguments.length !== 0) {
+      const orAliases = Utils.valueOrEmpty(` or (${Utils.join(matchedCommand.aliases, 'or')}) `, matchedCommand.aliases.length);
+      const requiredArguments = Utils.valueOrEmpty(matchedCommand.arguments.map((argument) => ` [${argument}]`).join(' '), matchedCommand.arguments.length);
+      Client.warn(message.channel as TextChannel,
+        `The \`${matchedCommand.identifier}\` command requires ${matchedCommand.arguments.length} ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
+        'Usage: ' + matchedCommand.identifier + orAliases + requiredArguments
+      );
+      return;
+    }
+
+    // Do not call the handlers of commands whise requirement hasn't been met
+    if (!matchedCommand.module.requirementMet(message)) {
+      return;
     }
 
     const neededDependencies = Utils.getNamesOfDependencies(matchedCommand.dependencies);
