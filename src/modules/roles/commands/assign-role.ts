@@ -19,23 +19,53 @@ export class AssignRole extends Command<Roles> {
 
   /// Resolve message to a single or multiple `resolveRole` calls
   async resolve(message: Message) {
-    if (message.content.includes(',')) {
-      const roleNames = message.content.split(',').map(
-        (roleName) => roleName.trim()
-      ).filter(
-        (roleName) => roleName.length !== 0
-      );
-      
-      roleNames.forEach(async (roleName) => {
-        message.content = roleName;
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        this.resolveRole(message);
-      });
+    if (!message.content.includes(',')) {
+      return this.resolveRole(message);
+    }
 
+    const roleNames = message.content.split(',').map(
+      (roleName) => roleName.trim().toLowerCase()
+    // Remove empty and duplicate entries
+    ).filter(
+      (roleName, index, array) => roleName.length !== 0 && index === array.indexOf(roleName)
+    );
+
+    if (roleNames.length === 0) {
       return;
     }
 
-    this.resolveRole(message);
+    const requestedFromCategory = (category: string[]) => roleNames.filter(
+      (roleName) => category.includes(roleName)
+    ).length;
+
+    if (requestedFromCategory(roles.proficiency) > 1) {
+      Client.warn(message.channel as TextChannel, 
+        'You may not request more than one proficiency role in a list expression'
+      );
+      return;
+    }
+
+    if (requestedFromCategory(roles.ethnicities) > roles.maximumEthnicityRoles) {
+      Client.warn(message.channel as TextChannel, 
+        `You may not request more than ${roles.maximumEthnicityRoles} ethnicity in a list expression`
+      );
+      return;
+    }
+
+    if (requestedFromCategory(roles.regions) > roles.maximumRegionRoles) {
+      Client.warn(message.channel as TextChannel, 
+        `You may not request more than ${roles.maximumRegionRoles} region roles in a list expression`
+      );
+      return;
+    }
+
+    for (const roleName of roleNames) {
+      message.content = roleName;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.resolveRole(message);
+    }
+
+    return;
   }
 
   /// Resolve message to a `Role`; verify that the user can assign it; add it to the user, otherwise, remove it
