@@ -22,19 +22,28 @@ export abstract class Command<T extends Module> {
     this.module = module;
   }
 
-  toString(): string {
+  matchesIdentifierOrAliases(argument: string): boolean {
+    argument = argument.toLowerCase();
+    return this.identifier === argument || this.aliases.includes(argument);
+  }
+
+  get caller(): string {
     let caller = this.identifier;
 
     if (this.identifier.startsWith('$')) {
       caller = `[${this.identifier.replace('$', '')}]`;
     }
 
-    return `${caller} ~ ${this.description}`;
+    return caller;
+  }
+  
+  get fullInformation(): string {
+    return `${this.caller} ~ ${this.description}`;
   }
 
-  get usage(): string {
-    const orAliases = Utils.valueOrEmpty(` or (${Utils.join(this.aliases, 'or')}) `, this.aliases.length);
-    const requiredArguments = Utils.valueOrEmpty(this.arguments.map((argument) => ` [${argument}]`).join(' '), this.arguments.length);
-    return `Usage: ${this.identifier + orAliases + requiredArguments}`;
+  get getUsage(): string {
+    const orAliases = Utils.stringOrEmpty(` or (${Utils.join(this.aliases, 'or')}) `, this.aliases.length);
+    const requiredArguments = Utils.stringOrEmpty(this.arguments.map((argument) => ` [${argument}]`).join(' '), this.arguments.length);
+    return `\`${this.caller + orAliases + requiredArguments}\``;
   }
 }
