@@ -2,15 +2,16 @@ import { Message, TextChannel } from "discord.js";
 
 import { Client } from "../../../client/client";
 
-import { Utils } from "../../../utils";
 import { Command } from "../../command";
 import { Music } from "../music";
+
+import { Utils } from "../../../utils";
 
 import config from '../../../config.json';
 
 export class Volume extends Command<Music> {
   readonly identifier = 'volume';
-  readonly aliases = [];
+  readonly aliases = ['vol'];
   readonly description = 'Changes the volume of playback';
   readonly arguments = ['volume'];
   readonly dependencies = [];
