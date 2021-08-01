@@ -100,7 +100,7 @@ export class Client {
 
     const numberOfArguments = Utils.valueOrEmpty(message.content.split(' ').length, message.content.length);
 
-    if (numberOfArguments !== matchedCommand.arguments.length &&
+    if ((numberOfArguments !== matchedCommand.arguments.length && matchedCommand.arguments.length !== 1 ) &&
         matchedCommand.arguments.length !== 0) {
       const orAliases = Utils.valueOrEmpty(` or (${Utils.join(matchedCommand.aliases, 'or')}) `, matchedCommand.aliases.length);
       const requiredArguments = Utils.valueOrEmpty(matchedCommand.arguments.map((argument) => ` [${argument}]`).join(' '), matchedCommand.arguments.length);
