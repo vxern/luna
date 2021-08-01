@@ -113,6 +113,16 @@ export class Utils {
     return target.trim().replace(/ +/g, ' ')
   }
 
+  /// Pluralise if a word needs to be pluralised
+  static pluralise(target: string, number: number, pluralForm?: string) {
+    return number > 1 ? (pluralForm !== undefined ? pluralForm : target + 's') : target;
+  }
+
+  /// Returns an empty string if [arrayLength] equals 0, otherwise returns [value]
+  static valueOrEmpty(value: string | number, arrayLength: number): string | number {
+    return arrayLength !== 0 ? value : '';
+  }
+
   /// Decode encoded quotation marks included in YouTube video titles
   static decodeVideoTitles(targets: YTSearchPage): YTSearchPage {
     targets.forEach((value) => value.title = value.title.replace(/&#39;/g, '\'').replace(/&quot;/g, '"'));
@@ -146,6 +156,7 @@ export class Utils {
     return true;
   }
 
+  /// Extract the names of dependencies which have not been instantiated yet
   static getNamesOfDependencies(dependencies: any[]): string[] {
     return dependencies.map((name) => name.toString().split(' ')[1]);
   }
