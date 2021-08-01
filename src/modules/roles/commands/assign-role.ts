@@ -11,7 +11,7 @@ import config from '../../../config.json';
 import roles from '../../../roles.json';
 
 export class AssignRole extends Command<Roles> {
-  readonly identifier = '$roleName';
+  readonly identifier = '$rolename';
   readonly aliases = [];
   readonly description = 'Assigns or unassigns a role';
   readonly arguments = [];
@@ -58,7 +58,7 @@ export class AssignRole extends Command<Roles> {
 
     if (ethnicitiesRequested > roles.maximumEthnicityRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${roles.maximumEthnicityRoles} ${Utils.pluralise('ethnicity', ethnicitiesRequested, 'ethnicities')} in a list expression`
+        `You may not request more than ${Utils.pluralise('ethnicity', roles.maximumEthnicityRoles, 'ethnicities')} in a list expression`
       );
       return;
     }
@@ -67,7 +67,7 @@ export class AssignRole extends Command<Roles> {
 
     if (regionsRequested > roles.maximumRegionRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${roles.maximumRegionRoles} ${Utils.pluralise('region', regionsRequested)} in a list expression`
+        `You may not request more than ${Utils.pluralise('region', roles.maximumRegionRoles)} in a list expression`
       );
       return;
     }
@@ -101,7 +101,7 @@ export class AssignRole extends Command<Roles> {
     }
 
     let baseMessage = `Your level is already ${
-      this.module.toTag(this.module.findRole(message.member!, roleName).id)
+      Roles.toTag(Roles.findRole(message.member!, roleName).id)
     }.\n\nInstead, you may `;
     let upgradeMessage = ':arrow_double_up: upgrade to ';
     let downgradeMessage = ':arrow_double_down: downgrade to ';
@@ -130,7 +130,7 @@ export class AssignRole extends Command<Roles> {
   /// Assign or unassign a non-proficiency role
   resolveNonProficiencyRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
     // If the user does not have a proficiency role yet
-    if (!this.module.hasProficiency(member)) {
+    if (!Roles.hasProficiency(member)) {
       return;
     }
 
@@ -144,7 +144,7 @@ export class AssignRole extends Command<Roles> {
 
   /// Add role to user by name
   addRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
-    member.roles.add(this.module.findRole(member, roleName));
+    member.roles.add(Roles.findRole(member, roleName));
 
     const capitalisedRoleName = Utils.capitaliseWords(roleName);
 
@@ -177,7 +177,7 @@ export class AssignRole extends Command<Roles> {
 
   /// Remove role from user by name
   removeRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
-    member.roles.remove(this.module.findRole(member, roleName));
+    member.roles.remove(Roles.findRole(member, roleName));
 
     const capitalisedRoleName = Utils.capitaliseWords(roleName);
 
@@ -206,7 +206,7 @@ export class AssignRole extends Command<Roles> {
     roleName: string, 
     currentProficiencyRole: Role | undefined
   ) {
-    member.roles.add(this.module.findRole(member, roleName));
+    member.roles.add(Roles.findRole(member, roleName));
 
     if (currentProficiencyRole !== undefined) {
       this.removeProficiencyRole(member, currentProficiencyRole);
@@ -233,14 +233,14 @@ export class AssignRole extends Command<Roles> {
   /// Get tags of roles which are 'better' than the given role's index
   getTagsOfProficiencyRolesBetterThan(member: GuildMember, roleIndex: number): string[] {
     return roles.proficiency.filter(
-      (_, index) => index > roleIndex).map((roleName) => this.module.toTag(this.module.findRole(member, roleName).id)
+      (_, index) => index > roleIndex).map((roleName) => Roles.toTag(Roles.findRole(member, roleName).id)
     );
   }
 
   /// Get tags of roles which are 'worse' than the given role's index
   getTagsOfProficiencyRolesWorseThan(member: GuildMember, roleIndex: number): string[] {
     return roles.proficiency.filter(
-      (_, index) => index < roleIndex).map((roleName) => this.module.toTag(this.module.findRole(member, roleName).id)
+      (_, index) => index < roleIndex).map((roleName) => Roles.toTag(Roles.findRole(member, roleName).id)
     );
   }
 

@@ -22,18 +22,17 @@ export class Roles extends Module {
   ];
 
   /// Resolve the name of a role to a `Role` object
-  findRole(member: GuildMember, roleName: string): Role {
+  static findRole(member: GuildMember, roleName: string): Role {
     return member.guild.roles.cache.find((role) => role.name.toLowerCase() === roleName)!;
   }
 
   /// Check if the user has a proficiency role by passing its name
-  hasProficiency(member: GuildMember): boolean {
+  static hasProficiency(member: GuildMember): boolean {
     return member.roles.cache.some((role) => roles.proficiency.includes(role.name.toLowerCase()))
   }
 
   /// Convert a role's ID to a Discord in-message tag
-  toTag(id: string): string {
+  static toTag(id: string): string {
     return `<@&${id}>`;
   }
-
 }

@@ -20,12 +20,12 @@ export class Assignable extends Command<Roles> {
 
   async displayAssignableRoles(message: Message) {
     const roleCategoriesToDisplay = Object.entries(roles)
-      .slice(2, this.module.hasProficiency(message.member!) ? undefined : 2);
+      .slice(2, Roles.hasProficiency(message.member!) ? undefined : 2);
       
     const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
       name: Utils.capitaliseWords(key),
-      value: (value as string[]).map((roleName) => this.module.toTag(
-        this.module.findRole(message.member!, roleName).id)
+      value: (value as string[]).map((roleName) => Roles.toTag(
+        Roles.findRole(message.member!, roleName).id)
       ).join(' '),
       inline: true,
     }});
