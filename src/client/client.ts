@@ -3,6 +3,7 @@ import * as string from 'string-sanitizer';
 
 import { Embed } from './embed';
 
+import { Command } from '../modules/command';
 import { Module } from '../modules/module';
 import { Information } from '../modules/information/information';
 import { Music } from '../modules/music/music';
@@ -14,7 +15,6 @@ import { Presence } from '../services/presence';
 import { Utils } from '../utils';
 
 import config from '../config.json';
-import { Command } from '../modules/command';
 
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
@@ -32,8 +32,11 @@ export class Client {
     Client.bot = this.client.user!;
 
     Utils.initialiseServices(Client.services);
+    for (const module of Client.modules) {
+      module.name = Utils.getNameOfClass(module);
+    }
 
-    console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)} services.`);
+    console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)}.`);
   }
 
   private handleMessage(message: Message) {
@@ -98,16 +101,21 @@ export class Client {
       message.content = Utils.removeFirstWord(message.content);
     }
 
-    const numberOfArgumentsSupplied = Utils.valueOrEmpty(message.content.split(' ').length, message.content.length);
-    const numberOfArgumentsRequired = matchedCommand.arguments.length;
+    const argumentsSupplied = Utils.getWords(message.content).length;
+    const argumentsOptional = matchedCommand.arguments.filter((argument) => argument.startsWith('optional:')).length;
+    const argumentsRequired = matchedCommand.arguments.length - argumentsOptional;
 
-    const argumentMissingAndNotOptional = (numberOfArgumentsRequired === 1 && numberOfArgumentsSupplied === 0) && !matchedCommand.arguments[0].startsWith('optional:');
-    const argumentsDoNotMatch = numberOfArgumentsRequired !== numberOfArgumentsSupplied;
+    const tooFewArguments = argumentsSupplied < argumentsRequired;
+    const tooManyArguments = argumentsRequired !== 1 && (
+      argumentsSupplied > argumentsRequired && argumentsSupplied > argumentsOptional
+    );
 
-    if (argumentMissingAndNotOptional && argumentsDoNotMatch) {
+    const isSingleton = matchedCommand.identifier.startsWith('$');
+
+    if ((tooFewArguments || tooManyArguments) && !isSingleton) {
       Client.warn(message.channel as TextChannel,
-        `The '${matchedCommand.identifier}' command requires ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
-        matchedCommand.usage
+        `This command requires ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
+        'Usage ' + matchedCommand.getUsage
       );
       return;
     }
@@ -117,7 +125,7 @@ export class Client {
       return;
     }
 
-    const neededDependencies = Utils.getNamesOfClasses(matchedCommand.dependencies);
+    const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
     const dependencies: [any, any][] = neededDependencies.map(
       (dependency) => [dependency, matchedCommand.module.commands.find(
         (command) => Utils.capitaliseWords(command.identifier) === dependency,
