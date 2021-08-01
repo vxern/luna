@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import { Utils } from "../utils";
 
 import { Module } from "./module";
 
@@ -29,5 +30,11 @@ export abstract class Command<T extends Module> {
     }
 
     return `${caller} ~ ${this.description}`;
+  }
+
+  get usage(): string {
+    const orAliases = Utils.valueOrEmpty(` or (${Utils.join(this.aliases, 'or')}) `, this.aliases.length);
+    const requiredArguments = Utils.valueOrEmpty(this.arguments.map((argument) => ` [${argument}]`).join(' '), this.arguments.length);
+    return `Usage: ${this.identifier + orAliases + requiredArguments}`;
   }
 }
