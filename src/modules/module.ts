@@ -9,10 +9,20 @@ import { Command } from "./command";
 import config from '../config.json';
 
 export abstract class Module {
+  /// Automatically assigned name of this module
   name!: string;
+  /// A function deciding whether a user can use an affected command
   readonly requirement: ((message: Message) => boolean) | boolean = true;
-  abstract readonly commands: Command<Module>[];
+  /// Commands which require `requirement` to yield `true` for execution
+  readonly commandsClosed: Command<Module>[] = [];
+  /// Commands which are not affected by this module's requirement
+  readonly commandsOpen: Command<Module>[] = [];
+  /// Getter for all commands contained within 
+  get commands(): Command<Module>[] {
+    return [...this.commandsClosed, ...this.commandsOpen];
+  }
 
+  /// Placeholder command for unimplemented functionality
   async unimplemented(message: Message) {
     Client.error(message.channel as TextChannel, 'This function is not yet implemented');
   }
