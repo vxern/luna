@@ -91,23 +91,33 @@ export abstract class Module {
     const browser = originalMessage.author;
     const textChannel = originalMessage.channel as TextChannel;
 
+    // Metrics for which reactions and responses in the form of selections count
     const validReaction = (_: any, user: User) => user.id === browser.id;
     const validSelection = (response: Message) => response.author.id === browser.id && Utils.isNumber(response.content);
 
+    // How many pages the list of selections can be broken down into
     const numberOfPages = Math.ceil(list.length / config.itemsPerPage);
+    // List of selections broken down into single pages
     const pages = Utils.splitIntoChunks(list, numberOfPages);
     let currentPage = 0;
     
     const isNotOnFirstPage = () => currentPage !== 0;
     const isNotOnLastPage = () => currentPage !== pages.length - 1;
 
+    const validReactions = ['➡️', '⬅️', '❌'];
+
     return await new Promise<T | undefined>(async (resolveUrl) => {
+      let cancelled = false;
+      let complete = false;
+
       while (true) {
         await new Promise<void>(async (updateList) => {
           // Display the list of choices to the user
           const pageMessage = await Client.send(textChannel, Embed.singleField({
             name: 'Select a song below by writing its index',
-            value: pages[currentPage].map((listing, index) => `**${index + 1}** ~ ${listing.title}`).join('\n\n'),
+            value: pages[currentPage].map(
+              (listing, index) => `**${index + 1}** ~ ${listing.title}`
+            ).join('\n\n'),
             inline: false,
           }));
 
@@ -125,11 +135,12 @@ export abstract class Module {
     
           const reactions = pageMessage.createReactionCollector(validReaction);  
           const responses = pageMessage.channel.createMessageCollector(validSelection, {time: config.queryTimeout * 1000});  
-  
-          let selection: T;
 
           reactions.on('collect', async (reaction) => {
-            pageMessage.delete();
+            if (validReactions.includes(reaction.emoji.name)) {
+              pageMessage.delete();
+            }
+            
             switch (reaction.emoji.name) {
               case '⬅️':
                 if (isNotOnFirstPage()) {
@@ -142,11 +153,13 @@ export abstract class Module {
                 }
                 break;
               case '❌':
+                cancelled = true;
                 originalMessage.delete();
                 return closeBrowser();
               default:
                 break;
             }
+            
             updateList();
           });
 
@@ -157,20 +170,20 @@ export abstract class Module {
               return;
             }
 
-            selection = pages[currentPage][index - 1];
-            closeBrowser();
+            complete = true;
+            closeBrowser(pages[currentPage][index - 1]);
           });
 
           responses.on('end', () => {
-            if (selection === undefined) {
+            if (!cancelled && !complete) {
               Client.warn(textChannel, 'Query timed out');
             }
           })
 
-          function closeBrowser() {
+          function closeBrowser(selection?: T) {
             reactions.stop();
             responses.stop();
-            resolveUrl(selection);
+            resolveUrl(selection ?? undefined);
           }
         });
       }
