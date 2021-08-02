@@ -42,8 +42,7 @@ export abstract class Command<T extends Module> {
   }
 
   get getUsage(): string {
-    const orAliases = Utils.stringOrEmpty(` or (${Utils.join(this.aliases, 'or')}) `, this.aliases.length);
     const requiredArguments = Utils.stringOrEmpty(this.arguments.map((argument) => ` [${argument}]`).join(' '), this.arguments.length);
-    return `\`${this.caller + orAliases + requiredArguments}\``;
+    return `\`${this.caller + requiredArguments}\``;
   }
 }

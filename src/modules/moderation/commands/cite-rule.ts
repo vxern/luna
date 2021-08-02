@@ -30,6 +30,11 @@ export class CiteRule extends Command<Moderation> {
       return;
     }
 
+    if (index === 12) {
+      Client.error(message.channel as TextChannel, `${message.author.username} has been banned indefinitely.`);
+      return;
+    }
+
     const rule = rules.rules[index - 1];
 
     Client.send(message.channel as TextChannel, new Embed({
