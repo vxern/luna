@@ -137,9 +137,11 @@ export abstract class Module {
           const responses = pageMessage.channel.createMessageCollector(validSelection, {time: config.queryTimeout * 1000});  
 
           reactions.on('collect', async (reaction) => {
-            if (validReactions.includes(reaction.emoji.name)) {
-              pageMessage.delete();
+            if (!validReactions.includes(reaction.emoji.name)) {
+              return;
             }
+            
+            pageMessage.delete();
             
             switch (reaction.emoji.name) {
               case '⬅️':
