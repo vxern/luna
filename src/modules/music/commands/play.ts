@@ -72,7 +72,9 @@ export class Play extends Command<Music> {
 
     const searchResults = Array.from(Utils.decodeVideoTitles(search.currentPage));
     
-    const video = await this.module.browse<VideoEntry>(message, searchResults);
+    const video = await this.module.browse(
+      message, searchResults, (videoEntry) => videoEntry.title
+    );
 
     return video?.url;
   }
