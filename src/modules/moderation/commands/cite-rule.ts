@@ -29,7 +29,7 @@ export class CiteRule extends Command<Moderation> {
     let easterEggRule = new Map(Object.entries(rules.easterEggs)).get(index.toString());
 
     if (index === rules.rules.length + 1) {
-      Client.error(message.channel as TextChannel, `${message.author.username} has been banned indefinitely.`);
+      Client.severe(message.channel as TextChannel, `${message.author.username} has been banned indefinitely.`);
       return;
     }
 

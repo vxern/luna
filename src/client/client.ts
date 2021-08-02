@@ -114,8 +114,9 @@ export class Client {
     const isSingleton = matchedCommand.identifier.startsWith('$');
 
     if ((tooFewArguments || tooManyArguments) && !isSingleton) {
+      const optionalArgumentsString = argumentsOptional > 1 ? `, and can additionally take up to ${Utils.pluralise('optional argument', argumentsOptional)}` : ''
       Client.warn(message.channel as TextChannel,
-        `This command requires ${Utils.pluralise('argument', matchedCommand.arguments.length)}.\n\n` +
+        `This command requires ${Utils.pluralise('argument', argumentsRequired)}${optionalArgumentsString}.\n\n` +
         'Usage ' + matchedCommand.getUsage
       );
       return;
@@ -171,10 +172,10 @@ export class Client {
   }
 
   /// Send an embedded message with an error
-  static async error(textChannel: TextChannel, message: string): Promise<Message> {
+  static async severe(textChannel: TextChannel, message: string): Promise<Message> {
     return this.send(textChannel, new Embed({
       message: `:exclamation: ` + message,
-      color: config.accentColorError,
+      color: config.accentColorSevere,
     }));
   }
 }

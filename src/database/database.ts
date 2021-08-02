@@ -71,7 +71,7 @@ export class Database {
 
     // Both entries must exist to proceed with thanking
     if (casterEntry === undefined || targetEntry === undefined) {
-      Client.error(textChannel, `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`);
+      Client.severe(textChannel, `Couldn't fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`);
       return;
     }
 
