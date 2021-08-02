@@ -23,8 +23,11 @@ import { Utils } from "../../utils";
 
 export class Music extends Module {
   readonly requirement = (message: Message) => this.verifyVoiceChannel(message.channel as TextChannel, message.member!);
-  readonly commands = Utils.instantiated([
-    Forward, History, Now, Pause, Play, Queue, Remove, Replay, Rewind, Skip, Unpause, Unskip, Volume
+  readonly commandsRestricted = Utils.instantiated([
+    Forward, Pause, Play, Remove, Replay, Rewind, Skip, Unpause, Unskip, Volume
+  ], [this]);
+  readonly commandUnrestricted = Utils.instantiated([
+    History, Now, Queue,
   ], [this]);
 
   /// Text channel the last interaction with the bot occurred in
@@ -79,7 +82,7 @@ export class Music extends Module {
     
     // If the user is not present in any channel
     if (voiceChannel === null) {
-      Client.warn(textChannel, 'To use the music module, you must first join a voice channel');
+      Client.warn(textChannel, 'To use this command, you must first join a voice channel');
       return false;
     }
 
@@ -90,7 +93,7 @@ export class Music extends Module {
 
     // If the user's voice channel is not the same as the bot's voice channel
     if (voiceChannel.id !== this.voiceChannel.id) {
-      Client.warn(textChannel, 'You need to be in the same channel as the bot to use the music module');
+      Client.warn(textChannel, 'You need to be in the same voice channel as the bot to use this command');
       return false;
     }
 

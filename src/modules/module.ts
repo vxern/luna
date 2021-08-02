@@ -14,12 +14,12 @@ export abstract class Module {
   /// A function deciding whether a user can use an affected command
   readonly requirement: ((message: Message) => boolean) | boolean = true;
   /// Commands which require `requirement` to yield `true` for execution
-  readonly commandsClosed: Command<Module>[] = [];
+  readonly commandsRestricted: Command<Module>[] = [];
   /// Commands which are not affected by this module's requirement
-  readonly commandsOpen: Command<Module>[] = [];
+  readonly commandUnrestricted: Command<Module>[] = [];
   /// Getter for all commands contained within 
   get commands(): Command<Module>[] {
-    return [...this.commandsClosed, ...this.commandsOpen];
+    return [...this.commandsRestricted, ...this.commandUnrestricted];
   }
 
   /// Placeholder command for unimplemented functionality

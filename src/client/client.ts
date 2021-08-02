@@ -122,7 +122,10 @@ export class Client {
     }
 
     // Do not call the handlers of commands whise requirement hasn't been met
-    if (!matchedCommand.module.requirementMet(message)) {
+    if (
+      matchedCommand.module.commandsRestricted.includes(matchedCommand) && 
+      !matchedCommand.module.requirementMet(message)
+    ) {
       return;
     }
 

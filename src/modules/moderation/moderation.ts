@@ -17,5 +17,6 @@ import roles from '../../roles.json';
 
 export class Moderation extends Module {
   readonly requirement = (message: Message) => message.member?.roles.cache.map((role) => role.name).includes(Utils.capitaliseWords(roles.moderator)) || false;
-  readonly commands = Utils.instantiated([Ban, CiteRule, Kick, Mute, Pardon, Unban, Unmute, Warn], [this]);
+  readonly commandsRestricted = Utils.instantiated([Ban, Kick, Mute, Pardon, Unban, Unmute, Warn], [this]);
+  readonly commandUnrestricted = Utils.instantiated([CiteRule], [this]);
 }
