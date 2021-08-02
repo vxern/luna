@@ -24,7 +24,7 @@ export abstract class Module {
 
   /// Placeholder command for unimplemented functionality
   async unimplemented(message: Message) {
-    Client.error(message.channel as TextChannel, 'This function is not yet implemented');
+    Client.severe(message.channel as TextChannel, 'This function is not yet implemented');
   }
   
   /// Parses a time query to a base number of seconds described by the query
@@ -87,7 +87,11 @@ export abstract class Module {
     return this.requirement(message);
   }
 
-  async browse<T>(originalMessage: Message, list: T[]): Promise<T | undefined> {
+  /// Creates a browsing menu which allows the user to make a selection from
+  /// a list of available options
+  ///
+  /// [displayString] - How the string to display is obtained from the object
+  async browse<T>(originalMessage: Message, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
     const browser = originalMessage.author;
     const textChannel = originalMessage.channel as TextChannel;
 
@@ -114,9 +118,9 @@ export abstract class Module {
         await new Promise<void>(async (updateList) => {
           // Display the list of choices to the user
           const pageMessage = await Client.send(textChannel, Embed.singleField({
-            name: 'Select a song below by writing its index',
+            name: 'Make a selection by writing its index',
             value: pages[currentPage].map(
-              (listing, index) => `**${index + 1}** ~ ${listing.title}`
+              (entry, index) => `**${index + 1}** ~ ${displayMethod(entry)}`
             ).join('\n\n'),
             inline: false,
           }));
