@@ -26,12 +26,29 @@ export class CiteRule extends Command<Moderation> {
 
     const index = Number(message.content);
 
-    if (!Utils.isIndexInBounds(message.channel as TextChannel, index, rules.rules.length)) {
+    let easterEggRule = new Map(Object.entries(rules.easterEggs)).get(index.toString());
+
+    if (index === rules.rules.length + 1) {
+      Client.error(message.channel as TextChannel, `${message.author.username} has been banned indefinitely.`);
       return;
     }
 
-    if (index === 12) {
-      Client.error(message.channel as TextChannel, `${message.author.username} has been banned indefinitely.`);
+    if (easterEggRule !== undefined) {
+      if (index < 100) {
+        Client.send(message.channel as TextChannel, new Embed({
+          title: index < 100 ? `Principal no. ${index} of the Internet` : index.toString(),
+          message: easterEggRule
+        }));
+        return;
+      }
+
+      Client.send(message.channel as TextChannel, new Embed({
+        message: `**${easterEggRule}**`
+      }));
+      return;
+    }
+
+    if (!Utils.isIndexInBounds(message.channel as TextChannel, index, rules.rules.length)) {
       return;
     }
 
@@ -39,7 +56,7 @@ export class CiteRule extends Command<Moderation> {
 
     Client.send(message.channel as TextChannel, new Embed({
       title: rule[0],
-      message: rule[1]
-    }));    
+      message: rule[1].replace('{length}', (rules.rules.length - 1).toString())
+    }));
   }
 }
