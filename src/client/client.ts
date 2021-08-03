@@ -81,12 +81,14 @@ export class Client {
   private resolveCommandHandler(message: Message) {
     const messageLowercase = message.content.toLowerCase();
 
-    const commandMatchesQuery = (command: Command<Module>) => 
-      command.identifier.startsWith('$') || 
-      messageLowercase.startsWith(command.identifier) || 
+    const commandMatchesQuery = (command: Command<Module>) => {
+      const args = messageLowercase.split(' ');
+      return command.identifier.startsWith('$') || 
+      args[0] === command.identifier || 
       command.aliases.some(
-        (alias) => messageLowercase.startsWith(alias)
+        (alias) => args[0] === alias
       );
+    }
 
     const matchedCommand = ([] as Command<Module>[]).concat(...Client.modules
       // Fetch the lists of commands and find those commands whise identifier or aliases match the message content
