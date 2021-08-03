@@ -1,5 +1,5 @@
 import { TextChannel } from 'discord.js';
-import { distance } from 'fastest-levenshtein';
+import { distance as getDistance } from 'fastest-levenshtein';
 import * as string from 'string-sanitizer';
 import { YTSearchPage } from 'ytsearcher';
 
@@ -43,7 +43,7 @@ export class Utils {
     // Maximum acceptable distance for another word be determined to be similar to this word
     const acceptableDistance = (word: string) => Math.max(Math.round(word.length / Math.E), 1);
     // Whether a word is similar to a keyword in [keywordsToHighlight]
-    const similar = (word: string) => keywordsToHighlight.some((keyword) => distance(keyword, word.toLowerCase()) <= acceptableDistance(keyword));
+    const similar = (word: string) => keywordsToHighlight.some((keyword) => getDistance(keyword, word.toLowerCase()) <= acceptableDistance(keyword));
     // Get the string keywords without unnecessary symbols
     const alphanumericOnlyKeywords = this.getWords(string.sanitize.keepUnicode(target));
     // Find those words which when in lowercase format are similar to any of [keywordsToHighlight]
@@ -167,6 +167,26 @@ export class Utils {
   static getWords(target: string): string[] {
     return target.length === 0 ? [] : target.split(' ');
   }
+
+  /// Checks similarity of two strings using the Levenshtein distance algorithm
+  static areSimilar(left: string, right: string): boolean {
+    const sanitize = (target: string) => string.sanitize.keepUnicode(target);
+    const compress = (target: string) => target.replace(/ +/g, '');
+
+    left = compress(sanitize(left)).toLowerCase();
+    right = compress(sanitize(right)).toLowerCase();
+
+    const acceptableDistance = Math.floor(left.length / 3);
+    const distance = getDistance(left, right);
+
+    return distance <= acceptableDistance;
+  }
+
+  /// Case-invariant 'includes' function
+  static includes(left: string, right: string): boolean {
+    return left.toLowerCase().includes(right.toLowerCase());
+  }
+
 
   static initialiseServices(services: Service[]) {
     services.forEach((service) => service.initialise());
