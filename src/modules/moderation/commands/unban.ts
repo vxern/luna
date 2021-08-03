@@ -1,8 +1,9 @@
-import { Message, TextChannel, User } from "discord.js";
+import { Message, TextChannel } from "discord.js";
+
+import { Client } from "../../../client/client";
 
 import { Moderation } from "../moderation";
 import { Command } from "../../command";
-import { Client } from "../../../client/client";
 
 export class Unban extends Command<Moderation> {
   readonly identifier = 'unban';

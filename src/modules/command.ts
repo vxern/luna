@@ -42,7 +42,7 @@ export abstract class Command<T extends Module> {
   }
 
   get getUsage(): string {
-    const requiredArguments = Utils.stringOrEmpty(this.arguments.map((argument) => ` [${argument}]`).join(' '), this.arguments.length);
+    const requiredArguments = this.arguments.map((argument) => ` [${argument}]`).join(' ');
     return `\`${this.caller + requiredArguments}\``;
   }
 }

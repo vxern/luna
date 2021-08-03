@@ -12,8 +12,8 @@ const wordsPattern = /[a-zA-Z]+/g;
 
 export class Utils {
   /// Extracts numbers from a string
-  static extractNumbers(target: string): number[] {
-    return target.match(digitsPattern)?.map((digits) => Number(digits)) ?? [];
+  static extractNumbers(target: string): string[] {
+    return target.match(digitsPattern) ?? [];
   }
 
   /// Extracts words from a string
@@ -116,11 +116,6 @@ export class Utils {
   /// Pluralise if a word needs to be pluralised
   static pluralise(target: string, number: number, pluralForm?: string) {
     return `${number !== 0 ? number : 'no'} ${number > 1 || number === 0 ? (pluralForm !== undefined ? pluralForm : target + 's') : target}`;
-  }
-
-  /// Returns an empty string if [arrayLength] equals 0, otherwise returns [value]
-  static stringOrEmpty(value: string, arrayLength: number): string {
-    return arrayLength !== 0 ? value : '';
   }
 
   /// Decode encoded quotation marks included in YouTube video titles

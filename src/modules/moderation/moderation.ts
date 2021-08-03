@@ -31,10 +31,14 @@ export class Moderation extends Module {
   async resolveMember(message: Message): Promise<GuildMember | undefined> {
     const members = await message.guild!.members.fetch();
 
+    console.log(message.content);
+
     // If the identifier is a tag, convert it to an ID
     if (userTag.test(message.content)) {
-      message.content = Utils.extractNumbers(message.content)[0].toString();
+      message.content = Utils.extractNumbers(message.content)[0];
     }
+
+    console.log(message.content);
 
     // If the identifier is an ID
     if (Utils.isNumber(message.content)) {
@@ -46,7 +50,7 @@ export class Moderation extends Module {
       return members.find((member) => member.user.tag === message.content);
     }
 
-    const membersFound = members.filter((member) => Utils.includes(member.displayName, message.content));
+    const membersFound = members.filter((member) => Utils.includes(member.user.username + member.displayName, message.content));
 
     if (membersFound.size === 0) {
       Client.warn(message.channel as TextChannel, `No member with the username '${message.content}' found.`);

@@ -32,7 +32,7 @@ export abstract class Module {
     let seconds = 0;
 
     // Extract the digits present in the query
-    const integers = Utils.extractNumbers(query);
+    const integers = Utils.extractNumbers(query).map((string) => Number(string));
     // Extract the strings present in the query
     const strings = Utils.extractWords(query);
 

@@ -1,9 +1,10 @@
-import { GuildMember, Message, TextChannel } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 
 import { Client } from "../../../client/client";
 
 import { Moderation } from "../moderation";
 import { Command } from "../../command";
+
 import { Utils } from "../../../utils";
 
 export class Ban extends Command<Moderation> {
@@ -29,6 +30,7 @@ export class Ban extends Command<Moderation> {
     if (member === undefined) {
       return;
     }
+
 
     if (!member.bannable) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to ban this member.');
