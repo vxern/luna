@@ -31,10 +31,6 @@ export class Ban extends Command<Moderation> {
       return;
     }
 
-    const isBanned = await message.guild!.fetchBan(member.user).then(() => true).catch(() => false);
-
-    console.log(isBanned);
-
     if (!member.bannable) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to ban this member.');
       return;
