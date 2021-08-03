@@ -16,7 +16,7 @@ export class Unpause extends Command<Music> {
   /// Resumes the song playing
   async unpause(message: Message) {
     if (!this.module.isPlaying()) {
-      Client.warn(message.channel as TextChannel, 'There is no song to resume');
+      Client.warn(message.channel as TextChannel, 'There is no song to resume.');
       return;
     }
 
@@ -25,7 +25,7 @@ export class Unpause extends Command<Music> {
     }
     
     if (!this.module.voiceConnection!.dispatcher.paused) {
-      Client.warn(message.channel as TextChannel, 'The song is not paused');
+      Client.warn(message.channel as TextChannel, 'The song is not paused.');
       return; 
     }
 
@@ -35,7 +35,7 @@ export class Unpause extends Command<Music> {
     this.module.voiceConnection!.dispatcher.pause();
     this.module.voiceConnection!.dispatcher.resume();
 
-    Client.info(message.channel as TextChannel, `Resumed '${this.module.currentSong!.title}'`);
+    Client.info(message.channel as TextChannel, `Resumed '${this.module.currentSong!.title}'.`);
   }
 
 }

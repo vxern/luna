@@ -17,7 +17,7 @@ export class Pause extends Command<Music> {
   /// Pauses or unpauses the song playing
   async pause(message: Message, dependencies: Map<string, any>) {
     if (!this.module.isPlaying()) {
-      Client.warn(message.channel as TextChannel, 'There is no song to pause');
+      Client.warn(message.channel as TextChannel, 'There is no song to pause.');
       return;
     }
 
@@ -32,6 +32,6 @@ export class Pause extends Command<Music> {
 
     this.module.voiceConnection!.dispatcher.pause();
     
-    Client.info(message.channel as TextChannel, `Paused '${this.module.currentSong!.title}'`);
+    Client.info(message.channel as TextChannel, `Paused '${this.module.currentSong!.title}'.`);
   }
 }

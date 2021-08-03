@@ -17,7 +17,7 @@ export class Replay extends Command<Music> {
   /// Restarts the current running song
   async replay(message: Message, dependencies: Map<string, any>) {
     if (this.module.currentSong === undefined) {
-      Client.warn(message.channel as TextChannel, 'There is no song to replay');
+      Client.warn(message.channel as TextChannel, 'There is no song to replay.');
       return;
     }
 
@@ -29,7 +29,7 @@ export class Replay extends Command<Music> {
     this.module.queue.unshift(this.module.currentListing!);
 
     if (message) {
-      Client.info(this.module.textChannel!, `Replaying ${this.module.currentSong!.title}...`);
+      Client.info(this.module.textChannel!, `Replaying '${this.module.currentSong!.title}'...`);
     }
 
     this.module.currentSong = undefined;

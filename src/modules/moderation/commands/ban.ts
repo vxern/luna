@@ -18,7 +18,7 @@ export class Ban extends Command<Moderation> {
     const args = message.content.split(' ');
 
     if (args.length > 1 && !Utils.isNumber(args[1])) {
-      Client.warn(message.channel as TextChannel, 'The __number__ of days must be a __number__');
+      Client.warn(message.channel as TextChannel, 'The __number__ of days must be a __number__.');
       return;
     }
 
@@ -27,8 +27,13 @@ export class Ban extends Command<Moderation> {
     const member = await this.module.resolveMember(message);
 
     if (member === undefined) {
+      Client.warn(message.channel as TextChannel, `There is no such member on this server.`);
       return;
     }
+
+    const isBanned = await message.guild!.fetchBan(member.user).then(() => true).catch(() => false);
+
+    console.log(isBanned);
 
     if (!member.bannable) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to ban this member.');

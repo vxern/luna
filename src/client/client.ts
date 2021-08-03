@@ -94,7 +94,7 @@ export class Client {
     )[0] || undefined;
 
     if (matchedCommand === undefined) {
-      Client.warn(message.channel as TextChannel, 'Unknown command');
+      Client.warn(message.channel as TextChannel, 'Unknown command.');
       return;
     }
     

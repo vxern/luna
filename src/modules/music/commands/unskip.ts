@@ -17,7 +17,7 @@ export class Unskip extends Command<Music> {
   /// Plays the last song
   async unskip(message: Message, dependencies: Map<string, any>) {
     if (this.module.history.length === 0) {
-      Client.warn(this.module.textChannel!, 'There are no songs in the list of previously played songs');
+      Client.warn(this.module.textChannel!, 'There are no song listings in the history.');
       return;
     }
 

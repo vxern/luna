@@ -48,7 +48,7 @@ export class Moderation extends Module {
     const membersFound = members.filter((member) => member.user.username.toLowerCase().includes(usernameLowercase));
 
     if (membersFound === undefined) {
-      Client.warn(message.channel as TextChannel, `No user with the username '${usernameLowercase}' found`);
+      Client.warn(message.channel as TextChannel, `No user with the username '${usernameLowercase}' found.`);
       return;
     }
 

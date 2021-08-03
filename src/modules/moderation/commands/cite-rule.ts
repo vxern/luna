@@ -20,7 +20,7 @@ export class CiteRule extends Command<Moderation> {
 
   async citeRule(message: Message) {
     if (!Utils.isNumber(message.content)) {
-      Client.warn(message.channel as TextChannel, 'The rule __number__ must be a __number__');
+      Client.warn(message.channel as TextChannel, 'The rule __number__ must be a __number__.');
       return;
     }
 

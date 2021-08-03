@@ -18,7 +18,7 @@ export class Remove extends Command<Music> {
   /// Removes a song from queue, taking its index
   async remove(message: Message) {
     if (this.module.queue.length === 0) {
-      Client.warn(message.channel as TextChannel, 'There are no songs in the song queue');
+      Client.warn(message.channel as TextChannel, 'There are no song listings in the song queue.');
       return;
     }
 
@@ -31,7 +31,7 @@ export class Remove extends Command<Music> {
       );
 
       if (songIndex === undefined) {
-        Client.warn(message.channel as TextChannel, 'There are no songs that match your query in the song queue');
+        Client.warn(message.channel as TextChannel, 'There are no song listings that match your query in the song queue.');
         return;
       }
 
@@ -50,6 +50,6 @@ export class Remove extends Command<Music> {
 
     const removedSong = this.module.queue.splice(index, 1)[0];
 
-    Client.info(message.channel as TextChannel, `Song #${index} ~ ${removedSong.title} removed from the queue`);
+    Client.info(message.channel as TextChannel, `Song listing #${index} ~ '${removedSong.title}' removed from the queue.`);
   }
 }

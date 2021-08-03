@@ -16,9 +16,9 @@ export class Queue extends Command<Music> {
   /// Displays the current song queue
   async displayQueue() {
     Client.send(this.module.textChannel!, Embed.singleField({
-      name: 'Up Next',
+      name: 'Upcoming Songs',
       value: this.module.queue.length === 0 ? 
-        'No songs in queue' :
+        'No songs in queue.' :
         this.module.queue.map((listing, index) => `${index + 1} ~ ${listing.info}`).join('\n\n'),
       inline: false,
     }));

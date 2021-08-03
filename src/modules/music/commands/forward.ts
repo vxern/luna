@@ -26,7 +26,7 @@ export class Forward extends Command<Music> {
     }
 
     if (!this.module.isPlaying()) {
-      Client.warn(message.channel as TextChannel, 'There is no song to fast-forward');
+      Client.warn(message.channel as TextChannel, 'There is no song to fast-forward.');
       return;
     }
 
@@ -40,7 +40,7 @@ export class Forward extends Command<Music> {
     const totalOffset = currentOffset + streamTime + seconds;
 
     if (totalOffset >= this.module.currentSong!.duration - 5) {
-      Client.warn(message.channel as TextChannel, 'Cannot fast-forward beyond the song duration');
+      Client.warn(message.channel as TextChannel, 'Cannot fast-forward beyond the song duration.');
       return;
     }
 
@@ -48,7 +48,7 @@ export class Forward extends Command<Music> {
 
     Client.info(message.channel as TextChannel,
       `Fast-forwarded the song by ${Utils.convertSecondsToExtendedFormat(seconds)} ~ ` + 
-      `${this.module.runningTimeAsString()}`
+      `${this.module.runningTimeAsString()}.`
     );
 
     dependencies.get('Replay').replay(message, dependencies);

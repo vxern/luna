@@ -40,8 +40,8 @@ export class Help extends Command<Information> {
     const module = Client.modules.find((module) => module.name.toLowerCase() === messageLowercase);
 
     if (module === undefined) {
-      Client.warn(message.channel as TextChannel, 'That module does not exist. ' + 
-      `Use \`${config.alias} modules\` to get the full list of modules and their commands.`);
+      Client.warn(message.channel as TextChannel, 'That module does not exist, ' + 
+      `use \`${config.alias} modules\` to get the full list of modules and their commands.`);
       return;
     }
 

@@ -66,7 +66,7 @@ export class Play extends Command<Music> {
     const search = await searchYouTube(message.content);
     
     if (search.currentPage === undefined) {
-      Client.warn(this.module.textChannel!, 'No videos found matching your search');
+      Client.warn(this.module.textChannel!, 'No videos found matching your search.');
       return;
     }
 
@@ -121,7 +121,7 @@ export class Play extends Command<Music> {
       .on('error', (_) => this.play());
 
     if (message) {
-      Client.info(this.module.textChannel!, `Now playing '${this.module.currentSong!.title}'`);
+      Client.info(this.module.textChannel!, `Now playing '${this.module.currentSong!.title}'...`);
     }
   }
 }

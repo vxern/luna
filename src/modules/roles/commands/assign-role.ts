@@ -36,9 +36,7 @@ export class AssignRole extends Command<Roles> {
     }
 
     if (roleNames.length > config.maximumRolesAtOnce) {
-      Client.warn(message.channel as TextChannel, 
-        'You may not request more than five roles at once'
-      );
+      Client.warn(message.channel as TextChannel, 'You may not request more than five roles at once.');
       return;
     }
 
@@ -49,7 +47,7 @@ export class AssignRole extends Command<Roles> {
 
     if (requestedFromCategory(roles.proficiency) > 1) {
       Client.warn(message.channel as TextChannel, 
-        'You may not request more than one proficiency role in a list expression'
+        'You may not request more than one proficiency role in a list expression.'
       );
       return;
     }
@@ -58,7 +56,7 @@ export class AssignRole extends Command<Roles> {
 
     if (ethnicitiesRequested > roles.maximumEthnicityRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${Utils.pluralise('ethnicity', roles.maximumEthnicityRoles, 'ethnicities')} in a list expression`
+        `You may not request more than ${Utils.pluralise('ethnicity', roles.maximumEthnicityRoles, 'ethnicities')} in a list expression.`
       );
       return;
     }
@@ -67,7 +65,7 @@ export class AssignRole extends Command<Roles> {
 
     if (regionsRequested > roles.maximumRegionRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${Utils.pluralise('region', roles.maximumRegionRoles)} in a list expression`
+        `You may not request more than ${Utils.pluralise('region', roles.maximumRegionRoles)} in a list expression.`
       );
       return;
     }
@@ -152,7 +150,7 @@ export class AssignRole extends Command<Roles> {
 
     if (roles.ethnicities.includes(roleName)) {
       if (this.hasEnoughEthnicityRoles(member)) {
-        Client.warn(textChannel, `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time`);
+        Client.warn(textChannel, `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time.`);
         return;
       }
 
@@ -161,7 +159,7 @@ export class AssignRole extends Command<Roles> {
 
     if (roles.regions.includes(roleName)) {
       if (this.hasEnoughRegionRoles(member)) {
-        Client.warn(textChannel, `You may not have more than ${roles.maximumRegionRoles} region roles at any given time`);
+        Client.warn(textChannel, `You may not have more than ${roles.maximumRegionRoles} region roles at any given time.`);
         return;
       }
 
@@ -172,7 +170,7 @@ export class AssignRole extends Command<Roles> {
       message = `You are now a ${roleName}`;
     }
 
-    Client.info(textChannel, message + ` :partying_face:`);
+    Client.info(textChannel, message + `.  :partying_face:`);
   }
 
   /// Remove role from user by name
@@ -195,7 +193,7 @@ export class AssignRole extends Command<Roles> {
       message = `You are no longer a ${capitalisedRoleName}`;
     }
 
-    Client.info(textChannel, message + ` :sob:`);
+    Client.info(textChannel, message + `.  :sob:`);
   }
 
   /// Assign the user a proficiency role, or if the user already has one,
@@ -212,7 +210,7 @@ export class AssignRole extends Command<Roles> {
       this.removeProficiencyRole(member, currentProficiencyRole);
     }
 
-    Client.info(textChannel, `Your level is now ${roleName}`);
+    Client.info(textChannel, `Your level is now ${roleName}.`);
   }
 
   /// Remove a proficiency role from the user

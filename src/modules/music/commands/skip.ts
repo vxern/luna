@@ -17,7 +17,7 @@ export class Skip extends Command<Music> {
   /// Plays the next song
   async skip(message: Message, dependencies: Map<string, any>) {
     if (!this.module.isPlaying()) {
-      Client.warn(this.module.textChannel!, 'There is no song to skip');
+      Client.warn(this.module.textChannel!, 'There is no song to skip.');
       return;
     }
 
@@ -26,7 +26,7 @@ export class Skip extends Command<Music> {
       return;
     }
 
-    Client.info(this.module.textChannel!, `Skipped '${this.module.currentSong!.title}'`);
+    Client.info(this.module.textChannel!, `Skipped '${this.module.currentSong!.title}'.`);
 
     dependencies.get('Play').play();
   }

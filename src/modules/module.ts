@@ -24,7 +24,7 @@ export abstract class Module {
 
   /// Placeholder command for unimplemented functionality
   async displayUnimplemented(message: Message) {
-    Client.severe(message.channel as TextChannel, 'This function is not yet implemented');
+    Client.severe(message.channel as TextChannel, 'This function is not yet implemented.');
   }
   
   /// Parses a time query to a base number of seconds described by the query
@@ -38,18 +38,18 @@ export abstract class Module {
 
     // No parameters provided for either keys or values
     if (integers.length === 0 || strings.length === 0) {
-      Client.warn(message.channel as TextChannel, 'You have not provided a valid time description as one of the required terms is missing');
+      Client.warn(message.channel as TextChannel, 'You have not provided a valid time description as one of the required terms is missing.');
       return;
     }
 
     // The number of keys does not match the number of values
     if (integers.length !== strings.length) {
-      Client.warn(message.channel as TextChannel, 'The number of time specifiers and values does not match');
+      Client.warn(message.channel as TextChannel, 'The number of time specifiers and values does not match.');
       return;
     }
 
     if (integers.includes(0)) {
-      Client.warn(message.channel as TextChannel, 'A time value cannot be 0');
+      Client.warn(message.channel as TextChannel, 'A time value cannot be equal to 0.');
       return;
     }
 
@@ -69,7 +69,7 @@ export abstract class Module {
       }
 
       if (multiplier === 1 && !secondIdentifiers.includes(strings[index])) {
-        Client.warn(message.channel as TextChannel, `'${strings[index]}' is not a valid time specifier'`);
+        Client.warn(message.channel as TextChannel, `'${strings[index]}' is not a valid time specifier.`);
       }
 
       seconds += integers[index] * multiplier;
@@ -117,7 +117,7 @@ export abstract class Module {
         await new Promise<void>(async (updateList) => {
           // Display the list of choices to the user
           const pageMessage = await Client.send(textChannel, Embed.singleField({
-            name: 'Make a selection by writing its index',
+            name: 'Make a selection by writing its index.',
             value: pages[currentPage].map(
               (entry, index) => `**${index + 1}** ~ ${displayMethod(entry)}`
             ).join('\n\n'),
@@ -180,7 +180,7 @@ export abstract class Module {
 
           responses.on('end', (_, reason) => {
             if (reason !== 'complete' && reason !== 'cancelled') {
-              Client.warn(textChannel, 'Query timed out');
+              Client.warn(textChannel, 'Query timed out.');
             }
 
             reactions.stop();

@@ -26,7 +26,7 @@ export class Rewind extends Command<Music> {
     }
 
     if (!this.module.isPlaying()) {
-      Client.warn(message.channel as TextChannel, 'There is no song to rewind');
+      Client.warn(message.channel as TextChannel, 'There is no song to rewind.');
       return;
     }
 
@@ -50,7 +50,7 @@ export class Rewind extends Command<Music> {
     }
 
     Client.info(message.channel as TextChannel, 
-      `Rewound the song ${rewindMessage} ~ ` + 
+      `Rewound the song ${rewindMessage}. ~ ` + 
       `${this.module.runningTimeAsString()}`,
     );
 

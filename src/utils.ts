@@ -143,13 +143,13 @@ export class Utils {
   static isIndexInBounds(textChannel: TextChannel, index: number, arrayLength: number): boolean {
     // If the index is not a number
     if (isNaN(index)) {
-      Client.warn(textChannel, `'${index}' is not a valid index`);
+      Client.warn(textChannel, `'${index}' is not a valid index.`);
       return false;
     }
 
     // If the index is out of range
     if (index <= 0 || index > arrayLength) {
-      Client.warn(textChannel, 'Index is out of range');
+      Client.warn(textChannel, 'Index is out of range.');
       return false;
     }
 

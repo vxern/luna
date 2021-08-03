@@ -82,7 +82,7 @@ export class Music extends Module {
     
     // If the user is not present in any channel
     if (voiceChannel === null) {
-      Client.warn(textChannel, 'To use this command, you must first join a voice channel');
+      Client.warn(textChannel, 'To use this command, you must first join a voice channel.');
       return false;
     }
 
@@ -93,7 +93,7 @@ export class Music extends Module {
 
     // If the user's voice channel is not the same as the bot's voice channel
     if (voiceChannel.id !== this.voiceChannel.id) {
-      Client.warn(textChannel, 'You need to be in the same voice channel as the bot to use this command');
+      Client.warn(textChannel, 'You need to be in the same voice channel as myself to use this command.');
       return false;
     }
 
@@ -117,7 +117,7 @@ export class Music extends Module {
         /// If all the users who could manage the song are no longer present, the
         /// song will automatically be unlocked.
         this.usersPresent().some((userId) => listing.songManagers.includes(userId))) {
-      Client.warn(textChannel, `You cannot manage a song which has been requested in your absence`);
+      Client.warn(textChannel, `You cannot manage a song which has been requested in your absence.`);
       return false;
     }
 

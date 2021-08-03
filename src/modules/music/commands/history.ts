@@ -19,7 +19,7 @@ export class History extends Command<Music> {
     Client.send(this.module.textChannel!, Embed.singleField({
       name: 'History',
       value: this.module.history.length === 0 ? 
-        'No songs have been played before' :
+        'No songs have been played before.' :
         this.module.history.reverse().map((listing, index) => `${index + 1} ~ ${listing.info}`).join('\n\n'),
       inline: false,
     }));
