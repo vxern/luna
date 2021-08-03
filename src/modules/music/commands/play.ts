@@ -28,9 +28,7 @@ export class Play extends Command<Music> {
 
     const listing = await this.resolveQueryToListing(message);
 
-    if (listing === undefined) {
-      return;
-    }
+    if (listing === undefined) return;
 
     this.play(listing);
   }
@@ -53,9 +51,7 @@ export class Play extends Command<Music> {
   }
 
   async searchYoutube(message: Message): Promise<string | undefined> {
-    if (youtubePattern.test(message.content)) {
-      return message.content;
-    }
+    if (youtubePattern.test(message.content)) return message.content;
 
     /// YTSearcher.search() is marked as a synchronous function, but in actuality it returns a Promise.
     /// Awaiting the function without converting it to a promise yields a redundant usage tooltip.

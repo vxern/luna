@@ -31,9 +31,7 @@ export class AssignRole extends Command<Roles> {
       (roleName, index, array) => roleName.length !== 0 && index === array.indexOf(roleName)
     );
 
-    if (roleNames.length === 0) {
-      return;
-    }
+    if (roleNames.length === 0) return;
 
     if (roleNames.length > config.maximumRolesAtOnce) {
       Client.warn(message.channel as TextChannel, 'You may not request more than five roles at once.');
@@ -43,7 +41,6 @@ export class AssignRole extends Command<Roles> {
     const requestedFromCategory = (category: string[]) => roleNames.filter(
       (roleName) => category.includes(roleName)
     ).length;
-    
 
     if (requestedFromCategory(roles.proficiency) > 1) {
       Client.warn(message.channel as TextChannel, 
@@ -84,9 +81,7 @@ export class AssignRole extends Command<Roles> {
     const roleName = message.content.toLowerCase();
 
     // If the sought role is not found in [allRoles]
-    if (!this.module.allRoles.includes(roleName)) {
-      return;
-    }
+    if (!this.module.allRoles.includes(roleName)) return;
 
     // If the sought role is not a proficiency role
     if (!roles.proficiency.includes(roleName)) {
@@ -128,9 +123,7 @@ export class AssignRole extends Command<Roles> {
   /// Assign or unassign a non-proficiency role
   resolveNonProficiencyRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
     // If the user does not have a proficiency role yet
-    if (!Roles.hasProficiency(member)) {
-      return;
-    }
+    if (!Roles.hasProficiency(member)) return;
 
     // If the user already has the sought role
     if (this.hasRole(member, roleName)) {

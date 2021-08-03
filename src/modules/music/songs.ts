@@ -5,16 +5,12 @@ type Entry = Song | SongCollection;
 export class Listing {
   content: Entry;
   get title(): string {
-    if (this.content instanceof Song) {
-      return this.content.title;
-    }
+    if (this.content instanceof Song) return this.content.title;
 
     return this.content.name;
   }
   get currentSong(): Song {
-    if (this.content instanceof Song) {
-      return this.content;
-    }
+    if (this.content instanceof Song) return this.content;
 
     return this.content.songs[this.content.currentIndex];
   }

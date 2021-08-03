@@ -60,13 +60,8 @@ export abstract class Module {
     for (let index = 0; index < integers.length; index++) {
       let multiplier = 1;
 
-      if (minuteIdentifiers.includes(strings[index])) {
-        multiplier = 60;
-      }
-
-      if (hourIdentifiers.includes(strings[index])) {
-        multiplier = 60 * 60;
-      }
+      if (minuteIdentifiers.includes(strings[index])) multiplier = 60;
+      if (hourIdentifiers.includes(strings[index])) multiplier = 60 * 60;
 
       if (multiplier === 1 && !secondIdentifiers.includes(strings[index])) {
         Client.warn(message.channel as TextChannel, `'${strings[index]}' is not a valid time specifier.`);
@@ -80,9 +75,7 @@ export abstract class Module {
 
   /// Decides whether the requirement for usage of a module has been met
   isRequirementMet(message: Message): boolean {
-    if (typeof this.requirement === 'boolean') {
-      return this.requirement;
-    }
+    if (typeof this.requirement === 'boolean') return this.requirement;
     
     return this.requirement(message);
   }
@@ -115,7 +108,6 @@ export abstract class Module {
 
       while (true) {
         await new Promise<void>(async (updateList) => {
-          // Display the list of choices to the user
           const pageMessage = await Client.send(textChannel, Embed.singleField({
             name: 'Make a selection by writing its index.',
             value: pages[currentPage].map(
@@ -124,15 +116,8 @@ export abstract class Module {
             inline: false,
           }));
 
-          // If the current page is the first page, there should be no choice to move backwards
-          if (isNotOnFirstPage()) {
-            pageMessage.react('⬅️');
-          }
-
-          // Similarly, if the current page is the last page, there should be no choice to move forwards
-          if (isNotOnLastPage()) {
-            pageMessage.react('➡️');
-          }
+          if (isNotOnFirstPage()) pageMessage.react('⬅️');
+          if (isNotOnLastPage()) pageMessage.react('➡️');
 
           pageMessage.react('❌');
     
@@ -140,22 +125,16 @@ export abstract class Module {
           const responses = pageMessage.channel.createMessageCollector(validSelection, {time: config.queryTimeout * 1000});  
 
           reactions.on('collect', async (reaction) => {
-            if (!validReactions.includes(reaction.emoji.name)) {
-              return;
-            }
+            if (!validReactions.includes(reaction.emoji.name)) return;
             
             pageMessage.delete();
             
             switch (reaction.emoji.name) {
               case '⬅️':
-                if (isNotOnFirstPage()) {
-                  currentPage -= 1;
-                }
+                if (isNotOnFirstPage()) currentPage -= 1;
                 break;
               case '➡️':
-                if (isNotOnLastPage()) {
-                  currentPage += 1;
-                }
+                if (isNotOnLastPage()) currentPage += 1;
                 break;
               case '❌':
                 originalMessage.delete();
@@ -170,9 +149,7 @@ export abstract class Module {
           responses.on('collect', (response) => {
             const index = Number(response.content);
             
-            if (!Utils.isIndexInBounds(textChannel, index, config.itemsPerPage)) {
-              return;
-            }
+            if (!Utils.isIndexInBounds(textChannel, index, config.itemsPerPage)) return;
 
             selection = pages[currentPage][index - 1];
             responses.stop('complete');

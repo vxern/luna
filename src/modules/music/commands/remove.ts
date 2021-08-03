@@ -44,7 +44,9 @@ export class Remove extends Command<Music> {
 
     index -= 1;
     
-    if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.queue[index])) {
+    if (!this.module.canUserManageListing(
+      message.channel as TextChannel, message.author.id, this.module.queue[index]
+    )) {
       return;
     }
 

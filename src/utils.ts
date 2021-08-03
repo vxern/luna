@@ -158,9 +158,7 @@ export class Utils {
 
   /// Extract the name of an object or class that has not yet been instantiated
   static getNameOfClass(className: any): string {
-    if (typeof className === 'object') {
-      return className.constructor.name;
-    }
+    if (typeof className === 'object') return className.constructor.name;
 
     return this.getWords(className.toString())[1];
   }

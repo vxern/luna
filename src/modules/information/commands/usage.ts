@@ -40,6 +40,5 @@ export class Usage extends Command<Information> {
         inline: false,
       }]
     }));
-    return;
   }
 }

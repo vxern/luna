@@ -20,7 +20,9 @@ export class Unpause extends Command<Music> {
       return;
     }
 
-    if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
+    if (!this.module.canUserManageListing(
+      message.channel as TextChannel, message.author.id, this.module.currentListing!
+    )) {
       return;
     }
     

@@ -21,16 +21,16 @@ export class Forward extends Command<Music> {
   async forward(message: Message, dependencies: Map<string, any>) {
     const seconds = this.module.resolveTimeQuery(message, message.content.toLowerCase());
 
-    if (seconds === undefined) {
-      return;
-    }
+    if (seconds === undefined) return;
 
     if (!this.module.isPlaying()) {
       Client.warn(message.channel as TextChannel, 'There is no song to fast-forward.');
       return;
     }
 
-    if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
+    if (!this.module.canUserManageListing(
+      message.channel as TextChannel, message.author.id, this.module.currentListing!
+    )) {
       return;
     }
 

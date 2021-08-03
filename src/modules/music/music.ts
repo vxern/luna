@@ -101,9 +101,7 @@ export class Music extends Module {
   }
 
   async bindToVoiceChannel(textChannel: TextChannel, voiceChannel: VoiceChannel) {
-    if (this.voiceChannel !== undefined) {
-      return;
-    }
+    if (this.voiceChannel !== undefined) return;
 
     this.textChannel = textChannel;
     this.voiceChannel = voiceChannel;
