@@ -24,7 +24,7 @@ export class Ban extends Command<Moderation> {
 
     message.content = args[0];
 
-    const member = await this.module.resolve('GuildMember', message) as GuildMember | undefined;
+    const member = await this.module.resolveMember(message);
 
     if (member === undefined) {
       return;

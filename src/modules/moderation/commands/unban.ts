@@ -8,23 +8,19 @@ export class Unban extends Command<Moderation> {
   readonly identifier = 'unban';
   readonly aliases = ['unsuspend'];
   readonly description = 'Unbans a previously indefinitely banned user';
-  readonly arguments = ['tag | name | id', 'optional: reason'];
+  readonly arguments = ['tag | name | id'];
   readonly dependencies = [];
   readonly handler = this.unban;
 
   async unban(message: Message) {
-    const args = message.content.split(' ');
+    const banData = await this.module.resolveBannedUser(message);
 
-    message.content = args[0];
-
-    const user = await this.module.resolve('User', message) as User | undefined;
-
-    if (user === undefined) {
+    if (banData === undefined) {
       return;
     }
 
-    message.guild?.members.unban(user, args[1]);
+    message.guild!.members.unban(banData.user);
    
-    Client.info(message.channel as TextChannel, `${user.tag} has been unbanned.`);
+    Client.info(message.channel as TextChannel, `${banData.user.tag} has been unbanned.`);
   }
 }
