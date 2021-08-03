@@ -104,15 +104,14 @@ export abstract class Module {
     // List of selections broken down into single pages
     const pages = Utils.splitIntoChunks(list, numberOfPages);
     let currentPage = 0;
-    
-    const isNotOnFirstPage = () => currentPage !== 0;
-    const isNotOnLastPage = () => currentPage !== pages.length - 1;
-
-    const validReactions = ['➡️', '⬅️', '❌'];
 
     return await new Promise<T | undefined>(async (resolveUrl) => {
-      let cancelled = false;
-      let complete = false;
+      const isNotOnFirstPage = () => currentPage !== 0;
+      const isNotOnLastPage = () => currentPage !== pages.length - 1;
+
+      const validReactions = ['➡️', '⬅️', '❌'];
+
+      let selection: T | undefined = undefined;
 
       while (true) {
         await new Promise<void>(async (updateList) => {
@@ -159,9 +158,8 @@ export abstract class Module {
                 }
                 break;
               case '❌':
-                cancelled = true;
                 originalMessage.delete();
-                return closeBrowser();
+                return responses.stop('cancelled');
               default:
                 break;
             }
@@ -176,21 +174,18 @@ export abstract class Module {
               return;
             }
 
-            complete = true;
-            closeBrowser(pages[currentPage][index - 1]);
+            selection = pages[currentPage][index - 1];
+            responses.stop('complete');
           });
 
-          responses.on('end', () => {
-            if (!cancelled && !complete) {
+          responses.on('end', (_, reason) => {
+            if (reason !== 'complete' && reason !== 'cancelled') {
               Client.warn(textChannel, 'Query timed out');
             }
-          })
 
-          function closeBrowser(selection?: T) {
             reactions.stop();
-            responses.stop();
-            resolveUrl(selection ?? undefined);
-          }
+            resolveUrl(selection);
+          });
         });
       }
     });
