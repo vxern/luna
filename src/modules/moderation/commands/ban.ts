@@ -1,4 +1,4 @@
-import { Message, TextChannel } from "discord.js";
+import { GuildMember, Message, TextChannel } from "discord.js";
 
 import { Client } from "../../../client/client";
 
@@ -24,10 +24,9 @@ export class Ban extends Command<Moderation> {
 
     message.content = args[0];
 
-    const member = await this.module.resolveMember(message);
+    const member = await this.module.resolve('GuildMember', message) as GuildMember | undefined;
 
     if (member === undefined) {
-      Client.warn(message.channel as TextChannel, `There is no such member on this server.`);
       return;
     }
 
