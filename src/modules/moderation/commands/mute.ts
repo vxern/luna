@@ -7,5 +7,5 @@ export class Mute extends Command<Moderation> {
   readonly description = 'Mutes a user, effectively excluding them from the server';
   readonly arguments = ['tag | name | id'];
   readonly dependencies = [];
-  readonly handler = this.module.unimplemented;
+  readonly handler = this.module.displayUnimplemented;
 }

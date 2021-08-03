@@ -22,7 +22,7 @@ export class Skip extends Command<Music> {
     }
 
     // TODO: This song is repeated in multiple commands
-    if (!this.module.userCanManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
+    if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
       return;
     }
 

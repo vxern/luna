@@ -7,5 +7,5 @@ export class Warn extends Command<Moderation> {
   readonly description = 'Warns a user';
   readonly arguments = ['tag | name | id'];
   readonly dependencies = [];
-  readonly handler = this.module.unimplemented;
+  readonly handler = this.module.displayUnimplemented;
 }

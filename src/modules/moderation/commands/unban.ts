@@ -7,5 +7,5 @@ export class Unban extends Command<Moderation> {
   readonly description = 'Unbans a previously indefinitely banned user';
   readonly arguments = ['tag | name | id'];
   readonly dependencies = [];
-  readonly handler = this.module.unimplemented;
+  readonly handler = this.module.displayUnimplemented;
 }

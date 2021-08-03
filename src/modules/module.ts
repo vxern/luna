@@ -23,7 +23,7 @@ export abstract class Module {
   }
 
   /// Placeholder command for unimplemented functionality
-  async unimplemented(message: Message) {
+  async displayUnimplemented(message: Message) {
     Client.severe(message.channel as TextChannel, 'This function is not yet implemented');
   }
   
@@ -79,7 +79,7 @@ export abstract class Module {
   }
 
   /// Decides whether the requirement for usage of a module has been met
-  requirementMet(message: Message): boolean {
+  isRequirementMet(message: Message): boolean {
     if (typeof this.requirement === 'boolean') {
       return this.requirement;
     }

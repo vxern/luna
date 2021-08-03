@@ -7,5 +7,5 @@ export class Kick extends Command<Moderation> {
   readonly description = 'Kicks a user from the server';
   readonly arguments = ['tag | name | id'];
   readonly dependencies = [];
-  readonly handler = this.module.unimplemented;
+  readonly handler = this.module.displayUnimplemented;
 }

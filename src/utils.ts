@@ -27,7 +27,7 @@ export class Utils {
   }
 
   /// Takes names of classes and instantiates each of them, passing through [args]
-  static instantiated(classes: Array<any>, args: Array<any> = []): Array<any> {
+  static instantiate(classes: Array<any>, args: Array<any> = []): Array<any> {
     return classes.map((className) => new className(...args));
   }
 
@@ -49,8 +49,8 @@ export class Utils {
     // Find those words which when in lowercase format are similar to any of [keywordsToHighlight]
     const keywordsFound = [
       ...alphanumericOnlyKeywords.filter(similar), 
-      ...this.coupleKeywordPairs(alphanumericOnlyKeywords, 'even').filter(similar), 
-      ...this.coupleKeywordPairs(alphanumericOnlyKeywords, 'odd').filter(similar),
+      ...this.coupleUpKeywordPairs(alphanumericOnlyKeywords, 'even').filter(similar), 
+      ...this.coupleUpKeywordPairs(alphanumericOnlyKeywords, 'odd').filter(similar),
     ];
     // Highlight the necessary keywords in [target]
     keywordsFound.forEach((keyword) => {
@@ -60,7 +60,7 @@ export class Utils {
   }
 
   /// Take an array, couple up elements in pairs, taking [set] as the basis for which elements constitute pairs
-  static coupleKeywordPairs(array: string[], set: 'even' | 'odd'): string[] {
+  static coupleUpKeywordPairs(array: string[], set: 'even' | 'odd'): string[] {
     const indexes = [...Array(array.length).keys()];
     const belongsToSet = set === 'even' ? (index: number) => index % 2 === 0 : (index: number) => index % 2 !== 0;
     const couplePair = (index: number) => array[index] + ' ' + array[index + 1];
@@ -89,7 +89,7 @@ export class Utils {
   /// 39 seconds -> 0:39
   /// 7 minutes 26 seconds -> 7:26
   /// 1 hour 5 minutes 48 seconds -> 1:05:48
-  static secondsToExtendedFormat(seconds: number): string {
+  static convertSecondsToExtendedFormat(seconds: number): string {
     const hoursPart = Math.floor(seconds / 60 / 60);
     seconds -= hoursPart * 60 * 60;
     const minutesPart = Math.floor(seconds / 60);

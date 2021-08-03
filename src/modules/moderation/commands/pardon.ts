@@ -7,5 +7,5 @@ export class Pardon extends Command<Moderation> {
   readonly description = `Pardons a user by removing a warning they've received`;
   readonly arguments = ['tag | name | id', 'warning id'];
   readonly dependencies = [];
-  readonly handler = this.module.unimplemented;
+  readonly handler = this.module.displayUnimplemented;
 }

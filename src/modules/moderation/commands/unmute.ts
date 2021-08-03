@@ -7,5 +7,5 @@ export class Unmute extends Command<Moderation> {
   readonly description = 'Unmutes a user, allowing them access to the server again';
   readonly arguments = ['tag | name | id'];
   readonly dependencies = [];
-  readonly handler = this.module.unimplemented;
+  readonly handler = this.module.displayUnimplemented;
 }

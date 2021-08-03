@@ -30,7 +30,7 @@ export class Forward extends Command<Music> {
       return;
     }
 
-    if (!this.module.userCanManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
+    if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
       return;
     }
 
@@ -47,7 +47,7 @@ export class Forward extends Command<Music> {
     this.module.currentSong!.offset = totalOffset;
 
     Client.info(message.channel as TextChannel,
-      `Fast-forwarded the song by ${Utils.secondsToExtendedFormat(seconds)} ~ ` + 
+      `Fast-forwarded the song by ${Utils.convertSecondsToExtendedFormat(seconds)} ~ ` + 
       `${this.module.runningTimeAsString()}`
     );
 

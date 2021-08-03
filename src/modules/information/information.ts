@@ -7,5 +7,5 @@ import { Usage } from './commands/usage';
 import { Utils } from '../../utils';
 
 export class Information extends Module {
-  readonly commandUnrestricted = Utils.instantiated([Help, Info, Usage], [this]);
+  readonly commandUnrestricted = Utils.instantiate([Help, Info, Usage], [this]);
 }

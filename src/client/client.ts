@@ -19,8 +19,8 @@ import config from '../config.json';
 
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
-  static modules: Module[] = Utils.instantiated([Information, Moderation, Music, Roles]);
-  static services: Service[] = Utils.instantiated([Presence]);
+  static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Roles]);
+  static services: Service[] = Utils.instantiate([Presence]);
 
   static bot: ClientUser;
 
@@ -75,10 +75,10 @@ export class Client {
       return;
     }
   
-    this.findCommandHandler(message);
+    this.resolveCommandHandler(message);
   }
 
-  private findCommandHandler(message: Message) {
+  private resolveCommandHandler(message: Message) {
     const messageLowercase = message.content.toLowerCase();
 
     const commandMatchesQuery = (command: Command<Module>) => 
@@ -125,7 +125,7 @@ export class Client {
     // Do not call the handlers of commands whise requirement hasn't been met
     if (
       matchedCommand.module.commandsRestricted.includes(matchedCommand) && 
-      !matchedCommand.module.requirementMet(message)
+      !matchedCommand.module.isRequirementMet(message)
     ) {
       return;
     }

@@ -23,10 +23,10 @@ import { Utils } from "../../utils";
 
 export class Music extends Module {
   readonly requirement = (message: Message) => this.verifyVoiceChannel(message.channel as TextChannel, message.member!);
-  readonly commandsRestricted = Utils.instantiated([
+  readonly commandsRestricted = Utils.instantiate([
     Forward, Pause, Play, Remove, Replay, Rewind, Skip, Unpause, Unskip, Volume
   ], [this]);
-  readonly commandUnrestricted = Utils.instantiated([
+  readonly commandUnrestricted = Utils.instantiate([
     History, Now, Queue,
   ], [this]);
 
@@ -70,9 +70,9 @@ export class Music extends Module {
 
   /// Return the current song's running time together with the song's duration as a string 
   runningTimeAsString(): string {
-    return Utils.secondsToExtendedFormat(
+    return Utils.convertSecondsToExtendedFormat(
       this.currentSong!.offset + this.streamTimeInSeconds()
-    ) + ' / ' + Utils.secondsToExtendedFormat(this.currentSong!.duration);
+    ) + ' / ' + Utils.convertSecondsToExtendedFormat(this.currentSong!.duration);
   }
 
   /// Validates that the user can use the music module as a whole
@@ -112,7 +112,7 @@ export class Music extends Module {
 
   /// Determines whether the user can manage a song based on whether
   /// they have been present in the voice channel when the song was requested
-  userCanManageListing(textChannel: TextChannel, userId: string, listing: Listing): boolean {
+  canUserManageListing(textChannel: TextChannel, userId: string, listing: Listing): boolean {
     if (!listing.songManagers.includes(userId) && 
         /// If all the users who could manage the song are no longer present, the
         /// song will automatically be unlocked.

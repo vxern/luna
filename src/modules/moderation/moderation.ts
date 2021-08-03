@@ -22,8 +22,8 @@ const usernameWithDiscriminator = /.+#\d{4}/g;
 
 export class Moderation extends Module {
   readonly requirement = (message: Message) => message.member?.roles.cache.map((role) => role.name).includes(Utils.capitaliseWords(roles.moderator)) || false;
-  readonly commandsRestricted = Utils.instantiated([Ban, Kick, Mute, Pardon, Unban, Unmute, Warn], [this]);
-  readonly commandUnrestricted = Utils.instantiated([CiteRule], [this]);
+  readonly commandsRestricted = Utils.instantiate([Ban, Kick, Mute, Pardon, Unban, Unmute, Warn], [this]);
+  readonly commandUnrestricted = Utils.instantiate([CiteRule], [this]);
 
   /// Takes an identifier in the form of a tag, a username or an ID
   async resolveMember(message: Message): Promise<GuildMember | undefined> {

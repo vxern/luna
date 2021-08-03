@@ -30,7 +30,7 @@ export class Rewind extends Command<Music> {
       return;
     }
 
-    if (!this.module.userCanManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
+    if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
       return;
     }
 
@@ -46,7 +46,7 @@ export class Rewind extends Command<Music> {
       rewindMessage = 'to start';
     } else {
       this.module.currentSong!.offset = totalOffset;
-      rewindMessage = `by ${Utils.secondsToExtendedFormat(seconds)}`;
+      rewindMessage = `by ${Utils.convertSecondsToExtendedFormat(seconds)}`;
     }
 
     Client.info(message.channel as TextChannel, 
