@@ -2,9 +2,9 @@ export interface UserEntry {
   username: string;
   id: string;
 
-  warnings: Map<number, string>;
+  warnings: {};
 
-  lastThanked: Map<string, string>;
+  lastThanked: {};
   thanks: number;
   
   activityPoints: number;
