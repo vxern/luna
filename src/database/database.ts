@@ -1,7 +1,11 @@
-import { User } from 'discord.js';
+import { TextChannel, User } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
+import moment from 'moment';
+import { Client } from '../client/client';
 
 import { DatabaseEntry, UserEntry } from './user-entry';
+
+import config from '../config.json';
 
 const $ = fauna.query;
 
@@ -25,9 +29,6 @@ export class Database {
       $.Call($.Function('CreateUser'), [user.username, user.id])
     );
 
-    response.data.warnings = new Map(Object.entries(response.data.warnings));
-    response.data.lastThanked = new Map(Object.entries(response.data.lastThanked));
-
     const databaseEntry = {
       user: response.data as UserEntry, 
       ref: response.ref
@@ -47,33 +48,56 @@ export class Database {
   }
 
   /// Get a user's database entry if it exists, otherwise create it
-  async fetchDatabaseEntryOrCreate(user: User): Promise<DatabaseEntry | undefined> {
-    if (this.userCache.has(user.id)) {
-      return this.userCache.get(user.id)!;
+  async fetchDatabaseEntryOrCreate(textChannel: TextChannel, user: User): Promise<DatabaseEntry | undefined> {
+    let databaseEntry = this.userCache.get(user.id);
+    
+    if (databaseEntry === undefined) {
+      try {
+        const response: any = await this.client.query(
+          $.Get($.Match($.Index('UserByID'), user.id))
+        );
+  
+        databaseEntry = {user: response.data as UserEntry, ref: response.ref};
+      } catch (error: any) {
+        if (error.description !== 'Set not found.') {
+          Client.severe(textChannel, `Failed to obtain or create user entry for ${user.tag}.`);
+          return;
+        }
+
+        databaseEntry = await this.createDatabaseEntry(user);
+      }
     }
 
-    try {
-      const response: any = await this.client.query(
-        $.Get($.Match($.Index('UserByID'), user.id))
-      );
+    this.removeExpiredWarnings(databaseEntry);
 
-      response.data.warnings = new Map(Object.entries(response.data.warnings));
-      response.data.lastThanked = new Map(Object.entries(response.data.lastThanked));
-  
-      return {user: response.data as UserEntry, ref: response.ref};
-    } catch (error: any) {
-      if (error.description === 'Set not found.') {
-        return await this.createDatabaseEntry(user);
+    return databaseEntry;
+  }
+
+  /// Checks the timestamps of warnings the user received, and removes the ones
+  /// that have expired based on the time of their submission
+  removeExpiredWarnings(databaseEntry?: DatabaseEntry) {
+    if (databaseEntry === undefined) {
+      return;
+    }
+
+    const warnings: [string, [string, number]][] = Object.entries(databaseEntry.user.warnings);
+    const now = moment();
+
+    for (const warning of warnings) {
+      const then = moment.unix(warning[1][1]);
+
+      // If the warning has passed its expiry date, delete it
+      if (now.diff(then, 'months') >= config.warningExpiryInMonths) {
+        delete databaseEntry.user.warnings[warning[0]];
       }
     }
   }
 
   /// Update the remote user entry immediately
-  async update(action: Function, subject: DatabaseEntry) {
-    await action();
+  async update(subject: DatabaseEntry) {
     try {
       await this.client.query(
-        $.Update($.Ref(subject.ref), {data: subject.user}),
+        $.Update(subject.ref, {data: {warnings: subject.user.warnings}}),
       );
     } catch (error: any) {
       console.error(`${error.message} ~ ${error.description}`);
