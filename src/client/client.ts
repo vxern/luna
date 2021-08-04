@@ -3,6 +3,8 @@ import * as string from 'string-sanitizer';
 
 import { Embed } from './embed';
 
+import { Database } from '../database/database';
+
 import { Command } from '../modules/command';
 import { Module } from '../modules/module';
 import { Information } from '../modules/information/information';
@@ -21,7 +23,7 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Roles]);
   static services: Service[] = Utils.instantiate([Presence]);
-
+  static database: Database = new Database();
   static bot: ClientUser;
 
   /// Begin listening to events
