@@ -31,7 +31,7 @@ export class Kick extends Command<Moderation> {
 
     member?.kick(args[1]);
 
-    const kickReason = args[1] !== undefined ? `for: '${args[1]}'` : 'with no reason given';
-    Client.severe(message.channel as TextChannel, `${member.user.tag} has been kicked ${kickReason}.`);
+    const kickReason = args[1] !== undefined ? `for: ${args[1]}` : 'with no reason given';
+    Client.severe(message.channel as TextChannel, `**${member.user.tag}** has been kicked ${kickReason}.`);
   }
 }
