@@ -1,4 +1,4 @@
-import { Client as DiscordClient, ClientUser, TextChannel, Message } from 'discord.js';
+import { Client as DiscordClient, ClientUser, TextChannel, Message as DiscordMessage } from 'discord.js';
 import * as string from 'string-sanitizer';
 
 import { Embed } from './embed';
@@ -15,9 +15,11 @@ import { Roles } from '../modules/roles/roles';
 import { Service } from '../services/service';
 import { Presence } from '../services/presence';
 
-import { Utils } from '../utils';
+import { ModifySignature, Utils } from '../utils';
 
 import config from '../config.json';
+
+export type GuildMessage = ModifySignature<DiscordMessage, {channel: TextChannel}>;
 
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
@@ -28,7 +30,13 @@ export class Client {
 
   /// Begin listening to events
   async initialise() {
-    this.client.on('message', (message) => this.handleMessage(message));
+    this.client.on('message', (message) => {
+      if (message.channel.type !== 'text') {
+        return;
+      }
+
+      this.handleMessage(message as GuildMessage);
+    });
 
     await this.client.login(process.env.DISCORD_SECRET);
 
@@ -42,7 +50,7 @@ export class Client {
     console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)}.`);
   }
 
-  private handleMessage(message: Message) {
+  private handleMessage(message: GuildMessage) {
     // If the message was submitted by a bot
     if (message.author.bot) {
       return;
@@ -53,23 +61,21 @@ export class Client {
       return;
     }
 
-    message.channel = message.channel as TextChannel;
-
     // If the message was submitted in an excluded channel
-    if (string.sanitize.keepUnicode(message.channel.name) in config.excludedChannels) {
+    if (string.sanitize(message.channel.name) in config.excludedChannels) {
       return;
     }
 
     message.content = Utils.normaliseSpaces(message.content);
 
     const inAliaslessChannel = config.aliaslessChannels.includes(message.channel.name)
-    const messageStartsWithAlias = message.content.toLowerCase().startsWith(config.alias);
+    const messageStartsWithBotAlias = message.content.toLowerCase().startsWith(config.alias);
 
-    if (!messageStartsWithAlias && !inAliaslessChannel) {
+    if (!messageStartsWithBotAlias && !inAliaslessChannel) {
       return;
     }
 
-    if (messageStartsWithAlias) {
+    if (messageStartsWithBotAlias) {
       message.content = Utils.removeFirstWord(message.content);
     }
 
@@ -80,25 +86,24 @@ export class Client {
     this.resolveCommandHandler(message);
   }
 
-  private resolveCommandHandler(message: Message) {
-    const messageLowercase = message.content.toLowerCase();
-
+  private resolveCommandHandler(message: GuildMessage) {
     const commandMatchesQuery = (command: Command<Module>) => {
-      const args = messageLowercase.split(' ');
-      return command.identifier.startsWith('$') || 
-      args[0] === command.identifier || 
-      command.aliases.some(
-        (alias) => args[0] === alias
-      );
+      const args = message.content.toLowerCase().split(' ');
+
+      return command.identifier.startsWith('$') ||
+        args[0] === command.identifier ||
+        command.aliases.some(
+          (alias) => args[0] === alias
+        );
     }
 
     const matchedCommand = ([] as Command<Module>[]).concat(...Client.modules
       // Fetch the lists of commands and find those commands whise identifier or aliases match the message content
-      .map((module) => module.commands.filter(commandMatchesQuery))
+      .map((module) => module.commandsAll.filter(commandMatchesQuery))
     )[0] || undefined;
 
     if (matchedCommand === undefined) {
-      Client.warn(message.channel as TextChannel, 'Unknown command.');
+      Client.warn(message.channel, 'Unknown command.');
       return;
     }
     
@@ -106,22 +111,67 @@ export class Client {
       message.content = Utils.removeFirstWord(message.content);
     }
 
-    const argumentsSupplied = Utils.getWords(message.content).length;
-    const argumentsOptional = matchedCommand.arguments.filter((argument) => argument.startsWith('optional:')).length;
-    const argumentsRequired = matchedCommand.arguments.length - argumentsOptional;
+    const isParameterOptional = (parameter: string) => parameter.startsWith('optional:');
 
-    const tooFewArguments = argumentsSupplied < argumentsRequired;
-    const tooManyArguments = argumentsRequired !== 1 && (
-      argumentsSupplied > argumentsRequired && argumentsSupplied > argumentsOptional
-    );
+    const parametersOptional = matchedCommand.parameters
+      .filter(isParameterOptional)
+      .map((parameterWithKeyword) => parameterWithKeyword.split(' ')[1]);
+    const parametersRequired = matchedCommand.parameters.filter((parameter) => !isParameterOptional(parameter));
+    const parameters = [...parametersRequired, ...parametersOptional].map((value) => value + ':');
+    
+    // If the caster accidentally forgot to add a space after a semicolon,
+    // it is necessary to add it back for the content to be split correctly.
+    message.content = message.content
+      .split(' ')
+      .map((value) => {
+        if (value.includes(':') && !value.endsWith(':')) {
+          value = value.split(':').join(': ');
+        }
+        return value;
+      })
+      .join(' ');
 
+    const words = Utils.getWords(message.content).map((word) => {
+      const wordLowercase = word.toLowerCase();
+      return parameters.includes(wordLowercase) ? wordLowercase : word;
+    });
+
+    const args = new Map<string, string>();
+    for (let index = 0; index < parameters.length; index++) {
+      const start = words.indexOf(parameters[index]);
+      const end = words.indexOf(parameters[index + 1]);
+      const extracted = words.splice(
+        start + 1, 
+        end === -1 || start > end ? 
+          words.length : 
+          end - start - 1
+        ).join(' ');
+      if (start !== -1) {
+        words.splice(start, 1);
+      }
+
+      if (extracted.length === 0) {
+        break;
+      }
+
+      args.set(parameters[index].replace(':', ''), extracted); 
+    }
+
+    const firstArgument = args.values().next().value ?? (words.length !== 0 ? message.content : undefined);
+
+    // A 'singleton' command doesn't take any arguments, and doesn't have an identifier
     const isSingleton = matchedCommand.identifier.startsWith('$');
 
-    if ((tooFewArguments || tooManyArguments) && !isSingleton) {
-      const optionalArgumentsString = argumentsOptional > 1 ? `, and can additionally take up to ${Utils.pluralise('optional argument', argumentsOptional)}` : ''
-      Client.warn(message.channel as TextChannel,
-        `This command requires ${Utils.pluralise('argument', argumentsRequired)}${optionalArgumentsString}.\n\n` +
-        'Usage ' + matchedCommand.getUsage
+    const tooFewArguments = args.size < parametersRequired.length;
+    const tooManyArguments = words.length !== 0;
+
+    if (!isSingleton && (tooFewArguments || tooManyArguments)) {
+      const optionalArgumentsString = parametersOptional.length > 1 ? 
+        `, and can additionally take up to ${Utils.pluralise('optional argument', parametersOptional.length)}` : 
+        ''
+      Client.warn(message.channel,
+        `This command requires ${Utils.pluralise('argument', parametersRequired.length)}${optionalArgumentsString}.\n\n` +
+        'Usage: ' + matchedCommand.getUsage
       );
       return;
     }
@@ -135,27 +185,32 @@ export class Client {
     }
 
     const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
-    const dependencies: [any, any][] = neededDependencies.map(
-      (dependency) => [dependency, matchedCommand.module.commands.find(
+    const dependencies = new Map(neededDependencies.map(
+      (dependency) => [dependency, matchedCommand.module.commandsAll.find(
         (command) => Utils.capitaliseWords(command.identifier) === dependency,
       )]
-    );
+    ).filter(([_, value]) => value !== undefined) as [string, Command<Module>][]);
 
-    matchedCommand.handler(message, new Map(dependencies));
+    matchedCommand.handler({
+      message: message, 
+      dependencies: dependencies,
+      parameters: args,
+      parameter: firstArgument,
+    });
   }
 
-  static async send(textChannel: TextChannel, embed: Embed): Promise<Message> {
+  static async send(textChannel: TextChannel, embed: Embed): Promise<GuildMessage> {
     return textChannel.send({embed: {
       title: embed.title,
       thumbnail: {url: embed.thumbnail},
       description: embed.message,
       color: embed.color,
       fields: embed.fields,
-    }})
+    }}) as Promise<GuildMessage>;
   }
 
   /// Send an embedded message with a tip
-  static async tip(textChannel: TextChannel, message: string): Promise<Message> {
+  static async tip(textChannel: TextChannel, message: string): Promise<GuildMessage> {
     return this.send(textChannel, new Embed({
       message: `:information_source: ` + message,
       color: config.accentColorTip,
@@ -163,12 +218,12 @@ export class Client {
   }
 
   /// Send an embedded message with an informational message
-  static async info(textChannel: TextChannel, message: string): Promise<Message> {
+  static async info(textChannel: TextChannel, message: string): Promise<GuildMessage> {
     return this.send(textChannel, new Embed({message: message}));
   }
 
   /// Send an embedded message with a warning
-  static async warn(textChannel: TextChannel, message: string): Promise<Message> {
+  static async warn(textChannel: TextChannel, message: string): Promise<GuildMessage> {
     return this.send(textChannel, new Embed({
       message: `:warning: ` + message,
       color: config.accentColorWarning,
@@ -176,7 +231,7 @@ export class Client {
   }
 
   /// Send an embedded message with an error
-  static async severe(textChannel: TextChannel, message: string): Promise<Message> {
+  static async severe(textChannel: TextChannel, message: string): Promise<GuildMessage> {
     return this.send(textChannel, new Embed({
       message: `:exclamation: ` + message,
       color: config.accentColorSevere,
