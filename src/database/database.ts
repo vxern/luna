@@ -1,79 +1,105 @@
-import { ClientUser, TextChannel } from 'discord.js';
+import { User } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
-import { default as moment } from 'moment';
 
-import { Client } from '../client/client';
-
-import config from '../config.json';
+import { DatabaseEntry, UserEntry } from './user-entry';
 
 const $ = fauna.query;
 
 /// Interface for interaction with Fauna - a database API
 export class Database {
-  private userCache: Map<string, UserEntry>;
+  private userCache: Map<string, DatabaseEntry>;
+  /// Keeps track of which user entries need to be updated remotely
+  private updateCache: string[];
   private client: FaunaClient;
 
   constructor() {
     this.userCache = new Map();
+    this.updateCache = [];
     this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
+    console.info('Established connection with Fauna.');
   }
 
   /// Create [user's] database entry
-  async createUserEntry(user: ClientUser): Promise<UserEntry | undefined> {
+  async createDatabaseEntry(user: User): Promise<DatabaseEntry> {
     const response: any = await this.client.query(
-      $.Call($.Function('CreateUser'), { 
-        data: {
-          username: user.username,
-          userId: user.id,
-        }
-      })
+      $.Call($.Function('CreateUser'), [user.username, user.id])
     );
 
-    if (!response.hasOwnProperty('data')) {
-      return undefined;
-    }
+    response.data.warnings = new Map(Object.entries(response.data.warnings));
+    response.data.lastThanked = new Map(Object.entries(response.data.lastThanked));
 
-    const userEntry: UserEntry = response.data as UserEntry;
+    const databaseEntry = {
+      user: response.data as UserEntry, 
+      ref: response.ref
+    };
 
-    this.userCache.set(user.id, userEntry);
+    this.userCache.set(user.id, databaseEntry);
 
-    return userEntry;
+    return databaseEntry;
   }
 
-  /// Remove [user's] database entry
-  removeUserEntry(user: ClientUser) {
-    this.client.query($.Delete($.Match($.Index('User'), user.id)));
+  /// Remove a user's database entry
+  removeDatabaseEntry(user: User) {
+    this.client.query($.Delete($.Match($.Index('UserByID'), user.id)));
 
     this.userCache.delete(user.id);
+    this.updateCache.splice(this.updateCache.findIndex((id) => id === user.id), 1);
   }
 
-  /// Get [user's] database entry or create an entry
-  async fetchUserEntryOrCreate(user: ClientUser): Promise<UserEntry | undefined> {
+  /// Get a user's database entry if it exists, otherwise create it
+  async fetchDatabaseEntryOrCreate(user: User): Promise<DatabaseEntry | undefined> {
     if (this.userCache.has(user.id)) {
       return this.userCache.get(user.id)!;
     }
 
-    const response: any = await this.client.query(
-      $.Get($.Match($.Index('UserByID'), user.id))
+    try {
+      const response: any = await this.client.query(
+        $.Get($.Match($.Index('UserByID'), user.id))
+      );
+
+      response.data.warnings = new Map(Object.entries(response.data.warnings));
+      response.data.lastThanked = new Map(Object.entries(response.data.lastThanked));
+  
+      return {user: response.data as UserEntry, ref: response.ref};
+    } catch (error: any) {
+      if (error.description === 'Set not found.') {
+        return await this.createDatabaseEntry(user);
+      }
+    }
+  }
+
+  /// Update the remote user entry immediately
+  async update(action: Function, subject: DatabaseEntry) {
+    await action();
+    try {
+      await this.client.query(
+        $.Update($.Ref(subject.ref), {data: subject.user}),
+      );
+    } catch (error: any) {
+      console.error(`${error.message} ~ ${error.description}`);
+      console.error(Object.entries(error));
+    }
+  }
+
+  /// Update the remote user entries which have been cached
+  async commit() {
+    const userEntries = Array.from(this.userCache.entries());
+    if (userEntries.length === 0) return;
+
+    await this.client.query(
+      $.Do(userEntries.map(
+        ([id, entry]) => $.Update($.Ref(id), {data: entry.user})
+      ))
     );
 
-    if (response === 'instance not found') {
-      return await this.createUserEntry(user);
-    }
-
-    return response.data as UserEntry;
+    this.updateCache = [];
   }
 
   /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target
-  async thankUser(textChannel: TextChannel, caster: ClientUser, target: ClientUser) {
+  /*
+  async thankUser(textChannel: TextChannel, caster: User, target: User) {
     const casterEntry = await this.fetchUserEntryOrCreate(caster);
     const targetEntry = await this.fetchUserEntryOrCreate(target);
-
-    // Both entries must exist to proceed with thanking
-    if (casterEntry === undefined || targetEntry === undefined) {
-      Client.severe(textChannel, `Could not fetch data of user #${casterEntry === undefined ? casterEntry!.id : targetEntry!.id }.`);
-      return;
-    }
 
     // Get the time difference between now and the time the caster thanked the target
     const now = moment();
@@ -102,4 +128,5 @@ export class Database {
       ])
     );
   }
+  */
 }
