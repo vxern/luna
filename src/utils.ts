@@ -10,6 +10,8 @@ import { Service } from './services/service';
 const digitsPattern = /\d+/g;
 const wordsPattern = /[a-zA-Z]+/g;
 
+export type ModifySignature<T, R> = Omit<T, keyof R> & R;
+
 export class Utils {
   /// Extracts numbers from a string
   static extractNumbers(target: string): string[] {
@@ -177,11 +179,23 @@ export class Utils {
     return distance <= acceptableDistance;
   }
 
+  static removeDuplicateAndEmpty(words: string[]) {
+    return words.filter((word, index, array) => word.length !== 0 && index === array.indexOf(word));
+  } 
+
+  static resolveNumber(textChannel: TextChannel, target: string | undefined): number {
+    if (target !== undefined && !this.isNumber(target)) {
+      Client.warn(textChannel, 'The rule __number__ must be a __number__.');
+      return -1;
+    }
+
+    return Number(target);
+  }
+
   /// Case-invariant 'includes' function
   static includes(left: string, right: string): boolean {
     return left.toLowerCase().includes(right.toLowerCase());
   }
-
 
   static initialiseServices(services: Service[]) {
     services.forEach((service) => service.initialise());
