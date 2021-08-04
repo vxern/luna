@@ -1,7 +1,13 @@
-import { Message } from "discord.js";
-import { Utils } from "../utils";
+import { GuildMessage } from "../client/client";
 
 import { Module } from "./module";
+
+export interface HandlingData {
+  message: GuildMessage;
+  dependencies: Map<string, any>;
+  parameters: Map<string, string>;
+  parameter?: string;
+}
 
 export abstract class Command<T extends Module> {
   abstract readonly identifier: string;
@@ -10,11 +16,11 @@ export abstract class Command<T extends Module> {
   /// Description of what this command does
   abstract readonly description: string;
   /// Arguments and parameters this command takes
-  abstract readonly arguments: string[];
+  abstract readonly parameters: string[];
   /// Which other command's functionality this command requires
   abstract readonly dependencies: any[];
   /// What should happen when a user writes a command's alias
-  abstract readonly handler: (message: Message, dependencies: Map<string, any>) => Promise<void>;
+  abstract readonly handler: ({}: HandlingData) => Promise<void>;
 
   readonly module: T;
 
@@ -22,9 +28,9 @@ export abstract class Command<T extends Module> {
     this.module = module;
   }
 
-  matchesIdentifierOrAliases(argument: string): boolean {
-    argument = argument.toLowerCase();
-    return this.identifier === argument || this.aliases.includes(argument);
+  matchesIdentifierOrAliases(commandName: string): boolean {
+    commandName = commandName.toLowerCase();
+    return this.identifier === commandName || this.aliases.includes(commandName);
   }
 
   get caller(): string {
@@ -42,7 +48,11 @@ export abstract class Command<T extends Module> {
   }
 
   get getUsage(): string {
-    const requiredArguments = this.arguments.map((argument) => ` [${argument}]`).join(' ');
-    return `\`${this.caller + requiredArguments}\``;
+    const parameters = this.parameters.map((parameter) => {
+      if (parameter.startsWith('optional: ')) return ` [${parameter}]`;
+
+      return ` <${parameter}>`;
+    }).join('');
+    return `\`${this.caller + parameters}\``;
   }
 }
