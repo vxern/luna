@@ -31,14 +31,14 @@ export class Ban extends Command<Moderation> {
       return;
     }
 
-
     if (!member.bannable) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to ban this member.');
       return;
     }
 
+    Client.database.removeDatabaseEntry(member.user);
     member?.ban({days: Number(args[1]), reason: args[2]});
 
-    Client.severe(message.channel as TextChannel, `${member.user.tag} has been banned indefinitely.`);
+    Client.severe(message.channel as TextChannel, `**${member.user.tag}** has been banned indefinitely.`);
   }
 }
