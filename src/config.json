@@ -3,6 +3,7 @@
 
   "presenceCycleIntervalInSeconds": 4,
 
+  "warningExpiryInMonths": 2,
   "thankIntervalInHours": 4,
 
   "accentColorNormal": "0x5c6bc0",
