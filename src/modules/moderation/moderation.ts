@@ -18,8 +18,8 @@ import roles from '../../roles.json';
 
 import { Utils } from '../../utils';
 
-const userTag = /<@!?.+>/g;
-const fullTag = /.+#\d{4}/g;
+const userTag = /<@!?.+>/;
+const fullTag = /.+#\d{4}/;
 
 export class Moderation extends Module {
   readonly requirement = (message: Message) => message.member?.roles.cache.map((role) => role.name).includes(Utils.capitaliseWords(roles.moderator)) || false;
@@ -31,14 +31,10 @@ export class Moderation extends Module {
   async resolveMember(message: Message): Promise<GuildMember | undefined> {
     const members = await message.guild!.members.fetch();
 
-    console.log(message.content);
-
     // If the identifier is a tag, convert it to an ID
     if (userTag.test(message.content)) {
       message.content = Utils.extractNumbers(message.content)[0];
     }
-
-    console.log(message.content);
 
     // If the identifier is an ID
     if (Utils.isNumber(message.content)) {
