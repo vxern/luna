@@ -37,7 +37,7 @@ export class Presence extends Service {
     const current = statuses[this.currentStatus];
 
     if (this.currentStatus !== statuses.length - 1) {
-      this.currentStatus += 1;
+      this.currentStatus++;
     } else {
       this.currentStatus = 0;
     }
