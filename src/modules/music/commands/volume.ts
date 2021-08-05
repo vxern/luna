@@ -35,7 +35,7 @@ export class Volume extends Command<Music> {
     }
 
     this.module.volume = volume / 100;
-    this.module.voiceConnection.dispatcher.setVolume(this.module.volume);
+    this.module.voiceConnection?.dispatcher.setVolume(this.module.volume);
 
     Client.info(message.channel, `Volume set to ${volume}%.`);
   }

@@ -31,9 +31,9 @@ export class Unpause extends Command<Music> {
 
     // TODO: Fix this disgusting hack
     // https://github.com/discordjs/discord.js/issues/5300
-    this.module.voiceConnection.dispatcher.resume();
-    this.module.voiceConnection.dispatcher.pause();
-    this.module.voiceConnection.dispatcher.resume();
+    this.module.voiceConnection?.dispatcher.resume();
+    this.module.voiceConnection?.dispatcher.pause();
+    this.module.voiceConnection?.dispatcher.resume();
 
     Client.info(message.channel, `Resumed '${this.module.currentSong!.title}'.`);
   }

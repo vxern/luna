@@ -20,7 +20,7 @@ export class Now extends Command<Music> {
       listingString = `${this.module.currentSong.title} (${this.module.runningTimeAsString()})`;
     }
 
-    if (this.module.voiceConnection.dispatcher?.paused) {
+    if (this.module.voiceConnection?.dispatcher?.paused) {
       listingString = ':pause_button: ' + listingString;
     }
 

@@ -25,12 +25,12 @@ export class Pause extends Command<Music> {
       return;
     }
 
-    if (this.module.voiceConnection.dispatcher.paused) {
+    if (this.module.voiceConnection?.dispatcher.paused) {
       dependencies.get('Unpause').unpause(message);
       return;
     }
 
-    this.module.voiceConnection.dispatcher.pause();
+    this.module.voiceConnection?.dispatcher.pause();
     
     Client.info(message.channel, `Paused '${this.module.currentSong!.title}'.`);
   }

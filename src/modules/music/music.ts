@@ -34,7 +34,7 @@ export class Music extends Module {
   textChannel: TextChannel | undefined;
   /// Voice channel music is being played in
   voiceChannel: VoiceChannel | undefined;
-  voiceConnection!: VoiceConnection;
+  voiceConnection: VoiceConnection | undefined;
 
   /// Current playing song
   currentSong: Song | undefined;

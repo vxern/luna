@@ -78,7 +78,7 @@ export class Play extends Command<Music> {
   /// Plays the requested song or the next song in queue
   async play(textChannel: TextChannel, listing?: Listing, announce: boolean = true) {
     if (listing !== undefined) {
-      this.module.queue.push(listing!);
+      this.module.queue.push(listing);
 
       // If the user requested a song while a song was already playing
       if (this.module.isPlaying) {
@@ -99,7 +99,7 @@ export class Play extends Command<Music> {
     if (this.module.queue.length === 0) {
       this.module.currentSong = undefined;
       this.module.currentListing = undefined;
-      this.module.voiceConnection.dispatcher?.end();
+      this.module.voiceConnection?.dispatcher?.end();
       return;
     }
 
@@ -110,11 +110,17 @@ export class Play extends Command<Music> {
       seek: this.module.currentSong!.offset,
       volume: this.module.volume,
     };
-    const stream = ytdl(this.module.currentSong!.url);
+    const stream = ytdl(this.module.currentSong!.url, {
+      quality: 'highestaudio',
+      filter: 'audioonly',
+    });
 
     this.module.voiceConnection!.play(stream, streamOptions)
       .on('finish', () => this.play(textChannel))
-      .on('error', (_) => this.play(textChannel));
+      .on('error', (error) => {
+        console.error(error);
+        this.play(textChannel);
+      });
 
     if (announce) {
       Client.info(textChannel, `Now playing '${this.module.currentSong!.title}'...`);
