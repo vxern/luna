@@ -1,9 +1,10 @@
-import { Message, TextChannel } from "discord.js";
+
+import moment from "moment";
 
 import { Client } from "../../../client/client";
 
 import { Moderation } from "../moderation";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 import { Ban } from "./ban";
 
 import { Utils } from "../../../utils";
@@ -12,43 +13,49 @@ export class Warn extends Command<Moderation> {
   readonly identifier = 'warn';
   readonly aliases = [];
   readonly description = 'Warns a user';
-  readonly arguments = ['tag | name | id', 'reason'];
+  readonly parameters = ['identifier', 'reason'];
   readonly dependencies = [Ban];
   readonly handler = this.warn;
 
-  async warn(message: Message, dependencies: Map<string, any>) {
-    const args = message.content.split(' ');
-
-    message.content = args[0];
-
-    const member = await this.module.resolveMember(message);
+  async warn({message, dependencies, parameters}: HandlingData) {
+    const member = await this.module.resolveMember(message, parameters.get('identifier')!);
 
     if (member === undefined) {
       return;
     }
 
     if (!member.bannable) {
-      Client.warn(message.channel as TextChannel, 'You do not have the authority to warn this member.');
+      Client.warn(message.channel, 'You do not have the authority to warn this member.');
       return;
     }
 
-    Client.database.fetchDatabaseEntryOrCreate(member.user).then((target) => {
+    Client.database.fetchDatabaseEntryOrCreate(message.channel, member.user).then((target) => {
       if (target === undefined) {
-        Client.severe(message.channel as TextChannel, `Failed to obtain or create user entry for ${member.user}.`);
         return;
       }
 
-      if (target.user.warnings.size === 2) {
-        message.content = `${member.id} -1 Violating the rules on three occasions`;
-        dependencies.get('Ban').ban(message);
+      const numberOfWarnings = Object.keys(target.user.warnings).length + 1;
+
+      if (numberOfWarnings === 3) {
+        dependencies.get('Ban').ban({
+          message: message,
+          parameters: new Map([
+            ['identifier', member.id],
+            ['reason', 'Violating the rules on three occasions']
+          ]),
+        });
         return;
       }
 
-      Client.database.update(() => target.user.warnings.set(target.user.warnings.size, args[1]), target);
+      const reason = parameters.get('reason')!;
 
-      Client.warn(message.channel as TextChannel, 
-        `**${member.user.tag}** has been warned for: ${args[1]}.\n\n` +
-        `**${member.user.tag}** now has ${Utils.pluralise('warning', target.user.warnings.size)}`
+      target.user.warnings[numberOfWarnings] = [reason, moment().unix()];
+
+      Client.database.update(target);
+
+      Client.warn(message.channel, 
+        `**${member.user.tag}** has been warned for: ${reason}\n\n` +
+        `**${member.user.tag}** now has ${Utils.pluralise('warning', numberOfWarnings)}`
       );
     });
   }
