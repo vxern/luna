@@ -11,14 +11,14 @@ const $ = fauna.query;
 
 /// Interface for interaction with Fauna - a database API
 export class Database {
-  private userCache: Map<string, DatabaseEntry>;
+  private databaseCache: Map<string, DatabaseEntry>;
   /// Keeps track of which user entries need to be updated remotely
-  private updateCache: string[];
+  private stagedCache: string[];
   private client: FaunaClient;
 
   constructor() {
-    this.userCache = new Map();
-    this.updateCache = [];
+    this.databaseCache = new Map();
+    this.stagedCache = [];
     this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
     console.info('Established connection with Fauna.');
   }
@@ -34,7 +34,7 @@ export class Database {
       ref: response.ref
     };
 
-    this.userCache.set(user.id, databaseEntry);
+    this.databaseCache.set(user.id, databaseEntry);
 
     return databaseEntry;
   }
@@ -43,29 +43,22 @@ export class Database {
   removeDatabaseEntry(user: User) {
     this.client.query($.Delete($.Match($.Index('UserByID'), user.id)));
 
-    this.userCache.delete(user.id);
-    this.updateCache.splice(this.updateCache.findIndex((id) => id === user.id), 1);
+    this.databaseCache.delete(user.id);
+    this.stagedCache.splice(this.stagedCache.findIndex((id) => id === user.id), 1);
   }
 
   /// Get a user's database entry if it exists, otherwise create it
-  async fetchDatabaseEntryOrCreate(textChannel: TextChannel, user: User): Promise<DatabaseEntry | undefined> {
-    let databaseEntry = this.userCache.get(user.id);
+  async fetchDatabaseEntryOrCreate(user: User): Promise<DatabaseEntry | undefined> {
+    let databaseEntry = this.databaseCache.get(user.id);
     
     if (databaseEntry === undefined) {
-      try {
-        const response: any = await this.client.query(
-          $.Get($.Match($.Index('UserByID'), user.id))
-        );
-  
-        databaseEntry = {user: response.data as UserEntry, ref: response.ref};
-      } catch (error: any) {
-        if (error.description !== 'Set not found.') {
-          Client.severe(textChannel, `Failed to obtain or create user entry for ${user.tag}.`);
-          return;
-        }
+      await this.dispatchQuery($.Get($.Match($.Index('UserByID'), user.id)));
 
-        databaseEntry = await this.createDatabaseEntry(user);
+      if (this.databaseCache.has(user.id)) {
+        return await this.fetchDatabaseEntryOrCreate(user);
       }
+
+      databaseEntry = await this.createDatabaseEntry(user);
     }
 
     this.removeExpiredWarnings(databaseEntry);
@@ -84,39 +77,83 @@ export class Database {
     const now = moment();
 
     for (const warning of warnings) {
+      if (warning[1] === null) {
+        continue;
+      }
+
       const then = moment.unix(warning[1][1]);
 
       // If the warning has passed its expiry date, delete it
       if (now.diff(then, 'months') >= config.warningExpiryInMonths) {
-        delete databaseEntry.user.warnings[warning[0]];
+        databaseEntry.user.warnings[warning[0]] = null;
       }
     }
   }
 
-  /// Update the remote user entry immediately
-  async update(subject: DatabaseEntry) {
-    try {
-      await this.client.query(
-        $.Update(subject.ref, {data: {warnings: subject.user.warnings}}),
-      );
-    } catch (error: any) {
-      console.error(`${error.message} ~ ${error.description}`);
-      console.error(Object.entries(error));
+  /// Update the remote entry immediately
+  async stage(entry: DatabaseEntry, commitImmediately: boolean = false) {
+    const userId = entry.user.id;
+
+    if (commitImmediately) {
+      this.commit(entry);
+      return;
+    }
+
+    // Update the cache entry for the user
+    this.databaseCache.set(userId, entry);
+
+    if (!this.stagedCache.includes(userId)) {
+      // Mark the database entry as ready for committing
+      this.stagedCache.push(userId);
     }
   }
 
-  /// Update the remote user entries which have been cached
-  async commit() {
-    const userEntries = Array.from(this.userCache.entries());
-    if (userEntries.length === 0) return;
+  async commit(entry: DatabaseEntry) {
+    this.dispatchQuery($.Update(entry.ref, {data: entry.user}));
+  }
 
-    await this.client.query(
-      $.Do(userEntries.map(
-        ([id, entry]) => $.Update($.Ref(id), {data: entry.user})
+  /// Commit database entries which have been cached earlier
+  async commitAll() {
+    const databaseEntries = this.stagedCache.map((id) => this.databaseCache.get(id)!);
+    if (databaseEntries.length === 0) return;
+
+    this.stagedCache = [];
+
+    this.dispatchQuery(
+      $.Do(databaseEntries.map(
+        (entry) => $.Update(entry.ref, {data: entry.user})
       ))
     );
+  }
 
-    this.updateCache = [];
+  /// Attempts to dispatch query, and logs error if one has been caught
+  async dispatchQuery(expression: fauna.Expr) {
+    try {
+      // Update remote entries
+      this.updateEntries(await this.client.query(expression));
+    } catch (error: any) {
+      if (error.description === 'Set not found.') {
+        return;
+      }
+
+      console.error(`${error.message} ~ ${error.description}`);
+    }
+  }
+
+  updateEntries(response: any) {
+    if (!Array.isArray(response)) {
+      this.databaseCache.set(response.data.id, this.fromResponse(response));
+      return;
+    }
+
+    const responses = Array.from(response);
+    for (const response of responses) {
+      this.databaseCache.set(response.data.id, this.fromResponse(response));
+    }
+  }
+
+  fromResponse(response: any): DatabaseEntry {
+    return {user: response.data as UserEntry, ref: response.ref};
   }
 
   /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target

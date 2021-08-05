@@ -29,7 +29,7 @@ export class Warn extends Command<Moderation> {
       return;
     }
 
-    Client.database.fetchDatabaseEntryOrCreate(message.channel, member.user).then((target) => {
+    Client.database.fetchDatabaseEntryOrCreate(member.user).then((target) => {
       if (target === undefined) {
         return;
       }
@@ -51,7 +51,7 @@ export class Warn extends Command<Moderation> {
 
       target.user.warnings[numberOfWarnings] = [reason, moment().unix()];
 
-      Client.database.update(target);
+      Client.database.stage(target, true);
 
       Client.warn(message.channel, 
         `**${member.user.tag}** has been warned for: ${reason}\n\n` +

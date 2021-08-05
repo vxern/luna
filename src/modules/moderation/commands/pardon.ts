@@ -25,7 +25,7 @@ export class Pardon extends Command<Moderation> {
       return;
     }
 
-    Client.database.fetchDatabaseEntryOrCreate(message.channel, member.user).then((target) => {
+    Client.database.fetchDatabaseEntryOrCreate(member.user).then((target) => {
       if (target === undefined) {
         return;
       }
@@ -51,9 +51,9 @@ export class Pardon extends Command<Moderation> {
 
       const warningMessage = target.user.warnings[warningId][0];
 
-      delete target.user.warnings[warningId];
+      target.user.warnings[warningId] = null;
 
-      Client.database.update(target);
+      Client.database.stage(target, true);
 
       Client.info(message.channel, 
         `**${member.user.tag}** has been pardoned from warning no. ${warningId}: ${warningMessage}\n\n` +

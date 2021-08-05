@@ -25,6 +25,6 @@ export class Purge extends Command<Moderation> {
       message.channel.bulkDelete(100);
     }
 
-    message.channel.bulkDelete(numberToDelete - 100 * iterations + 1);
+    message.channel.bulkDelete(numberToDelete - 100 * iterations + 1).catch(() => {});
   }
 }
