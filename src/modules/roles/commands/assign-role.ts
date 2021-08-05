@@ -1,9 +1,9 @@
-import { GuildMember, Message, Role, TextChannel } from "discord.js";
+import { GuildMember, Role, TextChannel } from "discord.js";
 
-import { Client } from "../../../client/client";
+import { Client, GuildMessage } from "../../../client/client";
 
 import { Roles } from "../roles";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 
 import { Utils } from "../../../utils";
 
@@ -14,83 +14,78 @@ export class AssignRole extends Command<Roles> {
   readonly identifier = '$rolename';
   readonly aliases = [];
   readonly description = 'Assigns or unassigns a role';
-  readonly arguments = [];
+  readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.resolve;
 
   /// Resolve message to a single or multiple `resolveRole` calls
-  async resolve(message: Message) {
-    if (!message.content.includes(',')) {
-      return this.resolveRole(message);
+  async resolve({message, parameter}: HandlingData) {
+    parameter = parameter!.toLowerCase();
+
+    // If the parameter is not a list of rules, but rather a single role
+    if (!parameter.includes(',')) {
+      return this.resolveRole({message: message, parameter: parameter});
     }
 
-    const roleNames = message.content.split(',').map(
-      (roleName) => roleName.trim().toLowerCase()
-    // Remove empty and duplicate entries
-    ).filter(
-      (roleName, index, array) => roleName.length !== 0 && index === array.indexOf(roleName)
+    const roleNames = Utils.removeDuplicateAndEmpty(
+      parameter.split(',').map((roleName) => roleName.trim())
     );
 
     if (roleNames.length === 0) return;
 
     if (roleNames.length > config.maximumRolesAtOnce) {
-      Client.warn(message.channel as TextChannel, 'You may not request more than five roles at once.');
+      Client.warn(message.channel, `You may not request more than ${config.maximumRolesAtOnce} roles at once.`);
       return;
     }
 
-    const requestedFromCategory = (category: string[]) => roleNames.filter(
+    const rolesRequestedFromCategory = (category: string[]) => roleNames.filter(
       (roleName) => category.includes(roleName)
     ).length;
 
-    if (requestedFromCategory(roles.proficiency) > 1) {
-      Client.warn(message.channel as TextChannel, 
-        'You may not request more than one proficiency role in a list expression.'
+    if (rolesRequestedFromCategory(roles.proficiency) > 1) {
+      Client.warn(message.channel, 
+        'You may not request more than one proficiency role in a single list expression.'
       );
       return;
     }
 
-    const ethnicitiesRequested = requestedFromCategory(roles.ethnicities);
-
+    const ethnicitiesRequested = rolesRequestedFromCategory(roles.ethnicities);
     if (ethnicitiesRequested > roles.maximumEthnicityRoles) {
-      Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${Utils.pluralise('ethnicity', roles.maximumEthnicityRoles, 'ethnicities')} in a list expression.`
+      Client.warn(message.channel, 
+        `You may not request more than ${Utils.pluralise('ethnicity', roles.maximumEthnicityRoles, 'ethnicities')} in a single list expression.`
       );
       return;
     }
 
-    const regionsRequested = requestedFromCategory(roles.regions);
-
+    const regionsRequested = rolesRequestedFromCategory(roles.regions);
     if (regionsRequested > roles.maximumRegionRoles) {
       Client.warn(message.channel as TextChannel, 
-        `You may not request more than ${Utils.pluralise('region', roles.maximumRegionRoles)} in a list expression.`
+        `You may not request more than ${Utils.pluralise('region', roles.maximumRegionRoles)} in a single list expression.`
       );
       return;
     }
 
     for (const roleName of roleNames) {
-      message.content = roleName;
       await new Promise((resolve) => setTimeout(resolve, config.roleAssignmentDelay * 1000));
-      this.resolveRole(message);
+      this.resolveRole({message: message, parameter: roleName});
     }
-
-    return;
   }
 
   /// Resolve message to a `Role`; verify that the user can assign it; add it to the user, otherwise, remove it
-  async resolveRole(message: Message) {
-    const roleName = message.content.toLowerCase();
+  async resolveRole({message, parameter}: {message: GuildMessage, parameter: string}) {
+    const roleName = parameter.toLowerCase();
 
     // If the sought role is not found in [allRoles]
     if (!this.module.allRoles.includes(roleName)) return;
 
     // If the sought role is not a proficiency role
     if (!roles.proficiency.includes(roleName)) {
-      return this.resolveNonProficiencyRole(message.channel as TextChannel, message.member!, roleName);
+      return this.resolveNonProficiencyRole(message.channel, message.member!, roleName);
     }
 
     if (!this.hasRole(message.member!, roleName)) {
       const currentProficiencyRole = this.getCurrentProficiencyRole(message.member!);
-      return this.addOrReplaceProficiencyRole(message.channel as TextChannel, message.member!, roleName, currentProficiencyRole);
+      return this.addOrReplaceProficiencyRole(message.channel, message.member!, roleName, currentProficiencyRole);
     }
 
     let baseMessage = `Your level is already ${
@@ -118,7 +113,7 @@ export class AssignRole extends Command<Roles> {
       baseMessage += downgradeMessage;
     }
 
-    Client.info(message.channel as TextChannel, baseMessage);
+    Client.info(message.channel, baseMessage);
   }
   /// Assign or unassign a non-proficiency role
   resolveNonProficiencyRole(textChannel: TextChannel, member: GuildMember, roleName: string) {

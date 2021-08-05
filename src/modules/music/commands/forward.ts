@@ -1,9 +1,7 @@
-import { Message, TextChannel } from "discord.js";
-
 import { Client } from "../../../client/client";
 
 import { Music } from "../music";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 import { Replay } from "./replay";
 import { Play } from "./play";
 
@@ -13,23 +11,23 @@ export class Forward extends Command<Music> {
   readonly identifier = 'forward';
   readonly aliases = [];
   readonly description = 'Fast-forward the song by the given amount of time';
-  readonly arguments = ['time'];
+  readonly parameters = ['time'];
   readonly dependencies = [Replay, Play];
   readonly handler = this.forward;
 
   /// Fast-forwards the song by a given number of seconds
-  async forward(message: Message, dependencies: Map<string, any>) {
-    const seconds = this.module.resolveTimeQuery(message, message.content.toLowerCase());
+  async forward({message, dependencies, parameter}: HandlingData) {
+    const seconds = this.module.resolveTimeQuery(message, parameter!.toLowerCase());
 
     if (seconds === undefined) return;
 
-    if (!this.module.isPlaying()) {
-      Client.warn(message.channel as TextChannel, 'There is no song to fast-forward.');
+    if (!this.module.isPlaying) {
+      Client.warn(message.channel, 'There is no song to fast-forward.');
       return;
     }
 
     if (!this.module.canUserManageListing(
-      message.channel as TextChannel, message.author.id, this.module.currentListing!
+      message.channel, message.author.id, this.module.currentListing!
     )) {
       return;
     }
@@ -40,13 +38,13 @@ export class Forward extends Command<Music> {
     const totalOffset = currentOffset + streamTime + seconds;
 
     if (totalOffset >= this.module.currentSong!.duration - 5) {
-      Client.warn(message.channel as TextChannel, 'Cannot fast-forward beyond the song duration.');
+      Client.warn(message.channel, 'Cannot fast-forward beyond the song duration.');
       return;
     }
 
     this.module.currentSong!.offset = totalOffset;
 
-    Client.info(message.channel as TextChannel,
+    Client.info(message.channel,
       `Fast-forwarded the song by ${Utils.convertSecondsToExtendedFormat(seconds)} ~ ` + 
       `${this.module.runningTimeAsString()}.`
     );

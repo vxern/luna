@@ -1,6 +1,6 @@
-import { GuildMember, Message, TextChannel, VoiceChannel, VoiceConnection } from "discord.js";
+import { GuildMember, TextChannel, VoiceChannel, VoiceConnection } from "discord.js";
 
-import { Client } from "../../client/client";
+import { Client, GuildMessage } from "../../client/client";
 
 import { Module } from "../module";
 import { Song, Listing } from "./songs";
@@ -22,7 +22,7 @@ import { Volume } from "./commands/volume";
 import { Utils } from "../../utils";
 
 export class Music extends Module {
-  readonly requirement = (message: Message) => this.verifyVoiceChannel(message.channel as TextChannel, message.member!);
+  readonly requirement = (message: GuildMessage) => this.verifyVoiceChannel(message.channel, message.member!);
   readonly commandsRestricted = Utils.instantiate([
     Forward, Pause, Play, Remove, Replay, Rewind, Skip, Unpause, Unskip, Volume
   ], [this]);
@@ -52,7 +52,7 @@ export class Music extends Module {
   volume: number = 1;
 
   /// Determines whether the controller is occupied or not
-  isPlaying(): boolean {
+  get isPlaying(): boolean {
     return this.currentSong !== undefined;
   }
 

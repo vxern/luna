@@ -1,10 +1,11 @@
-import { Message, TextChannel, User } from "discord.js";
+import { User } from "discord.js";
 
-import { Client } from "../client/client";
+import { Client, GuildMessage } from "../client/client";
 import { Embed } from "../client/embed";
-import { Utils } from "../utils";
 
-import { Command } from "./command";
+import { Command, HandlingData } from "./command";
+
+import { Utils } from "../utils";
 
 import config from '../config.json';
 
@@ -12,23 +13,23 @@ export abstract class Module {
   /// Automatically assigned name of this module
   name!: string;
   /// A function deciding whether a user can use an affected command
-  readonly requirement: ((message: Message) => boolean) | boolean = true;
+  readonly requirement: ((message: GuildMessage) => boolean) | boolean = true;
   /// Commands which require `requirement` to yield `true` for execution
   readonly commandsRestricted: Command<Module>[] = [];
   /// Commands which are not affected by this module's requirement
   readonly commandUnrestricted: Command<Module>[] = [];
   /// Getter for all commands contained within 
-  get commands(): Command<Module>[] {
+  get commandsAll(): Command<Module>[] {
     return [...this.commandsRestricted, ...this.commandUnrestricted];
   }
 
   /// Placeholder command for unimplemented functionality
-  async displayUnimplemented(message: Message) {
-    Client.severe(message.channel as TextChannel, 'This function is not yet implemented.');
+  async displayUnimplemented({message}: HandlingData) {
+    Client.severe(message.channel, 'This function is not yet implemented.');
   }
   
   /// Parses a time query to a base number of seconds described by the query
-  resolveTimeQuery(message: Message, query: string): number | undefined {
+  resolveTimeQuery(message: GuildMessage, query: string): number | undefined {
     let seconds = 0;
 
     // Extract the digits present in the query
@@ -38,18 +39,18 @@ export abstract class Module {
 
     // No parameters provided for either keys or values
     if (integers.length === 0 || strings.length === 0) {
-      Client.warn(message.channel as TextChannel, 'You have not provided a valid time description as one of the required terms is missing.');
+      Client.warn(message.channel, 'You have not provided a valid time description as one of the required terms is missing.');
       return;
     }
 
     // The number of keys does not match the number of values
     if (integers.length !== strings.length) {
-      Client.warn(message.channel as TextChannel, 'The number of time specifiers and values does not match.');
+      Client.warn(message.channel, 'The number of time specifiers and values does not match.');
       return;
     }
 
     if (integers.includes(0)) {
-      Client.warn(message.channel as TextChannel, 'A time value cannot be equal to 0.');
+      Client.warn(message.channel, 'A time value cannot be equal to 0.');
       return;
     }
 
@@ -64,7 +65,7 @@ export abstract class Module {
       if (hourIdentifiers.includes(strings[index])) multiplier = 60 * 60;
 
       if (multiplier === 1 && !secondIdentifiers.includes(strings[index])) {
-        Client.warn(message.channel as TextChannel, `'${strings[index]}' is not a valid time specifier.`);
+        Client.warn(message.channel, `'${strings[index]}' is not a valid time specifier.`);
       }
 
       seconds += integers[index] * multiplier;
@@ -74,7 +75,7 @@ export abstract class Module {
   }
 
   /// Decides whether the requirement for usage of a module has been met
-  isRequirementMet(message: Message): boolean {
+  isRequirementMet(message: GuildMessage): boolean {
     if (typeof this.requirement === 'boolean') return this.requirement;
     
     return this.requirement(message);
@@ -84,13 +85,13 @@ export abstract class Module {
   /// a list of available options
   ///
   /// [displayString] - How the string to display is obtained from the object
-  async browse<T>(originalMessage: Message, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
+  async browse<T>(originalMessage: GuildMessage, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
     const browser = originalMessage.author;
-    const textChannel = originalMessage.channel as TextChannel;
+    const textChannel = originalMessage.channel;
 
     // Metrics for which reactions and responses in the form of selections count
     const validReaction = (_: any, user: User) => user.id === browser.id;
-    const validSelection = (response: Message) => response.author.id === browser.id && Utils.isNumber(response.content);
+    const validSelection = (response: GuildMessage) => response.author.id === browser.id && Utils.isNumber(response.content);
 
     // How many pages the list of selections can be broken down into
     const numberOfPages = Math.ceil(list.length / config.itemsPerPage);
@@ -131,10 +132,10 @@ export abstract class Module {
             
             switch (reaction.emoji.name) {
               case '⬅️':
-                if (isNotOnFirstPage()) currentPage -= 1;
+                if (isNotOnFirstPage()) currentPage--;
                 break;
               case '➡️':
-                if (isNotOnLastPage()) currentPage += 1;
+                if (isNotOnLastPage()) currentPage++;
                 break;
               case '❌':
                 originalMessage.delete();

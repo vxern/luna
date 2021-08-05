@@ -1,7 +1,6 @@
-import { Guild, GuildMember, Message, TextChannel, User, Util } from 'discord.js';
-import * as string from 'string-sanitizer';
+import { Guild, GuildMember, User } from 'discord.js';
 
-import { Client } from '../../client/client';
+import { Client, GuildMessage } from '../../client/client';
 
 import { Module } from '../module';
 
@@ -10,6 +9,7 @@ import { CiteRule } from './commands/cite-rule';
 import { Kick } from './commands/kick';
 import { Mute } from './commands/mute';
 import { Pardon } from './commands/pardon';
+import { Purge } from './commands/purge';
 import { Unban } from './commands/unban';
 import { Unmute } from './commands/unmute';
 import { Warn } from './commands/warn';
@@ -21,35 +21,43 @@ import { Utils } from '../../utils';
 const userTag = /<@!?.+>/;
 const fullTag = /.+#\d{4}/;
 
+export interface BannedUser {
+  user: User,
+  reason: string,
+}
+
 export class Moderation extends Module {
-  readonly requirement = (message: Message) => message.member?.roles.cache.map((role) => role.name).includes(Utils.capitaliseWords(roles.moderator)) || false;
-  readonly commandsRestricted = Utils.instantiate([Ban, Kick, Mute, Pardon, Unban, Unmute, Warn], [this]);
+  readonly requirement = 
+    (message: GuildMessage) => message.member?.roles.cache
+      .map((role) => role.name)
+      .includes(Utils.capitaliseWords(roles.moderator)) || false;
+  readonly commandsRestricted = Utils.instantiate([Ban, Kick, Mute, Pardon, Purge, Unban, Unmute, Warn], [this]);
   readonly commandUnrestricted = Utils.instantiate([CiteRule], [this]);
 
   /// Takes an identifier in the form of a full tag, a username or an ID and
   /// finds the member bearing it
-  async resolveMember(message: Message): Promise<GuildMember | undefined> {
+  async resolveMember(message: GuildMessage, parameter: string): Promise<GuildMember | undefined> {
     const members = await message.guild!.members.fetch();
 
     // If the identifier is a tag, convert it to an ID
-    if (userTag.test(message.content)) {
-      message.content = Utils.extractNumbers(message.content)[0];
+    if (userTag.test(parameter)) {
+      parameter = Utils.extractNumbers(parameter)[0];
     }
 
     // If the identifier is an ID
-    if (Utils.isNumber(message.content)) {
-      return members.find((member) => member.id === message.content);
+    if (Utils.isNumber(parameter)) {
+      return members.find((member) => member.id === parameter);
     }
 
     // If the username is a valid tag ( a username with a discriminator )
-    if (fullTag.test(message.content)) {
-      return members.find((member) => member.user.tag === message.content);
+    if (fullTag.test(parameter)) {
+      return members.find((member) => member.user.tag === parameter);
     }
 
-    const membersFound = members.filter((member) => Utils.includes(member.user.username + member.displayName, message.content));
+    const membersFound = members.filter((member) => Utils.includes(member.user.username + member.displayName, parameter));
 
     if (membersFound.size === 0) {
-      Client.warn(message.channel as TextChannel, `No member with the username '${message.content}' found.`);
+      Client.warn(message.channel, `No member with the username '${parameter}' found.`);
       return;
     }
 
@@ -62,37 +70,37 @@ export class Moderation extends Module {
 
   /// Takes an identifier in the form of an ID, a full tag or a username
   /// and finds the banned user bearing it
-  async resolveBannedUser(message: Message): Promise<{user: User, reason: string} | undefined> {
+  async resolveBannedUser(message: GuildMessage, parameter: string): Promise<BannedUser | undefined> {
     const bans = Array.from((await message.guild!.fetchBans()).values());
 
     // If the identifier is an ID
-    if (Utils.isNumber(message.content)) {
-      return bans.find((data) => data.user.id === message.content);
+    if (Utils.isNumber(parameter)) {
+      return bans.find((data) => data.user.id === parameter);
     }
 
     // If the username is a valid tag ( a username with a discrimination )
-    if (fullTag.test(message.content)) {
-      return bans.find((data) => data.user.tag === message.content);
+    if (fullTag.test(parameter)) {
+      return bans.find((data) => data.user.tag === parameter);
     }
 
-    const usersFound = bans.filter((ban) => Utils.includes(ban.user.username, message.content));
+    const usersFound = bans.filter((ban) => Utils.includes(ban.user.username, parameter));
 
     if (usersFound.length === 0) {
-      Client.warn(message.channel as TextChannel, `No banned users with the username '${message.content}' found.`);
+      Client.warn(message.channel, `No banned users with the username '${parameter}' found.`);
       return;
     }
 
-    const user = await this.browse(
+    const bannedUser = await this.browse(
       message, 
       usersFound, 
       (data) => `${data.user.tag} ~ banned for: ${this.findBanReason(bans.map((ban) => ban.user), data)}`
     );
 
-    return user;
+    return bannedUser;
   }
 
   /// Returns the ban reason or attempts to synthesise it if one does not exist
-  findBanReason(bannedUsers: User[], data: {user: User, reason: string | null}) {
+  findBanReason(bannedUsers: User[], data: BannedUser) {
     if (data.reason !== null) return data.reason;
 
     const bannedUsersWithSimilarName = bannedUsers.filter(
@@ -111,8 +119,8 @@ export class Moderation extends Module {
   }
 
   async isMemberBanned(member: GuildMember) {
-    const bans = await member?.guild.fetchBans();
-    return Array.from(bans?.keys()).includes(member.id);
+    const bans = await member.guild.fetchBans();
+    return Array.from(bans.keys()).includes(member.id);
   }
 
   async fetchBannedUsers(guild: Guild) {

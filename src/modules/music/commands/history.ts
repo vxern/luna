@@ -2,21 +2,19 @@ import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
 
 import { Music } from "../music";
-import { Command } from "../../command";
-
-import { Listing } from "../songs";
+import { Command, HandlingData } from "../../command";
 
 export class History extends Command<Music> {
   readonly identifier = 'history';
   readonly aliases = ['past', 'played'];
   readonly description = 'Display a list of songs played previously';
-  readonly arguments = [];
+  readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.displayHistory;
 
   /// Displays the history of songs played
-  async displayHistory() {
-    Client.send(this.module.textChannel!, Embed.singleField({
+  async displayHistory({message}: HandlingData) {
+    Client.send(message.channel, Embed.singleField({
       name: 'History',
       value: this.module.history.length === 0 ? 
         'No songs have been played before.' :

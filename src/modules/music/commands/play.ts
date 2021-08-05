@@ -1,11 +1,11 @@
-import { Message, StreamOptions, TextChannel } from "discord.js";
-import { YTSearcher, YTSearch, VideoEntry } from "ytsearcher";
+import { StreamOptions, TextChannel } from "discord.js";
+import { YTSearcher, YTSearch } from "ytsearcher";
 import ytdl from 'ytdl-core';
 
-import { Client } from "../../../client/client";
+import { Client, GuildMessage } from "../../../client/client";
 
 import { Music } from "../music";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 import { Song, Listing } from "../songs";
 
 import { Utils } from "../../../utils";
@@ -17,24 +17,24 @@ export class Play extends Command<Music> {
   readonly identifier = 'play';
   readonly aliases = ['request'];
   readonly description = 'Request to play a song by providing a URL to it, or searching using keywords';
-  readonly arguments = ['songName | url'];
+  readonly parameters = ['song'];
   readonly dependencies = [];
   readonly handler = this.request;
 
   readonly searcher: YTSearcher = new YTSearcher(process.env.YOUTUBE_SECRET!);
 
-  async request(message: Message) {
-    await this.module.bindToVoiceChannel(message.channel as TextChannel, message.member!.voice!.channel!);
+  async request({message, parameter}: HandlingData) {
+    await this.module.bindToVoiceChannel(message.channel, message.member!.voice!.channel!);
 
-    const listing = await this.resolveQueryToListing(message);
+    const listing = await this.resolveQueryToListing(message, parameter!);
 
     if (listing === undefined) return;
 
-    this.play(listing);
+    this.play(message.channel, listing);
   }
 
-  async resolveQueryToListing(message: Message): Promise<Listing | undefined> {
-    if (spotifyPattern.test(message.content)) {
+  async resolveQueryToListing(message: GuildMessage, parameter: string): Promise<Listing | undefined> {
+    if (spotifyPattern.test(parameter)) {
       // TODO: Handle Spotify link here
       return;
     }
@@ -50,7 +50,7 @@ export class Play extends Command<Music> {
     return new Listing(Song.fromYoutubeDetails(videoInfo.videoDetails), this.module.usersPresent());
   }
 
-  async searchYoutube(message: Message): Promise<string | undefined> {
+  async searchYoutube(message: GuildMessage): Promise<string | undefined> {
     if (youtubePattern.test(message.content)) return message.content;
 
     /// YTSearcher.search() is marked as a synchronous function, but in actuality it returns a Promise.
@@ -62,7 +62,7 @@ export class Play extends Command<Music> {
     const search = await searchYouTube(message.content);
     
     if (search.currentPage === undefined) {
-      Client.warn(this.module.textChannel!, 'No videos found matching your search.');
+      Client.warn(message.channel, 'No videos found matching your search.');
       return;
     }
 
@@ -76,13 +76,13 @@ export class Play extends Command<Music> {
   }
 
   /// Plays the requested song or the next song in queue
-  async play(listing?: Listing, message: boolean = true) {
+  async play(textChannel: TextChannel, listing?: Listing, announce: boolean = true) {
     if (listing !== undefined) {
       this.module.queue.push(listing!);
 
       // If the user requested a song while a song was already playing
-      if (this.module.isPlaying()) {
-        Client.info(this.module.textChannel!, `Added '${listing.title}' to the queue. [#${this.module.queue.length}]`);
+      if (this.module.isPlaying) {
+        Client.info(textChannel, `Added '${listing.title}' to the queue. [#${this.module.queue.length}]`);
         return;
       }
     }
@@ -90,7 +90,7 @@ export class Play extends Command<Music> {
     // Register the current song in the history of songs played, ensuring
     // that it is only added to history if the last song played wasn't the
     // same as the current song
-    if (this.module.isPlaying()) {
+    if (this.module.isPlaying) {
       this.module.history.push(this.module.currentListing!);
     }
 
@@ -99,7 +99,7 @@ export class Play extends Command<Music> {
     if (this.module.queue.length === 0) {
       this.module.currentSong = undefined;
       this.module.currentListing = undefined;
-      this.module.voiceConnection?.dispatcher?.end();
+      this.module.voiceConnection.dispatcher?.end();
       return;
     }
 
@@ -113,11 +113,11 @@ export class Play extends Command<Music> {
     const stream = ytdl(this.module.currentSong!.url);
 
     this.module.voiceConnection!.play(stream, streamOptions)
-      .on('finish', () => this.play())
-      .on('error', (_) => this.play());
+      .on('finish', () => this.play(textChannel))
+      .on('error', (_) => this.play(textChannel));
 
-    if (message) {
-      Client.info(this.module.textChannel!, `Now playing '${this.module.currentSong!.title}'...`);
+    if (announce) {
+      Client.info(textChannel, `Now playing '${this.module.currentSong!.title}'...`);
     }
   }
 }

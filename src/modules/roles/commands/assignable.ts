@@ -1,10 +1,10 @@
-import { EmbedField, Message, TextChannel } from "discord.js";
+import { EmbedField } from "discord.js";
 
 import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
 
 import { Roles } from "../roles";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 
 import { Utils } from "../../../utils";
 
@@ -12,13 +12,13 @@ import roles from '../../../roles.json';
 
 export class Assignable extends Command<Roles> {
   readonly identifier = 'roles';
-  readonly aliases = ['rolelist'];
+  readonly aliases = ['role', 'rolelist'];
   readonly description = 'Displays a list of assignable roles';
-  readonly arguments = [];
+  readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.displayAssignableRoles;
 
-  async displayAssignableRoles(message: Message) {
+  async displayAssignableRoles({message}: HandlingData) {
     const roleCategoriesToDisplay = Object.entries(roles).slice(3, Roles.hasProficiency(message.member!) ? undefined : 3);
       
     const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
@@ -29,6 +29,6 @@ export class Assignable extends Command<Roles> {
       inline: true,
     }});
 
-    Client.send(message.channel as TextChannel, new Embed({fields: fields}));
+    Client.send(message.channel, new Embed({fields: fields}));
   }
 }

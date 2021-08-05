@@ -1,28 +1,26 @@
-import { Message, TextChannel } from "discord.js";
-
 import { Client } from "../../../client/client";
 
 import { Music } from "../music";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 import { Play } from "./play";
 
 export class Unskip extends Command<Music> {
   readonly identifier = 'unskip';
   readonly aliases = ['previous'];
   readonly description = 'Plays the last played song';
-  readonly arguments = [];
+  readonly parameters = [];
   readonly dependencies = [Play];
   readonly handler = this.unskip;
   
   /// Plays the last song
-  async unskip(message: Message, dependencies: Map<string, any>) {
+  async unskip({message, dependencies}: HandlingData) {
     if (this.module.history.length === 0) {
-      Client.warn(this.module.textChannel!, 'There are no song listings in the history.');
+      Client.warn(message.channel, 'There are no song listings in the history.');
       return;
     }
 
-    if (this.module.isPlaying()) {
-      if (!this.module.canUserManageListing(message.channel as TextChannel, message.author.id, this.module.currentListing!)) {
+    if (this.module.isPlaying) {
+      if (!this.module.canUserManageListing(message.channel, message.author.id, this.module.currentListing!)) {
         return;
       }
 

@@ -1,4 +1,4 @@
-import { Guild, Message, TextChannel } from "discord.js";
+import { Guild } from "discord.js";
 import { default as moment } from 'moment';
 
 import { Client } from "../../../client/client";
@@ -6,7 +6,7 @@ import { Embed } from "../../../client/embed";
 
 import { Information } from "../information";
 import { Roles } from "../../roles/roles";
-import { Command } from "../../command";
+import { Command, HandlingData } from "../../command";
 
 import { Utils } from "../../../utils";
 
@@ -16,19 +16,19 @@ export class Info extends Command<Information> {
   readonly identifier = 'info';
   readonly aliases = ['information'];
   readonly description = 'Displays helpful information about the server';
-  readonly arguments = [];
+  readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.info;
 
   /// Displays an informational menu
-  async info(message: Message) {
+  async info({message}: HandlingData) {
     const guild = message.guild!;
 
     const percentages = await this.getPercentagesOfProficiencies(guild);
 
     const createdAt = moment(guild.createdAt);
 
-    Client.send(message.channel as TextChannel, new Embed({
+    Client.send(message.channel, new Embed({
       title: guild.name,
       thumbnail: guild.iconURL()!,
       fields: [{
