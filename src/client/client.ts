@@ -25,6 +25,7 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Roles]);
   static services: Service[] = Utils.instantiate([Presence]);
+  static commands: Command<Module>[];
   static database: Database = new Database();
   static bot: ClientUser;
 
@@ -46,6 +47,8 @@ export class Client {
     for (const module of Client.modules) {
       module.name = Utils.getNameOfClass(module);
     }
+
+    Client.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
 
     console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)}.`);
   }
@@ -186,7 +189,7 @@ export class Client {
 
     const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
     const dependencies = new Map(neededDependencies.map(
-      (dependency) => [dependency, matchedCommand.module.commandsAll.find(
+      (dependency) => [dependency, Client.commands.find(
         (command) => Utils.capitaliseWords(command.identifier) === dependency,
       )]
     ).filter(([_, value]) => value !== undefined) as [string, Command<Module>][]);
