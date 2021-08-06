@@ -91,7 +91,7 @@ export abstract class Module {
     let result = 0;
 
     for (let index = 0; index < values.length; index++) {
-      const multiplier = validDescriptors[acceptedKeys.findIndex((key) => acceptedKeys.includes(key))][1];
+      const multiplier = validDescriptors.find(([validKeys]) => validKeys.includes(keys[index]))![1];
 
       result += values[index] * multiplier;
     }
