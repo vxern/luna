@@ -16,9 +16,7 @@ export class Pardon extends Command<Moderation> {
   async pardon({message, parameters}: HandlingData) {
     const member = await this.module.resolveMember(message, parameters.get('identifier')!);
 
-    if (member === undefined) {
-      return;
-    }
+    if (member === undefined) return;
 
     if (!member.bannable) {
       Client.warn(message.channel, 'You do not have the authority to pardon this member.');
@@ -26,9 +24,7 @@ export class Pardon extends Command<Moderation> {
     }
 
     Client.database.fetchDatabaseEntryOrCreate(member.user).then((target) => {
-      if (target === undefined) {
-        return;
-      }
+      if (target === undefined) return;
 
       const numberOfWarnings = Object.keys(target.user.warnings).length - 1;
 

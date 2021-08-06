@@ -20,7 +20,11 @@ export class Unskip extends Command<Music> {
     }
 
     if (this.module.isPlaying) {
-      if (!this.module.canUserManageListing(message.channel, message.author.id, this.module.currentListing!)) {
+      if (!this.module.canUserManageListing(
+        message.channel, 
+        message.author.id, 
+        this.module.currentListing!)
+      ) {
         return;
       }
 

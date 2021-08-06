@@ -14,9 +14,7 @@ export class Unban extends Command<Moderation> {
   async unban({message, parameter}: HandlingData) {
     const banData = await this.module.resolveBannedUser(message, parameter!);
 
-    if (banData === undefined) {
-      return;
-    }
+    if (banData === undefined) return;
 
     message.guild!.members.unban(banData.user);
    

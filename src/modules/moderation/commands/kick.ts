@@ -16,9 +16,7 @@ export class Kick extends Command<Moderation> {
   async kick({message, parameters}: HandlingData) {
     const member = await this.module.resolveMember(message, parameters.get('identifier')!);
 
-    if (member === undefined) {
-      return;
-    }
+    if (member === undefined) return;
 
     if (!member.kickable) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to kick this member.');

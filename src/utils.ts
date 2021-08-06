@@ -183,13 +183,13 @@ export class Utils {
     return words.filter((word, index, array) => word.length !== 0 && index === array.indexOf(word));
   } 
 
-  static resolveNumber(textChannel: TextChannel, target: string | undefined): number {
+  static resolveNumber(textChannel: TextChannel, target: string | undefined): number | null | undefined {
     if (target !== undefined && !this.isNumber(target)) {
-      Client.warn(textChannel, 'The rule __number__ must be a __number__.');
-      return -1;
+      Client.warn(textChannel, `'${target}' is not a number, but it was expected to be one.`);
+      return null;
     }
 
-    return Number(target);
+    return target === undefined ? undefined : Number(target);
   }
 
   /// Case-invariant 'includes' function

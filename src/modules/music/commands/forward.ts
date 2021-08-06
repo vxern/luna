@@ -24,7 +24,7 @@ export class Forward extends Command<Music> {
       'second',
     );
 
-    if (seconds === -1) return;
+    if (seconds === undefined) return;
 
     if (!this.module.isPlaying) {
       Client.warn(message.channel, 'There is no song to fast-forward.');

@@ -36,9 +36,7 @@ export abstract class Module {
     query: string, 
     accept: (TimeDescriptor)[],
     output: TimeDescriptor
-  ): number {
-    let seconds = 0;
-
+  ): number | undefined {
     // Extract the digits present in the query
     const values = Utils.extractNumbers(query).map((string) => Number(string));
     // Extract the strings present in the query
@@ -47,78 +45,58 @@ export abstract class Module {
     // No parameters provided for either keys or values
     if (values.length === 0 || keys.length === 0) {
       Client.warn(textChannel, 'You have not provided a valid time description as one of the required keys or values is missing.');
-      return -1;
+      return undefined;
     }
 
     // The number of keys does not match the number of values
     if (values.length !== keys.length) {
       Client.warn(textChannel, 'The number of keys and values does not match.');
-      return -1;
+      return undefined;
     }
 
     if (values.includes(0)) {
       Client.warn(textChannel, 'A time value cannot be equal to 0.');
-      return -1;
+      return undefined;
     }
 
-    const invalidKey = keys.find((key) => !accept.includes(key as TimeDescriptor));
+    let validDescriptors = [
+      [['s', 'sec', 'second', 'seconds'], 1                 ],
+      [['m', 'min', 'minute', 'minutes'], 60                ],
+      [['h', 'hr', 'hour', 'hours'     ], 60 * 60           ],
+      [['d', 'day', 'days'             ], 60 * 60 * 24      ],
+      [['w', 'wk', 'week', 'weeks'     ], 60 * 60 * 24 * 7  ],
+      [['M', 'month', 'months'         ], 60 * 60 * 24 * 30 ],
+      [['y', 'year', 'years'           ], 60 * 60 * 24 * 365],
+    ] as [string[], number][];
+
+    const validDescriptorNames = validDescriptors.map(([desc]) => desc);
+    const indexOfOutputDescriptor = validDescriptorNames.findIndex((names) => names.includes(output));
+    const baseMultiplier = validDescriptors[indexOfOutputDescriptor][1];
+    // Adjust multipliers to match the desired output
+    validDescriptors.forEach(([_, mult]) => mult = mult / baseMultiplier);
+    
+    const invalidKey = keys.find((key) => !validDescriptorNames.some((desc) => desc.includes(key)));
     if (invalidKey !== undefined) {
-      Client.warn(textChannel, `${invalidKey} is not a valid key or is not accepted by this command.`);
-      return -1;
+      Client.warn(textChannel, `'${invalidKey}' is not a valid key.`);
+      return undefined;
     }
 
-    const secondDescriptors = ['s', 'sec', 'second', 'seconds'];
-    const minuteDescriptors = ['m', 'min', 'minute', 'minutes'];
-    const hourDescriptors = ['h', 'hr', 'hour', 'hours'];
-    const dayDescriptors = ['d', 'day', 'days'];
-    const weekDescriptors = ['w', 'wk', 'week', 'weeks'];
-    const monthDescriptors = ['M', 'month', 'months'];
-    const yearDescriptors = ['y', 'year', 'years'];
+    const acceptedKeys = accept.map((acceptedKey) => validDescriptorNames.find((names) => names.includes(acceptedKey)) as string[]);
+    const unacceptedKey = keys.find((key) => !acceptedKeys.some((keys) => keys.includes(key)));
+    if (unacceptedKey !== undefined) {
+      Client.warn(textChannel, `The key '${unacceptedKey}' is not accepted by this command.`);
+      return undefined;
+    }
+
+    let result = 0;
 
     for (let index = 0; index < values.length; index++) {
-      let multiplier = 1;
+      const multiplier = validDescriptors[acceptedKeys.findIndex((key) => acceptedKeys.includes(key))][1];
 
-      if (minuteDescriptors.includes(keys[index])) multiplier = 60;
-      if (hourDescriptors.includes(keys[index])) multiplier = 60 * 60;
-      if (dayDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24;
-      if (weekDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24 * 7;
-      if (monthDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24 * 30;
-      if (yearDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24 * 365;
-
-      if (multiplier === 1 && !secondDescriptors.includes(keys[index])) {
-        Client.warn(textChannel, `'${keys[index]}' is not a valid time specifier.`);
-      }
-
-      seconds += values[index] * multiplier;
+      result += values[index] * multiplier;
     }
 
-    let result;
-
-    switch (output) {
-      case 'second':
-        result = seconds;
-        break;
-      case 'minute':
-        result = seconds / 60;
-        break;
-      case 'hour':
-        result = seconds / 60 / 60;
-        break;
-      case 'day':
-        result = seconds / 60 / 60 / 24;
-        break;
-      case 'week':
-        result = seconds / 60 / 60 / 24 / 7;
-        break;
-      case 'month':
-        result = seconds / 60 / 60 / 24 / 30;
-        break;
-      case 'year':
-        result = seconds / 60 / 60 / 24 / 365;
-        break;
-    }
-
-    return Math.floor(result);
+    return Math.round(result);
   }
 
   /// Decides whether the requirement for usage of a module has been met

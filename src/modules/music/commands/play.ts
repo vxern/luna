@@ -41,9 +41,7 @@ export class Play extends Command<Music> {
 
     const youtubeUrl = await this.searchYoutube(message);
 
-    if (youtubeUrl === undefined) {
-      return;
-    }
+    if (youtubeUrl === undefined) return;
 
     const videoInfo = await ytdl.getInfo(youtubeUrl);
 

@@ -14,16 +14,14 @@ export class Purge extends Command<Moderation> {
   async purge({message, parameter}: HandlingData) {
     const numberToDelete = Utils.resolveNumber(message.channel, parameter!);
 
-    if (numberToDelete === -1) {
-      return;
-    }
+    if (numberToDelete === null) return;
     
-    const iterations = Math.floor(numberToDelete / 100);
+    const iterations = Math.floor(numberToDelete! / 100);
 
     for (let iteration = 0; iteration < iterations; iteration++) {
       message.channel.bulkDelete(100);
     }
 
-    message.channel.bulkDelete(numberToDelete - 100 * iterations + 1).catch(() => {});
+    message.channel.bulkDelete(numberToDelete! - 100 * iterations + 1).catch(() => {});
   }
 }
