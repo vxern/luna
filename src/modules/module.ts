@@ -1,4 +1,4 @@
-import { User } from "discord.js";
+import { TextChannel, User } from "discord.js";
 
 import { Client, GuildMessage } from "../client/client";
 import { Embed } from "../client/embed";
@@ -8,6 +8,8 @@ import { Command, HandlingData } from "./command";
 import { Utils } from "../utils";
 
 import config from '../config.json';
+
+type TimeDescriptor = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
 
 export abstract class Module {
   /// Automatically assigned name of this module
@@ -29,49 +31,94 @@ export abstract class Module {
   }
   
   /// Parses a time query to a base number of seconds described by the query
-  resolveTimeQuery(message: GuildMessage, query: string): number | undefined {
+  resolveTimeQuery(
+    textChannel: TextChannel, 
+    query: string, 
+    accept: (TimeDescriptor)[],
+    output: TimeDescriptor
+  ): number {
     let seconds = 0;
 
     // Extract the digits present in the query
-    const integers = Utils.extractNumbers(query).map((string) => Number(string));
+    const values = Utils.extractNumbers(query).map((string) => Number(string));
     // Extract the strings present in the query
-    const strings = Utils.extractWords(query);
+    const keys = Utils.extractWords(query);
 
     // No parameters provided for either keys or values
-    if (integers.length === 0 || strings.length === 0) {
-      Client.warn(message.channel, 'You have not provided a valid time description as one of the required terms is missing.');
-      return;
+    if (values.length === 0 || keys.length === 0) {
+      Client.warn(textChannel, 'You have not provided a valid time description as one of the required keys or values is missing.');
+      return -1;
     }
 
     // The number of keys does not match the number of values
-    if (integers.length !== strings.length) {
-      Client.warn(message.channel, 'The number of time specifiers and values does not match.');
-      return;
+    if (values.length !== keys.length) {
+      Client.warn(textChannel, 'The number of keys and values does not match.');
+      return -1;
     }
 
-    if (integers.includes(0)) {
-      Client.warn(message.channel, 'A time value cannot be equal to 0.');
-      return;
+    if (values.includes(0)) {
+      Client.warn(textChannel, 'A time value cannot be equal to 0.');
+      return -1;
     }
 
-    const secondIdentifiers = ['s', 'sec', 'second', 'seconds'];
-    const minuteIdentifiers = ['m', 'min', 'minute', 'minutes'];
-    const hourIdentifiers = ['h', 'hr', 'hour', 'hours'];
+    const invalidKey = keys.find((key) => !accept.includes(key as TimeDescriptor));
+    if (invalidKey !== undefined) {
+      Client.warn(textChannel, `${invalidKey} is not a valid key or is not accepted by this command.`);
+      return -1;
+    }
 
-    for (let index = 0; index < integers.length; index++) {
+    const secondDescriptors = ['s', 'sec', 'second', 'seconds'];
+    const minuteDescriptors = ['m', 'min', 'minute', 'minutes'];
+    const hourDescriptors = ['h', 'hr', 'hour', 'hours'];
+    const dayDescriptors = ['d', 'day', 'days'];
+    const weekDescriptors = ['w', 'wk', 'week', 'weeks'];
+    const monthDescriptors = ['M', 'month', 'months'];
+    const yearDescriptors = ['y', 'year', 'years'];
+
+    for (let index = 0; index < values.length; index++) {
       let multiplier = 1;
 
-      if (minuteIdentifiers.includes(strings[index])) multiplier = 60;
-      if (hourIdentifiers.includes(strings[index])) multiplier = 60 * 60;
+      if (minuteDescriptors.includes(keys[index])) multiplier = 60;
+      if (hourDescriptors.includes(keys[index])) multiplier = 60 * 60;
+      if (dayDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24;
+      if (weekDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24 * 7;
+      if (monthDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24 * 30;
+      if (yearDescriptors.includes(keys[index])) multiplier = 60 * 60 * 24 * 365;
 
-      if (multiplier === 1 && !secondIdentifiers.includes(strings[index])) {
-        Client.warn(message.channel, `'${strings[index]}' is not a valid time specifier.`);
+      if (multiplier === 1 && !secondDescriptors.includes(keys[index])) {
+        Client.warn(textChannel, `'${keys[index]}' is not a valid time specifier.`);
       }
 
-      seconds += integers[index] * multiplier;
+      seconds += values[index] * multiplier;
     }
 
-    return seconds;
+    let result;
+
+    switch (output) {
+      case 'second':
+        result = seconds;
+        break;
+      case 'minute':
+        result = seconds / 60;
+        break;
+      case 'hour':
+        result = seconds / 60 / 60;
+        break;
+      case 'day':
+        result = seconds / 60 / 60 / 24;
+        break;
+      case 'week':
+        result = seconds / 60 / 60 / 24 / 7;
+        break;
+      case 'month':
+        result = seconds / 60 / 60 / 24 / 30;
+        break;
+      case 'year':
+        result = seconds / 60 / 60 / 24 / 365;
+        break;
+    }
+
+    return Math.floor(result);
   }
 
   /// Decides whether the requirement for usage of a module has been met

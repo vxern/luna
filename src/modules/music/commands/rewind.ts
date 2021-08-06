@@ -17,9 +17,14 @@ export class Rewind extends Command<Music> {
   
   /// Rewinds the song by a given number of seconds
   async rewind({message, dependencies, parameter}: HandlingData) {
-    const seconds = this.module.resolveTimeQuery(message, parameter!.toLowerCase());
-
-    if (seconds === undefined) return;
+    const seconds = this.module.resolveTimeQuery(
+      message.channel, 
+      parameter!,
+      ['second', 'minute', 'hour'],
+      'second',
+    );
+    
+    if (seconds === -1) return;
 
     if (!this.module.isPlaying) {
       Client.warn(message.channel, 'There is no song to rewind.');

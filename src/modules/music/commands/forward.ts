@@ -17,9 +17,14 @@ export class Forward extends Command<Music> {
 
   /// Fast-forwards the song by a given number of seconds
   async forward({message, dependencies, parameter}: HandlingData) {
-    const seconds = this.module.resolveTimeQuery(message, parameter!.toLowerCase());
+    const seconds = this.module.resolveTimeQuery(
+      message.channel, 
+      parameter!,
+      ['second', 'minute', 'hour'],
+      'second',
+    );
 
-    if (seconds === undefined) return;
+    if (seconds === -1) return;
 
     if (!this.module.isPlaying) {
       Client.warn(message.channel, 'There is no song to fast-forward.');

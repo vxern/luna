@@ -1,41 +1,32 @@
-import { TextChannel } from "discord.js";
-
 import { Client } from "../../../client/client";
 
 import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 
-import { Utils } from "../../../utils";
+import config from '../../../config.json';
 
 export class Ban extends Command<Moderation> {
   readonly identifier = 'ban';
   readonly aliases = ['suspend'];
-  readonly description = 'Bans a user indefinitely';
-  readonly parameters = ['identifier', 'optional: days', 'optional: months', 'optional: reason'];
+  readonly description = 'Bans a user for a specified duration of time, or indefinitely otherwise';
+  readonly parameters = ['identifier', 'optional: duration', 'optional: reason'];
   readonly dependencies = [];
   readonly handler = this.ban;
 
   async ban({message, parameters}: HandlingData) {
-    let days = Utils.resolveNumber(message.channel, parameters.get('days'));
-    let months = Utils.resolveNumber(message.channel, parameters.get('months'));
+    const days = parameters.has('duration') ? this.module.resolveTimeQuery(
+      message.channel, 
+      parameters.get('duration')!,
+      ['day', 'week', 'month', 'year'],
+      'day',
+    ) : 0;
     
-    if (days === -1 || months === -1) {
+    if (days === -1) {
       return;
     }
 
-    const totalDays = days + months;
-    
-    console.log(totalDays);
-
-    if (totalDays < 1) {
-      Client.warn(message.channel as TextChannel, 
-        'There is no point in banning somebody for no time.'
-      );
-      return;
-    }
-
-    if (totalDays >= 365) {
-      Client.tip(message.channel as TextChannel, 
+    if (days >= config.extendBanToPermanenceBeyondYears * 365) {
+      Client.tip(message.channel, 
         `The number of days has crossed the mark of a year. For simplicity's sake, the ban will be extended to permanence.`
       );
     }
@@ -56,16 +47,9 @@ export class Ban extends Command<Moderation> {
     Client.database.removeDatabaseEntry(member.user);
     member?.ban({days: Number(days), reason: reason});
 
-    const monthsString = months > 0 ? Utils.pluralise('month', months) : '';
-    const daysString = days > 0 ? Utils.pluralise('day', days) : '';
-    const periodString = `${monthsString}${months > 0 && days > 0 ? ' and ' : ''}${daysString}`; 
-
-    const time = totalDays === 0 || totalDays >= 365 ? 
-      'indefinitely' : 
-      `for ${periodString}`;
     const banReason = reason !== undefined ? 
       `for: ${reason}` : 
       'with no reason given';
-    Client.severe(message.channel, `**${member.user.tag}** has been banned ${periodString} ${banReason}.`);
+    Client.severe(message.channel, `**${member.user.tag}** has been banned ${banReason}.`);
   }
 }
