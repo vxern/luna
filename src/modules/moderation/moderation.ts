@@ -44,24 +44,31 @@ export class Moderation extends Module {
       parameter = Utils.extractNumbers(parameter)[0];
     }
 
+    let member: GuildMember | undefined;
+
     // If the identifier is an ID
     if (Utils.isNumber(parameter)) {
-      return members.find((member) => member.id === parameter);
+      member = members.find((member) => member.id === parameter);
     }
 
     // If the username is a valid tag ( a username with a discriminator )
     if (fullTag.test(parameter)) {
-      return members.find((member) => member.user.tag === parameter);
+      member = members.find((member) => member.user.tag === parameter);
+    }
+
+    if (member === undefined) {
+      Client.warn(message.channel, `**${parameter}** is not a member of ${message.guild!.name}.`);
+      return;
     }
 
     const membersFound = members.filter((member) => Utils.includes(member.user.username + member.displayName, parameter));
 
     if (membersFound.size === 0) {
-      Client.warn(message.channel, `No member with the username '${parameter}' found.`);
+      Client.warn(message.channel, `No members with the username '${parameter}' found.`);
       return;
     }
 
-    const member = await this.browse(
+    member = await this.browse(
       message, Array.from(membersFound.values()), (member) => `${member.user.tag}, ID \`${member.user.id}\``
     );
 
