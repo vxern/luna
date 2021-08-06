@@ -19,11 +19,13 @@ export class Assignable extends Command<Roles> {
   readonly handler = this.displayAssignableRoles;
 
   async displayAssignableRoles({message}: HandlingData) {
-    const roleCategoriesToDisplay = Object.entries(roles).slice(3, Roles.hasProficiency(message.member!) ? undefined : 3);
-      
-    const fields = roleCategoriesToDisplay.map<EmbedField>(([key, value]) => {return {
+    const roleCategoriesToDisplay = Object
+      .entries(roles)
+      .slice(3, Roles.hasProficiency(message.member!) ? undefined : 4) as [string, string[]][];
+
+    const fields = roleCategoriesToDisplay.map(([key, value]: [string, string[]]) => {return {
       name: Utils.capitaliseWords(key),
-      value: (value as string[]).map((roleName) => Roles.toTag(
+      value: value.map((roleName) => Roles.toTag(
         Roles.findRole(message.member!, roleName).id)
       ).join(' '),
       inline: true,
