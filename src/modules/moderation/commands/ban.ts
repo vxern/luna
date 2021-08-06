@@ -22,10 +22,12 @@ export class Ban extends Command<Moderation> {
     if (days !== undefined) {
       if (days < 1) {
         Client.warn(message.channel, 'The number of days of message history to delete must not be lesser than 1.');
+        return;
       }
 
       if (days > 7) {
         Client.warn(message.channel, 'The number of days of message history to delete must not be greater than 7.');
+        return;
       }
     }
 

@@ -26,7 +26,7 @@ export class Usage extends Command<Information> {
       title: `The '${command.caller}' command`,
       fields: [{
         name: 'Aliases',
-        value: command.aliases.length !== 0 ? command.aliases.join(', ') : '-',
+        value: command.aliases.length !== 0 ? command.aliases.map((alias) => `\`${alias}\``).join(', ') : '-',
         inline: true,
       }, {
         name: 'Description',
