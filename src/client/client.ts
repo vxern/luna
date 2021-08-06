@@ -72,100 +72,107 @@ export class Client {
     message.content = Utils.normaliseSpaces(message.content);
 
     const inAliaslessChannel = config.aliaslessChannels.includes(message.channel.name)
-    const messageStartsWithBotAlias = message.content.toLowerCase().startsWith(config.alias);
+    const isCallingBot = message.content.toLowerCase().startsWith(config.alias);
 
-    if (!messageStartsWithBotAlias && !inAliaslessChannel) {
-      return;
-    }
+    if (!isCallingBot && !inAliaslessChannel) return;
 
-    if (messageStartsWithBotAlias) {
+    if (isCallingBot) {
       message.content = Utils.removeFirstWord(message.content);
     }
 
-    if (message.content.length === 0) {
-      return;
-    }
+    if (message.content.length === 0) return;
   
     this.resolveCommandHandler(message);
   }
 
   private resolveCommandHandler(message: GuildMessage) {
-    const commandMatchesQuery = (command: Command<Module>) => {
-      const args = message.content.toLowerCase().split(' ');
+    const firstWord = message.content.toLowerCase().split(' ')[0];
 
-      return command.identifier.startsWith('$') ||
-        args[0] === command.identifier ||
-        command.aliases.some(
-          (alias) => args[0] === alias
-        );
+    const commandMatchesQuery = (command: Command<Module>) => {
+      const isIdentifier = firstWord === command.identifier;
+      const isAlias = command.aliases.some((alias) => firstWord === alias);
+      const isSingletonCommand = command.identifier.startsWith('$');
+
+      return isIdentifier || isAlias || isSingletonCommand;
     }
 
-    const matchedCommand = ([] as Command<Module>[]).concat(...Client.modules
-      // Fetch the lists of commands and find those commands whise identifier or aliases match the message content
-      .map((module) => module.commandsAll.filter(commandMatchesQuery))
-    )[0] || undefined;
+    const matchedCommand = Client.commands.find(commandMatchesQuery);
 
     if (matchedCommand === undefined) {
       Client.warn(message.channel, 'Unknown command.');
       return;
     }
     
+    // If the matched command is not a singleton, the first word (the command)
+    // still needs to be removed from the content of the message
     if (!matchedCommand.identifier.startsWith('$')) {
       message.content = Utils.removeFirstWord(message.content);
     }
 
     const isParameterOptional = (parameter: string) => parameter.startsWith('optional:');
 
+    const parametersRequired = matchedCommand.parameters
+      .filter((parameter) => !isParameterOptional(parameter));
     const parametersOptional = matchedCommand.parameters
       .filter(isParameterOptional)
       .map((parameterWithKeyword) => parameterWithKeyword.split(' ')[1]);
-    const parametersRequired = matchedCommand.parameters.filter((parameter) => !isParameterOptional(parameter));
-    const parameters = [...parametersRequired, ...parametersOptional].map((value) => value + ':');
+    const parameters = [...parametersRequired, ...parametersOptional];
+    const parametersParsable = parameters.map((parameter) => parameter + ':');
     
-    // If the caster accidentally forgot to add a space after a semicolon,
-    // it is necessary to add it back for the content to be split correctly.
+    // If the user forgot to separate the parameter from the argument using
+    // a space, it is necessary to separate it before parsing
     message.content = message.content
       .split(' ')
-      .map((value) => {
-        if (value.includes(':') && !value.endsWith(':')) {
-          value = value.split(':').join(': ');
+      .map((word) => {
+        if (word.includes(':') && !word.endsWith(':')) {
+          word = word.split(':').join(': ');
         }
-        return value;
+        return word;
       })
       .join(' ');
 
-    const words = Utils.getWords(message.content).map((word) => {
-      const wordLowercase = word.toLowerCase();
-      return parameters.includes(wordLowercase) ? wordLowercase : word;
-    });
+    // Extract the words from the message, making sure parameters are transformed 
+    // to lowercase format, not affecting the case of other words
+    const words = Utils.getWords(message.content)
+      .map((word) => {
+        const wordLowercase = word.toLowerCase();
+        return parametersParsable.includes(wordLowercase) ? wordLowercase : word;
+      });
 
     const args = new Map<string, string>();
-    for (let index = 0; index < parameters.length; index++) {
-      const start = words.indexOf(parameters[index]);
-      const end = words.indexOf(parameters[index + 1]);
-      const extracted = words.splice(
-        start + 1, 
-        end === -1 || start > end ? 
-          words.length : 
-          end - start - 1
-        ).join(' ');
-      if (start !== -1) {
-        words.splice(start, 1);
-      }
 
-      if (extracted.length === 0) {
-        break;
-      }
+    for (const parameter of parametersParsable) {
+      if (!words.includes(parameter)) continue;
 
-      args.set(parameters[index].replace(':', ''), extracted); 
+      const start = words.indexOf(parameter);
+      let end = words.slice(start + 1).findIndex((word) => word.endsWith(':'));
+      if (end === -1) end = words.length; // No more parameters found in the words
+
+      const extracted = words.splice(start, end - start + 1);
+      extracted.shift(); // Remove the parameter
+
+      args.set(parameter.replace(':', ''), extracted.join(' '));
     }
 
-    const firstArgument = args.values().next().value ?? (words.length !== 0 ? message.content : undefined);
+    const providedArgs = Object.keys(args);
+    const missingRequiredParameters = parametersRequired.filter((parameter) => !providedArgs.includes(parameter));
+
+    if (words.length !== 0 && missingRequiredParameters.length === 1) {
+      args.set(missingRequiredParameters[0], words.splice(0).join(' '));
+    }
+
+    // Do not call the handlers of commands whise requirement hasn't been met
+    if (
+      matchedCommand.module.commandsRestricted.includes(matchedCommand) && 
+      !matchedCommand.module.isRequirementMet(message)
+    ) {
+      return;
+    }
 
     // A 'singleton' command doesn't take any arguments, and doesn't have an identifier
     const isSingleton = matchedCommand.identifier.startsWith('$');
 
-    const tooFewArguments = args.size < parametersRequired.length;
+    const tooFewArguments = missingRequiredParameters.length > 0;
     const tooManyArguments = words.length !== 0;
 
     if (!isSingleton && (tooFewArguments || tooManyArguments)) {
@@ -179,13 +186,7 @@ export class Client {
       return;
     }
 
-    // Do not call the handlers of commands whise requirement hasn't been met
-    if (
-      matchedCommand.module.commandsRestricted.includes(matchedCommand) && 
-      !matchedCommand.module.isRequirementMet(message)
-    ) {
-      return;
-    }
+    const firstArgument = args.values().next().value ?? (words.length !== 0 ? message.content : undefined);
 
     const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
     const dependencies = new Map(neededDependencies.map(
