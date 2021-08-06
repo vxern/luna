@@ -159,6 +159,7 @@ export class Client {
 
     if (words.length !== 0 && missingRequiredParameters.length === 1) {
       args.set(missingRequiredParameters[0], words.splice(0).join(' '));
+      missingRequiredParameters.shift();
     }
 
     // Do not call the handlers of commands whise requirement hasn't been met
