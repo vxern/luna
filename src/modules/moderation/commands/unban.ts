@@ -1,5 +1,3 @@
-import { Message, TextChannel } from "discord.js";
-
 import { Client } from "../../../client/client";
 
 import { Moderation } from "../moderation";
@@ -8,7 +6,7 @@ import { Command, HandlingData } from "../../command";
 export class Unban extends Command<Moderation> {
   readonly identifier = 'unban';
   readonly aliases = ['unsuspend'];
-  readonly description = 'Unbans a previously indefinitely banned user';
+  readonly description = 'Unbans a previously banned user';
   readonly parameters = ['identifier'];
   readonly dependencies = [];
   readonly handler = this.unban;

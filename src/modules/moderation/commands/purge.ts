@@ -2,7 +2,6 @@ import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 
 import { Utils } from "../../../utils";
-import { GuildMessage } from "../../../client/client";
 
 export class Purge extends Command<Moderation> {
   readonly identifier = 'purge';

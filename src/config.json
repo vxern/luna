@@ -3,6 +3,8 @@
 
   "presenceCycleIntervalInSeconds": 4,
 
+  "extendBanToPermanenceBeyondYears": 1,
+  "maximumMuteInDays": 2,
   "warningExpiryInMonths": 2,
   "thankIntervalInHours": 4,
 
