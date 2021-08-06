@@ -44,7 +44,7 @@ export class Moderation extends Module {
       parameter = Utils.extractNumbers(parameter)[0];
     }
 
-    let member: GuildMember | undefined;
+    let member: GuildMember | undefined | null = null;
 
     // If the identifier is an ID
     if (Utils.isNumber(parameter)) {
