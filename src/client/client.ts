@@ -154,7 +154,7 @@ export class Client {
       args.set(parameter.replace(':', ''), extracted.join(' '));
     }
 
-    const providedArgs = Object.keys(args);
+    const providedArgs = Array.from(args.keys());
     const missingRequiredParameters = parametersRequired.filter((parameter) => !providedArgs.includes(parameter));
 
     if (words.length !== 0 && missingRequiredParameters.length === 1) {
@@ -190,11 +190,14 @@ export class Client {
     const firstArgument = args.values().next().value ?? (words.length !== 0 ? message.content : undefined);
 
     const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
-    const dependencies = new Map(neededDependencies.map(
-      (dependency) => [dependency, Client.commands.find(
-        (command) => Utils.capitaliseWords(command.identifier) === dependency,
-      )]
-    ).filter(([_, value]) => value !== undefined) as [string, Command<Module>][]);
+    const foundDependencies = neededDependencies.map(
+      (dependency) => [dependency, 
+        Client.commands.find(
+          (command) => Utils.getNameOfClass(command) === dependency
+        )
+      ]
+    ).filter(([_, value]) => value !== undefined) as [string, Command<Module>][];
+    const dependencies = new Map(foundDependencies);
 
     matchedCommand.handler({
       message: message, 
