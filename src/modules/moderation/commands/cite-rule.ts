@@ -12,7 +12,7 @@ export class CiteRule extends Command<Moderation> {
   readonly identifier = 'rule';
   readonly aliases = ['rules', 'cite', 'cite rule'];
   readonly description = 'Cites a rule';
-  readonly parameters = ['number'];
+  readonly parameters = ['rule'];
   readonly dependencies = [];
   readonly handler = this.citeRule;
 
@@ -23,13 +23,8 @@ export class CiteRule extends Command<Moderation> {
     }
 
     const index = Number(parameter);
-
-    const easterEggRule = new Map(Object.entries(rules.easterEggs)).get(index.toString());
-
-    if (index === rules.rules.length + 1) {
-      Client.severe(message.channel, `${message.author.username} has been banned indefinitely.`);
-      return;
-    }
+    
+    const easterEggRule = new Map(Object.entries(rules.easterEggs)).get(parameter!);
 
     if (easterEggRule !== undefined) {
       if (index >= 100) {
