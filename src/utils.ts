@@ -13,6 +13,11 @@ const wordsPattern = /[a-zA-Z]+/g;
 export type ModifySignature<T, R> = Omit<T, keyof R> & R;
 
 export class Utils {
+  /// Format string as code with 'fix' highlighting
+  static toCode(target: string): string {
+    return '```fix\n' + target + '```'
+  }
+
   /// Extracts numbers from a string
   static extractNumbers(target: string): string[] {
     return target.match(digitsPattern) ?? [];
