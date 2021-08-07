@@ -1,161 +1,222 @@
-import { TextChannel, User } from 'discord.js';
+import { User as DiscordUser } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
 import moment from 'moment';
-import { Client } from '../client/client';
 
-import { DatabaseEntry, UserEntry } from './user-entry';
-
-import config from '../config.json';
+import { Document } from './structs/document';
 
 const $ = fauna.query;
 
 /// Interface for interaction with Fauna - a database API
 export class Database {
-  private databaseCache: Map<string, DatabaseEntry>;
-  /// Keeps track of which user entries need to be updated remotely
-  private stagedCache: string[];
+  /// To prevent Fauna from retrieving documents during every request, which would result
+  /// in a very large amount of database calls, documents are cached
+  private cachedDocuments: Map<string, Document>;
+  /// Stores IDs of users' whose documents have not been updated remotely ('staged'), and are
+  /// awaiting update ('commit')
+  private cachedChanges: string[];
   private client: FaunaClient;
 
   constructor() {
-    this.databaseCache = new Map();
-    this.stagedCache = [];
+    this.cachedDocuments = new Map();
+    this.cachedChanges = [];
     this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
     console.info('Established connection with Fauna.');
   }
 
-  /// Create [user's] database entry
-  async createDatabaseEntry(user: User): Promise<DatabaseEntry> {
-    const response: any = await this.client.query(
-      $.Call($.Function('CreateUser'), [user.username, user.id])
-    );
+  /// Cache the document and add it to array of changes cached for later update
+  async cache(document: Document) {
+    const id = document.user.id;
 
-    const databaseEntry = {
-      user: response.data as UserEntry, 
-      ref: response.ref
-    };
+    // Cached document
+    this.cachedDocuments.set(id, document);
 
-    this.databaseCache.set(user.id, databaseEntry);
-
-    return databaseEntry;
-  }
-
-  /// Remove a user's database entry
-  removeDatabaseEntry(user: User) {
-    this.client.query($.Delete($.Match($.Index('UserByID'), user.id)));
-
-    this.databaseCache.delete(user.id);
-    this.stagedCache.splice(this.stagedCache.findIndex((id) => id === user.id), 1);
-  }
-
-  /// Get a user's database entry if it exists, otherwise create it
-  async fetchDatabaseEntryOrCreate(user: User): Promise<DatabaseEntry | undefined> {
-    let databaseEntry = this.databaseCache.get(user.id);
-    
-    if (databaseEntry === undefined) {
-      await this.dispatchQuery($.Get($.Match($.Index('UserByID'), user.id)));
-
-      if (this.databaseCache.has(user.id)) {
-        return await this.fetchDatabaseEntryOrCreate(user);
-      }
-
-      databaseEntry = await this.createDatabaseEntry(user);
-    }
-
-    this.removeExpiredWarnings(databaseEntry);
-
-    return databaseEntry;
-  }
-
-  /// Checks the timestamps of warnings the user received, and removes the ones
-  /// that have expired based on the time of their submission
-  removeExpiredWarnings(databaseEntry?: DatabaseEntry) {
-    if (databaseEntry === undefined) {
-      return;
-    }
-
-    const warnings: [string, [string, number]][] = Object.entries(databaseEntry.user.warnings);
-    const now = moment();
-
-    for (const warning of warnings) {
-      if (warning[1] === null) {
-        continue;
-      }
-
-      const then = moment.unix(warning[1][1]);
-
-      // If the warning has passed its expiry date, delete it
-      if (now.diff(then, 'months') >= config.warningExpiryInMonths) {
-        databaseEntry.user.warnings[warning[0]] = null;
-      }
+    // Add ID of document to array of cached changes
+    if (!this.cachedChanges.includes(id)) {
+      this.cachedChanges.push(id);
     }
   }
 
-  /// Update the remote entry immediately
-  async stage(entry: DatabaseEntry, commitImmediately: boolean = false) {
-    const userId = entry.user.id;
+  /// Update remote document and cache it locally
+  async update(document: Document) {
+    // Cache document
+    this.cachedDocuments.set(document.user.id, document);
 
-    if (commitImmediately) {
-      this.commit(entry);
-      return;
-    }
-
-    // Update the cache entry for the user
-    this.databaseCache.set(userId, entry);
-
-    if (!this.stagedCache.includes(userId)) {
-      // Mark the database entry as ready for committing
-      this.stagedCache.push(userId);
-    }
+    this.dispatchQuery($.Update(document.ref, {data: document.user.serialize()}));
   }
 
-  async commit(entry: DatabaseEntry) {
-    this.dispatchQuery($.Update(entry.ref, {data: entry.user}));
-  }
+  /// Update cached changes and clear the array of cached changes
+  async updateCached() {
+    if (this.cachedChanges.length === 0) return;
 
-  /// Commit database entries which have been cached earlier
-  async commitAll() {
-    const databaseEntries = this.stagedCache.map((id) => this.databaseCache.get(id)!);
-    if (databaseEntries.length === 0) return;
+    const cachedDocuments = this.cachedChanges.map((id) => this.cachedDocuments.get(id)!);
+    const updateCalls = cachedDocuments
+      .map((document) => $.Update(document.ref, {data: document.user.serialize()}));
 
-    this.stagedCache = [];
+    this.cachedChanges = [];
 
-    this.dispatchQuery(
-      $.Do(databaseEntries.map(
-        (entry) => $.Update(entry.ref, {data: entry.user})
-      ))
-    );
+    this.dispatchQuery($.Do(updateCalls));
   }
 
   /// Attempts to dispatch query, and logs error if one has been caught
-  async dispatchQuery(expression: fauna.Expr) {
+  async dispatchQuery(expression: fauna.Expr): Promise<any> {
     try {
-      // Update remote entries
-      this.updateEntries(await this.client.query(expression));
+      return await this.client.query(expression);
     } catch (error: any) {
-      if (error.description === 'Set not found.') {
-        return;
-      }
-
+      if (error.description === 'Set not found.') return;
       console.error(`${error.message} ~ ${error.description}`);
     }
   }
 
-  updateEntries(response: any) {
+  cacheDocuments(response: any) {
     if (!Array.isArray(response)) {
-      this.databaseCache.set(response.data.id, this.fromResponse(response));
+      this.cachedDocuments.set(response.data.id, Document.deserialize(response));
       return;
     }
 
     const responses = Array.from(response);
     for (const response of responses) {
-      this.databaseCache.set(response.data.id, this.fromResponse(response));
+      this.cachedDocuments.set(response.data.id, Document.deserialize(response));
     }
   }
 
-  fromResponse(response: any): DatabaseEntry {
-    return {user: response.data as UserEntry, ref: response.ref};
+  /// Creates a document for [user] and stores it in cache
+  async createDocument(user: DiscordUser): Promise<Document> {
+    // Create remote document
+    const response: any = await this.dispatchQuery(
+      $.Call($.Function('CreateUser'), [user.tag, user.id])
+    );
+
+    // Cache document locally
+    const document = Document.deserialize(response);
+    this.cachedDocuments.set(user.id, document);
+
+    return document;
   }
 
+  /// Deletes remote document of [user], and deletes the document from cache
+  deleteDocument(user: DiscordUser) {
+    // Delete remote document
+    this.dispatchQuery($.Delete($.Match($.Index('UserByID'), user.id)));
+
+    // Delete cached local document
+    this.cachedDocuments.delete(user.id);
+
+    // Delete uncommitted cached changes
+    this.cachedChanges.splice(this.cachedChanges.findIndex((id) => id === user.id), 1);
+  }
+
+  /// Fetches cached document of [user], or fetches remote document
+  async fetchDocument(user: DiscordUser): Promise<Document | undefined> {
+    if (this.cachedDocuments.has(user.id)) {
+      return this.cachedDocuments.get(user.id)!;
+    }
+
+    const response = await this.dispatchQuery(
+      $.Get($.Match($.Index('UserByID'), user.id))
+    );
+
+    if (response === undefined) {
+      return;
+    }
+
+    const document = Document.deserialize(response);
+    this.cachedDocuments.set(user.id, document);
+    return document;
+  }
+
+  /// Fetches remote document of [user], or creates a document if one does not exist
+  async fetchOrCreateDocument(user: DiscordUser): Promise<Document> {
+    const document = await this.fetchDocument(user) ?? await this.createDocument(user);
+
+    // Preprocessing the document before returning it
+    this.removeExpiredWarnings(document);
+
+    return document;
+  }
+
+  /// Removes warnings which have pas
+  async removeExpiredWarnings(document: Document) {
+    const now = moment();
+    // Filter out the warnings which are still due to expire in the future
+    document.user.warnings = document.user.warnings.filter((warning) => warning!.expiresAt.isAfter(now));
+  }
+
+  /*
+  async getMutedUsers(): Promise<[string, DatabaseEntry][] | undefined> {
+    // Get user entries of muted users
+    const response = await this.dispatchQuery($.Map(
+      $.Paginate(
+        $.Documents($.Collection('MutedUsers'))
+      ), 
+      $.Lambda('ref', [
+        $.Var('ref'), 
+        $.Get($.Select(['data', 'user'], $.Get($.Var('ref'))))
+      ])
+    ), false);
+
+    if (response === undefined) {
+      return;
+    }
+
+    return Array.from<[string, any]>(response).map(([ref, entry]) => [ref, this.fromResponse(entry)]);
+  }
+
+  /// Checks the timestamps of mutes the user received, and removes the ones
+  /// that have expired based on the time of their submission
+  async removeExpiredMutes() {
+    const mutes = await this.getMutedUsers();
+
+    if (mutes === undefined) {
+      return;
+    }
+
+    const now = moment();
+
+    for (const [referenceToMute, databaseEntry] of mutes) {
+      const mute = Object(databaseEntry.user.mute);
+
+      if (!mute.isMuted || mute.information === undefined) {
+        this.dispatchQuery($.Delete(referenceToMute));
+        continue;
+      }
+
+      // If the mute has passed its expiry date, delete it
+      if (now.diff(mute.information.mutedAt, 'seconds') >= mute.information.mutedFor) {
+        continue;
+      }
+
+      // Otherwise, create a time interval after which the mute will be deleted
+      this.createMuteExpiry(databaseEntry, referenceToMute, mute);
+    }
+  }
+
+  async createMute(databaseEntry: DatabaseEntry) {
+    this.dispatchQuery($.Create($.Collection("MutedUsers"), {
+      data: {
+        username: "vxern#3689",
+        ref: databaseEntry.ref
+      }
+    }))
+  }
+
+  async createMuteExpiry(databaseEntry: DatabaseEntry, referenceToMute: string, mute: MuteData) {
+    let remainingSeconds = 
+      moment.now() - 
+      mute.information!.mutedAt.unix() - 
+      mute.information!.mutedFor;
+    if (remainingSeconds < 0) remainingSeconds = 0;
+
+    setTimeout(() => {
+      const blankMute = MuteData.none();
+      databaseEntry.user.mute = blankMute.serialize();
+
+      this.dispatchQuery($.Delete(referenceToMute));
+      this.stage(databaseEntry, true);
+
+      console.debug(`${databaseEntry.user.username} has been automatically unmuted after having been muted for: ${mute.information!.reason}`);
+    }, remainingSeconds);
+  }
+  */
   /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target
   /*
   async thankUser(textChannel: TextChannel, caster: User, target: User) {
