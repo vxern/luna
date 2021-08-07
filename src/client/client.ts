@@ -25,7 +25,7 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Roles]);
   static services: Service[] = Utils.instantiate([Presence]);
-  static commands: Command<Module>[];
+  private commands: Command<Module>[] = [];
   static database: Database = new Database();
   static bot: ClientUser;
 
@@ -48,7 +48,7 @@ export class Client {
       module.name = Utils.getNameOfClass(module);
     }
 
-    Client.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
+    this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
 
     console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)}.`);
   }
@@ -96,7 +96,7 @@ export class Client {
       return isIdentifier || isAlias || isSingletonCommand;
     }
 
-    const matchedCommand = Client.commands.find(commandMatchesQuery);
+    const matchedCommand = this.commands.find(commandMatchesQuery);
 
     if (matchedCommand === undefined) {
       Client.warn(message.channel, 'Unknown command.');
@@ -157,9 +157,15 @@ export class Client {
     const providedArgs = Array.from(args.keys());
     const missingRequiredParameters = parametersRequired.filter((parameter) => !providedArgs.includes(parameter));
 
-    if (words.length !== 0 && missingRequiredParameters.length === 1) {
-      args.set(missingRequiredParameters[0], words.splice(0).join(' '));
-      missingRequiredParameters.shift();
+    if (words.length !== 0) {
+      const wordsJoined = words.splice(0).join(' ');
+
+      if (missingRequiredParameters.length === 1) {
+        args.set(missingRequiredParameters[0], wordsJoined);
+        missingRequiredParameters.shift();
+      } else if (parametersOptional.length === 1) {
+        args.set(parametersOptional[0], wordsJoined);
+      }
     }
 
     // Do not call the handlers of commands whise requirement hasn't been met
@@ -182,7 +188,7 @@ export class Client {
         ''
       Client.warn(message.channel,
         `This command requires ${Utils.pluralise('argument', parametersRequired.length)}${optionalArgumentsString}.\n\n` +
-        'Usage: ' + matchedCommand.getUsage
+        'Usage: ' + matchedCommand.getUsage()
       );
       return;
     }
@@ -192,7 +198,7 @@ export class Client {
     const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
     const foundDependencies = neededDependencies.map(
       (dependency) => [dependency, 
-        Client.commands.find(
+        this.commands.find(
           (command) => Utils.getNameOfClass(command) === dependency
         )
       ]
