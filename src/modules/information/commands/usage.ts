@@ -4,6 +4,7 @@ import { Embed } from "../../../client/embed";
 import { Module } from "../../module";
 import { Information } from "../information";
 import { Command, HandlingData } from "../../command";
+import { Utils } from "../../../utils";
 
 export class Usage extends Command<Information> {
   readonly identifier = 'usage';
@@ -25,16 +26,16 @@ export class Usage extends Command<Information> {
     Client.send(message.channel, new Embed({
       title: `The '${command.caller}' command`,
       fields: [{
-        name: 'Aliases',
-        value: command.aliases.length !== 0 ? command.aliases.map((alias) => `\`${alias}\``).join(', ') : '-',
+        name: 'Usage',
+        value: command.getUsage(),
         inline: true,
       }, {
         name: 'Description',
         value: command.description,
         inline: true,
       }, {
-        name: 'Usage',
-        value: command.getUsage,
+        name: 'Aliases',
+        value: command.aliases.length !== 0 ? Utils.toCode(command.aliases.join(', ')) : '-',
         inline: false,
       }]
     }));

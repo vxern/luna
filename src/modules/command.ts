@@ -1,4 +1,5 @@
 import { GuildMessage } from "../client/client";
+import { Utils } from "../utils";
 
 import { Module } from "./module";
 
@@ -47,12 +48,12 @@ export abstract class Command<T extends Module> {
     return `${this.caller} ~ ${this.description}`;
   }
 
-  get getUsage(): string {
+  getUsage(): string {
     const parameters = this.parameters.map((parameter) => {
       if (parameter.startsWith('optional: ')) return ` [${parameter}]`;
 
       return ` <${parameter}>`;
     }).join('');
-    return `\`${this.caller + parameters}\``;
+    return Utils.toCode(this.caller + parameters);
   }
 }

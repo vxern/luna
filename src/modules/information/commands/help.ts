@@ -5,6 +5,7 @@ import { Information } from "../information";
 import { Command, HandlingData } from "../../command";
 
 import config from '../../../config.json';
+import { Utils } from "../../../utils";
 
 export class Help extends Command<Information> {
   readonly identifier = 'help';
@@ -21,7 +22,8 @@ export class Help extends Command<Information> {
         fields: [{
           name: 'How to use the bot',
           value: 'Beside is a list of modules which are available for the user to use. ' + 
-                 `To get the full list of commands for a specific module, use ${'```'}${config.alias} help [module]${'```'}`,
+                 `To get the full list of commands for a specific module, use: ${Utils.toCode(`${config.alias} help [module]`)}\n` +
+                 `To get information on how to use a specific command, use: ${Utils.toCode(`${config.alias} usage [command]`)}`,
           inline: true,
         }, {
           name: 'Available Modules',
