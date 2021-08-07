@@ -23,37 +23,33 @@ export class Pardon extends Command<Moderation> {
       return;
     }
 
-    Client.database.fetchDatabaseEntryOrCreate(member.user).then((target) => {
-      if (target === undefined) return;
+    Client.database.fetchOrCreateDocument(member.user).then((document) => {
+      if (document === undefined) return;
 
-      const numberOfWarnings = Object.keys(target.user.warnings).length - 1;
-
-      if (numberOfWarnings === -1) {
+      if (document.user.warnings.length === 0) {
         Client.warn(message.channel, `${member.user.tag} has no warnings, and thus it is not possible to pardon them.`);
         return;
       }
 
-      const warningId = parameters.get('id')!;
+      const warningId = Number(parameters.get('id')!);
 
-      if (!Utils.isNumber(warningId)) {
+      if (isNaN(warningId)) {
         Client.warn(message.channel, 'A warning ID must be a number.');
         return;
       }
 
-      if (!Object.keys(target.user.warnings).includes(warningId)) {
-        Client.warn(message.channel, `${member.user.tag} does not have a warning with an ID of ${warningId}.`);
+      if (!Utils.isIndexInBounds(message.channel, warningId, document.user.warnings.length)) {
         return;
       }
 
-      const warningMessage = target.user.warnings[warningId][0];
+      const reason = document.user.warnings[warningId - 1]!.reason;
+      document.user.warnings[warningId - 1] = null;
 
-      target.user.warnings[warningId] = null;
-
-      Client.database.stage(target, true);
+      Client.database.update(document);
 
       Client.info(message.channel, 
-        `**${member.user.tag}** has been pardoned from warning no. ${warningId}: ${warningMessage}\n\n` +
-        `**${member.user.tag}** now has ${Utils.pluralise('warning', numberOfWarnings)}.`
+        `**${member.user.tag}** has been pardoned from warning no. ${warningId}: ${reason}\n\n` +
+        `**${member.user.tag}** now has ${Utils.pluralise('warning', document.user.warnings.length)}.`
       );
     });
   }

@@ -3,11 +3,15 @@ import moment from "moment";
 
 import { Client } from "../../../client/client";
 
+import { Warning } from "../../../database/structs/warning";
+
 import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 import { Ban } from "./ban";
 
 import { Utils } from "../../../utils";
+
+import config from '../../../config.json';
 
 export class Warn extends Command<Moderation> {
   readonly identifier = 'warn';
@@ -29,12 +33,10 @@ export class Warn extends Command<Moderation> {
       return;
     }
 
-    Client.database.fetchDatabaseEntryOrCreate(member.user).then((target) => {
-      if (target === undefined) {
-        return;
-      }
+    Client.database.fetchOrCreateDocument(member.user).then((document) => {
+      if (document === undefined) return;
 
-      const numberOfWarnings = Object.keys(target.user.warnings).length + 1;
+      const numberOfWarnings = document.user.warnings.length + 1;
 
       if (numberOfWarnings === 3) {
         dependencies.get('Ban').ban({
@@ -48,10 +50,14 @@ export class Warn extends Command<Moderation> {
       }
 
       const reason = parameters.get('reason')!;
+      const expiryTime = moment().add(config.warningExpiryInMonths, 'months');
 
-      target.user.warnings[numberOfWarnings] = [reason, moment().unix()];
+      document.user.warnings.push(new Warning({
+        reason: reason,
+        expiresAt: expiryTime,
+      }));
 
-      Client.database.stage(target, true);
+      Client.database.update(document);
 
       Client.warn(message.channel, 
         `**${member.user.tag}** has been warned for: ${reason}\n\n` +

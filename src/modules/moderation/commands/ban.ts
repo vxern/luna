@@ -42,7 +42,7 @@ export class Ban extends Command<Moderation> {
 
     const reason = parameters.get('reason');
 
-    Client.database.removeDatabaseEntry(member.user);
+    Client.database.deleteDocument(member.user);
     member?.ban({days: days, reason: reason});
 
     const banReason = reason !== undefined ? 
