@@ -22,7 +22,7 @@ export class Warn extends Command<Moderation> {
   readonly handler = this.warn;
 
   async warn({message, dependencies, parameters}: HandlingData) {
-    const member = await this.module.resolveMember(message, parameters.get('identifier')!);
+    const member = await Moderation.resolveMember(message, parameters.get('identifier')!);
 
     if (member === undefined) {
       return;

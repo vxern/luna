@@ -36,8 +36,9 @@ export class Moderation extends Module {
 
   /// Takes an identifier in the form of a full tag, a username or an ID and
   /// finds the member bearing it
-  async resolveMember(message: GuildMessage, parameter: string): Promise<GuildMember | undefined> {
-    const members = await message.guild!.members.fetch();
+  static async resolveMember(messageOrGuild: GuildMessage | Guild, parameter: string): Promise<GuildMember | undefined> {
+    const guild: Guild = (messageOrGuild instanceof Guild) ? messageOrGuild : messageOrGuild.guild!;
+    const members = await guild.members.fetch();
 
     // If the identifier is a tag, convert it to an ID
     if (userTag.test(parameter)) {
@@ -56,8 +57,12 @@ export class Moderation extends Module {
       member = members.find((member) => member.user.tag === parameter);
     }
 
+    if (!!member) return member!;
+
+    const message = messageOrGuild as GuildMessage;
+
     if (member === undefined) {
-      Client.warn(message.channel, `**${parameter}** is not a member of ${message.guild!.name}.`);
+      Client.warn(message.channel, `**${parameter}** is not a member of ${guild.name}.`);
       return;
     }
 
@@ -68,8 +73,8 @@ export class Moderation extends Module {
       return;
     }
 
-    member = await this.browse(
-      message, Array.from(membersFound.values()), (member) => `${member.user.tag}, ID \`${member.user.id}\``
+    member = await Module.browse(
+      message, Array.from(membersFound.values()), (member) => `${member!.user.tag}, ID \`${member!.user.id}\``
     );
 
     return member;
@@ -97,7 +102,7 @@ export class Moderation extends Module {
       return;
     }
 
-    const bannedUser = await this.browse(
+    const bannedUser = await Module.browse(
       message, 
       usersFound, 
       (data) => `${data.user.tag} ~ banned for: ${this.findBanReason(bans.map((ban) => ban.user), data)}`

@@ -14,7 +14,7 @@ export class Pardon extends Command<Moderation> {
   readonly handler = this.pardon;
 
   async pardon({message, parameters}: HandlingData) {
-    const member = await this.module.resolveMember(message, parameters.get('identifier')!);
+    const member = await Moderation.resolveMember(message, parameters.get('identifier')!);
 
     if (member === undefined) return;
 

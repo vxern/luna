@@ -3,7 +3,6 @@ import { Client } from "../../../client/client";
 import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 
-import config from '../../../config.json';
 import { Utils } from "../../../utils";
 
 export class Ban extends Command<Moderation> {
@@ -31,7 +30,7 @@ export class Ban extends Command<Moderation> {
       }
     }
 
-    const member = await this.module.resolveMember(message, parameters.get('identifier')!);
+    const member = await Moderation.resolveMember(message, parameters.get('identifier')!);
 
     if (member === undefined) return;
 
