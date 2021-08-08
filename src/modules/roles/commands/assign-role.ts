@@ -115,6 +115,7 @@ export class AssignRole extends Command<Roles> {
 
     Client.info(message.channel, baseMessage);
   }
+
   /// Assign or unassign a non-proficiency role
   resolveNonProficiencyRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
     // If the user does not have a proficiency role yet
@@ -122,66 +123,10 @@ export class AssignRole extends Command<Roles> {
 
     // If the user already has the sought role
     if (this.hasRole(member, roleName)) {
-      return this.removeRole(textChannel, member, roleName);
+      return Roles.removeRole(textChannel, member, roleName);
     }
 
-    return this.addRole(textChannel, member, roleName);
-  }
-
-  /// Add role to user by name
-  addRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
-    member.roles.add(Roles.findRole(member, roleName));
-
-    const capitalisedRoleName = Utils.capitaliseWords(roleName);
-
-    let message = `You now have the role '${capitalisedRoleName}'`;
-
-    if (roles.ethnicities.includes(roleName)) {
-      if (this.hasEnoughEthnicityRoles(member)) {
-        Client.warn(textChannel, `You may not be of more than ${roles.maximumEthnicityRoles} Romanian ethnicities at any given time.`);
-        return;
-      }
-
-      message = `You are now ${capitalisedRoleName}`;
-    }
-
-    if (roles.regions.includes(roleName)) {
-      if (this.hasEnoughRegionRoles(member)) {
-        Client.warn(textChannel, `You may not have more than ${roles.maximumRegionRoles} region roles at any given time.`);
-        return;
-      }
-
-      message = `You are now from ${capitalisedRoleName}`;
-    }
-
-    if (roles.abroad.includes(roleName)) {
-      message = `You are now a ${roleName}`;
-    }
-
-    Client.info(textChannel, message + `.  :partying_face:`);
-  }
-
-  /// Remove role from user by name
-  removeRole(textChannel: TextChannel, member: GuildMember, roleName: string) {
-    member.roles.remove(Roles.findRole(member, roleName));
-
-    const capitalisedRoleName = Utils.capitaliseWords(roleName);
-
-    let message = `You no longer have the role '${capitalisedRoleName}'`;
-
-    if (roles.regions.includes(roleName)) {
-      message = `You are no longer from ${capitalisedRoleName}`;
-    }
-
-    if (roles.ethnicities.includes(roleName)) {
-      message = `You are no longer ${capitalisedRoleName}`;
-    }
-
-    if (roles.abroad.includes(roleName)) {
-      message = `You are no longer a ${capitalisedRoleName}`;
-    }
-
-    Client.info(textChannel, message + `.  :sob:`);
+    return Roles.addRole(textChannel, member, roleName);
   }
 
   /// Assign the user a proficiency role, or if the user already has one,
@@ -228,19 +173,5 @@ export class AssignRole extends Command<Roles> {
     return roles.proficiency.filter(
       (_, index) => index < roleIndex).map((roleName) => Roles.toTag(Roles.findRole(member, roleName).id)
     );
-  }
-
-  /// Check if the user already has the maximum number of ethnicity roles
-  hasEnoughEthnicityRoles(member: GuildMember): boolean {
-    return member.roles.cache.filter(
-      (role) => roles.ethnicities.includes(role.name.toLowerCase())
-    ).size >= roles.maximumEthnicityRoles;
-  }
-
-  /// Check if the user already has the maximum number of region roles
-  hasEnoughRegionRoles(member: GuildMember): boolean {
-    return member.roles.cache.filter(
-      (role) => roles.regions.includes(role.name.toLowerCase())
-    ).size >= roles.maximumRegionRoles;
   }
 }
