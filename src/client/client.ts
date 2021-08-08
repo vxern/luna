@@ -26,7 +26,7 @@ export class Client {
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Roles]);
   static services: Service[] = Utils.instantiate([Presence]);
   private commands: Command<Module>[] = [];
-  static database: Database = new Database();
+  static database: Database;
   static bot: ClientUser;
 
   /// Begin listening to events
@@ -40,8 +40,8 @@ export class Client {
     });
 
     await this.client.login(process.env.DISCORD_SECRET);
-
     Client.bot = this.client.user!;
+    Client.database  = new Database(this.client.guilds.cache.find((guild) => guild.id === config.managedGuildId)!);
 
     Utils.initialiseServices(Client.services);
     for (const module of Client.modules) {
@@ -118,7 +118,7 @@ export class Client {
       .map((parameterWithKeyword) => parameterWithKeyword.split(' ')[1]);
     const parameters = [...parametersRequired, ...parametersOptional];
     const parametersParsable = parameters.map((parameter) => parameter + ':');
-    
+
     // If the user forgot to separate the parameter from the argument using
     // a space, it is necessary to separate it before parsing
     message.content = message.content
@@ -146,9 +146,10 @@ export class Client {
 
       const start = words.indexOf(parameter);
       let end = words.slice(start + 1).findIndex((word) => word.endsWith(':'));
-      if (end === -1) end = words.length; // No more parameters found in the words
+      if (end === -1) end = words.slice(start).length; // No more parameters found in the words
+      else end++;
 
-      const extracted = words.splice(start, end - start + 1);
+      const extracted = words.splice(start, end - (start !== 0 ? start - 1 : start));
       extracted.shift(); // Remove the parameter
 
       args.set(parameter.replace(':', ''), extracted.join(' '));
@@ -158,13 +159,11 @@ export class Client {
     const missingRequiredParameters = parametersRequired.filter((parameter) => !providedArgs.includes(parameter));
 
     if (words.length !== 0) {
-      const wordsJoined = words.splice(0).join(' ');
-
       if (missingRequiredParameters.length === 1) {
-        args.set(missingRequiredParameters[0], wordsJoined);
+        args.set(missingRequiredParameters[0], words.splice(0).join(' '));
         missingRequiredParameters.shift();
       } else if (parametersOptional.length === 1) {
-        args.set(parametersOptional[0], wordsJoined);
+        args.set(parametersOptional[0], words.splice(0).join(' '));
       }
     }
 
@@ -193,7 +192,7 @@ export class Client {
       return;
     }
 
-    const firstArgument = args.values().next().value ?? (words.length !== 0 ? message.content : undefined);
+    const firstArgument = args.values().next().value ?? (parametersParsable.length === 0 ? message.content : undefined);
 
     const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
     const foundDependencies = neededDependencies.map(
@@ -213,7 +212,8 @@ export class Client {
     });
   }
 
-  static async send(textChannel: TextChannel, embed: Embed): Promise<GuildMessage> {
+  static async send(textChannel: TextChannel | undefined, embed: Embed): Promise<GuildMessage | undefined> {
+    if (textChannel === undefined) return;
     return textChannel.send({embed: {
       title: embed.title,
       thumbnail: {url: embed.thumbnail},
@@ -224,7 +224,7 @@ export class Client {
   }
 
   /// Send an embedded message with a tip
-  static async tip(textChannel: TextChannel, message: string): Promise<GuildMessage> {
+  static async tip(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
     return this.send(textChannel, new Embed({
       message: `:information_source: ` + message,
       color: config.accentColorTip,
@@ -232,12 +232,12 @@ export class Client {
   }
 
   /// Send an embedded message with an informational message
-  static async info(textChannel: TextChannel, message: string): Promise<GuildMessage> {
+  static async info(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
     return this.send(textChannel, new Embed({message: message}));
   }
 
   /// Send an embedded message with a warning
-  static async warn(textChannel: TextChannel, message: string): Promise<GuildMessage> {
+  static async warn(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
     return this.send(textChannel, new Embed({
       message: `:warning: ` + message,
       color: config.accentColorWarning,
@@ -245,7 +245,7 @@ export class Client {
   }
 
   /// Send an embedded message with an error
-  static async severe(textChannel: TextChannel, message: string): Promise<GuildMessage> {
+  static async severe(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
     return this.send(textChannel, new Embed({
       message: `:exclamation: ` + message,
       color: config.accentColorSevere,
