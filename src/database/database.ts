@@ -1,4 +1,4 @@
-import { Guild, User as DiscordUser } from 'discord.js';
+import { Guild, GuildMember, User as DiscordUser } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
 import moment, { Moment } from 'moment';
 import { Moderation } from '../modules/moderation/moderation';
@@ -14,16 +14,15 @@ export class Database {
   private guild: Guild;
   /// To prevent Fauna from retrieving documents during every request, which would result
   /// in a very large amount of database calls, documents are cached
-  private cachedDocuments: Map<string, Document>;
+  private cachedDocuments: Map<string, Document> = new Map();
   /// Stores IDs of users' whose documents have not been updated remotely ('staged'), and are
   /// awaiting update ('commit')
-  private cachedChanges: string[];
+  private cachedChanges: string[] = [];
+  public muteTimeouts: Map<string, [NodeJS.Timeout, Function]> = new Map();
   private client: FaunaClient;
 
   constructor(guild: Guild) {
     this.guild = guild;
-    this.cachedDocuments = new Map();
-    this.cachedChanges = [];
     this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
     this.resumeMuteExpirations();
     console.info('Established connection with Fauna.');
@@ -186,7 +185,9 @@ export class Database {
     }
   }
 
-  async muteUser(document: Document, mute: Warning) {
+  async muteUser(member: GuildMember, document: Document, mute: Warning) {
+    Roles.addRole(undefined, member, 'muted');
+
     document.user.mute = mute;
     this.update(document);
 
@@ -200,13 +201,22 @@ export class Database {
   async setMuteExpiry(referenceToMutedDocument: string, document: Document, expiry: Moment) {
     let secondsLeft = expiry.unix() - moment().unix();
     secondsLeft = secondsLeft < 0 ? 0 : secondsLeft;
-    setTimeout(async () => {
-      document.user.mute = null;
-      this.update(document);
-      this.dispatchQuery($.Delete(referenceToMutedDocument));
-      const member = (await Moderation.resolveMember(this.guild, document.user.id))!;
-      Roles.removeRole(undefined, member, 'muted');
-    }, secondsLeft * 1000);
+    
+    const expire = () => this.expireMute(referenceToMutedDocument, document);
+
+    this.muteTimeouts.set(
+      document.user.id, 
+      [setTimeout(expire, secondsLeft * 1000), expire]
+    );
+  }
+
+  async expireMute(referenceToMutedDocument: string, document: Document) {
+    document.user.mute = null;
+    this.update(document);
+    this.dispatchQuery($.Delete(referenceToMutedDocument));
+    const member = (await Moderation.resolveMember(this.guild, document.user.id))!;
+    Roles.removeRole(undefined, member, 'muted');
+    console.debug('Stopped');
   }
   
   /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target
