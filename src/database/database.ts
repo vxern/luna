@@ -1,13 +1,17 @@
-import { User as DiscordUser } from 'discord.js';
+import { Guild, User as DiscordUser } from 'discord.js';
 import { default as fauna, Client as FaunaClient } from 'faunadb';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
+import { Moderation } from '../modules/moderation/moderation';
+import { Roles } from '../modules/roles/roles';
 
 import { Document } from './structs/document';
+import { Warning } from './structs/warning';
 
 const $ = fauna.query;
 
 /// Interface for interaction with Fauna - a database API
 export class Database {
+  private guild: Guild;
   /// To prevent Fauna from retrieving documents during every request, which would result
   /// in a very large amount of database calls, documents are cached
   private cachedDocuments: Map<string, Document>;
@@ -16,10 +20,12 @@ export class Database {
   private cachedChanges: string[];
   private client: FaunaClient;
 
-  constructor() {
+  constructor(guild: Guild) {
+    this.guild = guild;
     this.cachedDocuments = new Map();
     this.cachedChanges = [];
     this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
+    this.resumeMuteExpirations();
     console.info('Established connection with Fauna.');
   }
 
@@ -115,9 +121,7 @@ export class Database {
       $.Get($.Match($.Index('UserByID'), user.id))
     );
 
-    if (response === undefined) {
-      return;
-    }
+    if (response === undefined) return;
 
     const document = Document.deserialize(response);
     this.cachedDocuments.set(user.id, document);
@@ -138,12 +142,12 @@ export class Database {
   async removeExpiredWarnings(document: Document) {
     const now = moment();
     // Filter out the warnings which are still due to expire in the future
-    document.user.warnings = document.user.warnings.filter((warning) => warning!.expiresAt.isAfter(now));
+    document.user.warnings = document.user.warnings.filter(
+      (warning) => !warning!.expiresAt.isBefore(now)
+    );
   }
 
-  /*
-  async getMutedUsers(): Promise<[string, DatabaseEntry][] | undefined> {
-    // Get user entries of muted users
+  async fetchMuted(): Promise<{ref: string, user: Document}[] | undefined> {
     const response = await this.dispatchQuery($.Map(
       $.Paginate(
         $.Documents($.Collection('MutedUsers'))
@@ -152,71 +156,59 @@ export class Database {
         $.Var('ref'), 
         $.Get($.Select(['data', 'user'], $.Get($.Var('ref'))))
       ])
-    ), false);
+    ));
 
-    if (response === undefined) {
-      return;
-    }
+    if (response === undefined) return;
 
-    return Array.from<[string, any]>(response).map(([ref, entry]) => [ref, this.fromResponse(entry)]);
+    return Array.from<[string, any]>(response.data)
+      .map(([ref, user]) => {
+        return {
+        ref: ref, 
+        user: Document.deserialize(user)
+      }});
   }
 
-  /// Checks the timestamps of mutes the user received, and removes the ones
-  /// that have expired based on the time of their submission
-  async removeExpiredMutes() {
-    const mutes = await this.getMutedUsers();
+  async resumeMuteExpirations() {
+    const mutedUsers = await this.fetchMuted();
 
-    if (mutes === undefined) {
-      return;
-    }
+    if (mutedUsers === undefined) return;
 
     const now = moment();
 
-    for (const [referenceToMute, databaseEntry] of mutes) {
-      const mute = Object(databaseEntry.user.mute);
-
-      if (!mute.isMuted || mute.information === undefined) {
-        this.dispatchQuery($.Delete(referenceToMute));
+    // Remove documents showing a user is muted
+    for (const muted of mutedUsers) {
+      if (!muted.user.user.mute || muted.user.user.mute.expiresAt.isBefore(now)) {
+        this.setMuteExpiry(muted.ref, muted.user, now);
         continue;
       }
 
-      // If the mute has passed its expiry date, delete it
-      if (now.diff(mute.information.mutedAt, 'seconds') >= mute.information.mutedFor) {
-        continue;
-      }
-
-      // Otherwise, create a time interval after which the mute will be deleted
-      this.createMuteExpiry(databaseEntry, referenceToMute, mute);
+      this.setMuteExpiry(muted.ref, muted.user, muted.user.user.mute!.expiresAt);
     }
   }
 
-  async createMute(databaseEntry: DatabaseEntry) {
-    this.dispatchQuery($.Create($.Collection("MutedUsers"), {
-      data: {
-        username: "vxern#3689",
-        ref: databaseEntry.ref
-      }
-    }))
+  async muteUser(document: Document, mute: Warning) {
+    document.user.mute = mute;
+    this.update(document);
+
+    const response = await this.dispatchQuery(
+      $.Create($.Collection('MutedUsers'), {data: {user: document.ref}})
+    );
+
+    this.setMuteExpiry(response.ref, document, mute.expiresAt);
   }
 
-  async createMuteExpiry(databaseEntry: DatabaseEntry, referenceToMute: string, mute: MuteData) {
-    let remainingSeconds = 
-      moment.now() - 
-      mute.information!.mutedAt.unix() - 
-      mute.information!.mutedFor;
-    if (remainingSeconds < 0) remainingSeconds = 0;
-
-    setTimeout(() => {
-      const blankMute = MuteData.none();
-      databaseEntry.user.mute = blankMute.serialize();
-
-      this.dispatchQuery($.Delete(referenceToMute));
-      this.stage(databaseEntry, true);
-
-      console.debug(`${databaseEntry.user.username} has been automatically unmuted after having been muted for: ${mute.information!.reason}`);
-    }, remainingSeconds);
+  async setMuteExpiry(referenceToMutedDocument: string, document: Document, expiry: Moment) {
+    let secondsLeft = expiry.unix() - moment().unix();
+    secondsLeft = secondsLeft < 0 ? 0 : secondsLeft;
+    setTimeout(async () => {
+      document.user.mute = null;
+      this.update(document);
+      this.dispatchQuery($.Delete(referenceToMutedDocument));
+      const member = (await Moderation.resolveMember(this.guild, document.user.id))!;
+      Roles.removeRole(undefined, member, 'muted');
+    }, secondsLeft * 1000);
   }
-  */
+  
   /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target
   /*
   async thankUser(textChannel: TextChannel, caster: User, target: User) {
