@@ -1,5 +1,6 @@
 import { Client } from "../../../client/client";
 
+import { Module } from "../../module";
 import { Music } from "../music";
 import { Command, HandlingData } from "../../command";
 
@@ -33,7 +34,7 @@ export class Remove extends Command<Music> {
         return;
       }
 
-      const songIndex = await this.module.browse(
+      const songIndex = await Module.browse(
         message, 
         listings.map((_, i) => i + 1), 
         (index) => listings[index - 1].title

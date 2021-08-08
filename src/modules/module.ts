@@ -110,7 +110,7 @@ export abstract class Module {
   /// a list of available options
   ///
   /// [displayString] - How the string to display is obtained from the object
-  async browse<T>(originalMessage: GuildMessage, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
+  static async browse<T>(originalMessage: GuildMessage, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
     const browser = originalMessage.author;
     const textChannel = originalMessage.channel;
 
@@ -134,13 +134,13 @@ export abstract class Module {
 
       while (true) {
         await new Promise<void>(async (updateList) => {
-          const pageMessage = await Client.send(textChannel, Embed.singleField({
+          const pageMessage = (await Client.send(textChannel, Embed.singleField({
             name: 'Make a selection by writing its index.',
             value: pages[currentPage].map(
               (entry, index) => `**${index + 1}** ~ ${displayMethod(entry)}`
             ).join('\n\n'),
             inline: false,
-          }));
+          })))!;
 
           if (isNotOnFirstPage()) pageMessage.react('⬅️');
           if (isNotOnLastPage()) pageMessage.react('➡️');

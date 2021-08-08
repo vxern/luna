@@ -4,6 +4,7 @@ import ytdl from 'ytdl-core';
 
 import { Client, GuildMessage } from "../../../client/client";
 
+import { Module } from "../../module";
 import { Music } from "../music";
 import { Command, HandlingData } from "../../command";
 import { Song, Listing } from "../songs";
@@ -66,7 +67,7 @@ export class Play extends Command<Music> {
 
     const searchResults = Array.from(Utils.decodeVideoTitles(search.currentPage));
     
-    const video = await this.module.browse(
+    const video = await Module.browse(
       message, searchResults, (videoEntry) => videoEntry.title
     );
 
