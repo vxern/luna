@@ -18,7 +18,7 @@ export class Kick extends Command<Moderation> {
 
     if (member === undefined) return;
 
-    if (!member.kickable) {
+    if (!member.bannable) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to kick this member.');
       return;
     }
