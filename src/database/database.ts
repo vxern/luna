@@ -23,7 +23,7 @@ export class Database {
 
   constructor(guild: Guild) {
     this.guild = guild;
-    this.client = new FaunaClient({secret: process.env.FAUNA_SECRET!});
+    this.client = new FaunaClient({domain: 'db.eu.fauna.com', secret: process.env.FAUNA_SECRET!});
     this.resumeMuteExpirations();
     console.info('Established connection with Fauna.');
   }
