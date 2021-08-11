@@ -24,7 +24,7 @@ export class Volume extends Command<Music> {
 
     const volume = Number(parameter);
 
-    if (volume <= 0) {
+    if (volume < 0) {
       Client.warn(message.channel, 'It is not recommended to set the volume to a negative value.');
       return;
     }
@@ -37,6 +37,11 @@ export class Volume extends Command<Music> {
     this.module.volume = volume / 100;
     this.module.voiceConnection?.dispatcher.setVolume(this.module.volume);
 
-    Client.info(message.channel, `Volume set to ${volume}%.`);
+    if (volume !== 0) {
+      Client.info(message.channel, `Volume set to ${volume}%.`);
+      return;
+    }
+
+    Client.info(message.channel, `Muted playback.`);
   }
 }
