@@ -29,10 +29,10 @@ export class Replay extends Command<Music> {
     this.module.queue.unshift(this.module.currentListing!);
 
     if (message) {
-      Client.info(this.module.textChannel!, `Replaying '${this.module.currentSong!.title}'...`);
+      Client.info(message.channel, `Replaying '${this.module.currentSong!.title}'...`);
     }
 
     this.module.currentSong = undefined;
-    dependencies.get('Play').play(undefined, false);
+    dependencies.get('Play').play(message.channel, undefined, false);
   }
 }

@@ -54,6 +54,6 @@ export class Forward extends Command<Music> {
       `${this.module.runningTimeAsString()}.`
     );
 
-    dependencies.get('Replay').replay(message, dependencies);
+    dependencies.get('Replay').replay({message: message, dependencies: dependencies});
   }
 }

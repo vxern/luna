@@ -36,6 +36,6 @@ export class Unskip extends Command<Music> {
     listingToUnskip.songManagers = this.module.usersPresent();
     this.module.queue.unshift(listingToUnskip);
 
-    dependencies.get('Play').play();
+    dependencies.get('Play').play(message.channel);
   }
 }
