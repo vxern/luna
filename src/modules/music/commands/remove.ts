@@ -61,6 +61,6 @@ export class Remove extends Command<Music> {
 
     const removedSong = this.module.queue.splice(index, 1)[0];
 
-    Client.info(message.channel, `Song listing #${index} ~ '${removedSong.title}' removed from the queue.`);
+    Client.info(message.channel, `Song listing #${index + 1} ~ '${removedSong.title}' removed from the queue.`);
   }
 }

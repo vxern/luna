@@ -14,8 +14,6 @@ import { Unban } from './commands/unban';
 import { Unmute } from './commands/unmute';
 import { Warn } from './commands/warn';
 
-import roles from '../../roles.json';
-
 import { Utils } from '../../utils';
 
 const userTag = /<@!?.+>/;
@@ -27,10 +25,7 @@ export interface BannedUser {
 }
 
 export class Moderation extends Module {
-  readonly requirement = 
-    (message: GuildMessage) => message.member?.roles.cache
-      .map((role) => role.name)
-      .includes(Utils.capitaliseWords(roles.moderator)) || false;
+  readonly requirement = (message: GuildMessage) => Utils.isModerator(message);
   readonly commandsRestricted = Utils.instantiate([Ban, Kick, Mute, Pardon, Purge, Unban, Unmute, Warn], [this]);
   readonly commandUnrestricted = Utils.instantiate([CiteRule], [this]);
 
