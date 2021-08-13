@@ -10,7 +10,7 @@ import rules from "../../../rules.json";
 
 export class CiteRule extends Command<Moderation> {
   readonly identifier = 'rule';
-  readonly aliases = ['rules', 'cite', 'cite rule'];
+  readonly aliases = ['rules', 'cite'];
   readonly description = 'Cites a rule';
   readonly parameters = ['rule'];
   readonly dependencies = [];
@@ -23,8 +23,14 @@ export class CiteRule extends Command<Moderation> {
     }
 
     const index = Number(parameter);
+
+    if (index < 1) {
+      Client.warn(message.channel, 'The rule number cannot be zero or negative.');
+      return;
+    }
     
-    const easterEggRule = new Map(Object.entries(rules.easterEggs)).get(parameter!);
+    const easterEggRules = Object.entries(rules.easterEggs);
+    const easterEggRule = new Map(easterEggRules).get(parameter!);
 
     if (easterEggRule !== undefined) {
       if (index >= 100) {
@@ -41,7 +47,15 @@ export class CiteRule extends Command<Moderation> {
       return;
     }
 
-    if (!Utils.isIndexInBounds(message.channel, index, rules.rules.length)) {
+    if (index > rules.rules.length) {
+      const easterEggIndexes = easterEggRules.map(([index]) => Number(index));
+      const isCloserToRulesThanEasterEggs = Math.abs(index - easterEggIndexes[0]) < Math.abs(index - rules.rules.length);
+      const closestIndex =
+        isCloserToRulesThanEasterEggs ?
+        easterEggIndexes.reduce((a, b) => Math.abs(index - a) < Math.abs(index - b) ? a : b) : 
+        rules.rules.length - 1;
+
+      Client.warn(message.channel, `Rule no. ${index} does not exist. Have you tried citing rule no. ${closestIndex}?`);
       return;
     }
 
