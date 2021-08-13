@@ -19,6 +19,7 @@
 
   "excludedChannels": [],
   "aliaslessChannels": ["get-role"],
+  "wordChainChannel": "development",
 
   "roleAssignmentDelay": 1,
   "maximumRolesAtOnce": 5,
