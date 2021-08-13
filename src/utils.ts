@@ -3,9 +3,11 @@ import { distance as getDistance } from 'fastest-levenshtein';
 import * as string from 'string-sanitizer';
 import { YTSearchPage } from 'ytsearcher';
 
-import { Client } from './client/client';
+import { Client, GuildMessage } from './client/client';
 
 import { Service } from './services/service';
+
+import roles from './roles.json';
 
 const digitsPattern = /\d+/g;
 const wordsPattern = /[a-zA-Z]+/g;
@@ -195,6 +197,12 @@ export class Utils {
     }
 
     return target === undefined ? undefined : Number(target);
+  }
+
+  static isModerator(message: GuildMessage) {
+    return message.member?.roles.cache
+      .map((role) => role.name)
+      .includes(Utils.capitaliseWords(roles.moderator)) || false
   }
 
   /// Case-invariant 'includes' function

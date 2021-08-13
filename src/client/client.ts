@@ -18,13 +18,17 @@ import { Presence } from '../services/presence';
 import { ModifySignature, Utils } from '../utils';
 
 import config from '../config.json';
+import { WordChain } from '../services/word-chain';
+import { Social } from '../modules/social/social';
+import { DiscordMenus } from 'discord-menus';
 
 export type GuildMessage = ModifySignature<DiscordMessage, {channel: TextChannel}>;
 
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
-  static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Roles]);
-  static services: Service[] = Utils.instantiate([Presence]);
+  static menu: DiscordMenus;
+  static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
+  static services: Service[] = Utils.instantiate([Presence, WordChain]);
   private commands: Command<Module>[] = [];
   static database: Database;
   static bot: ClientUser;
@@ -32,9 +36,7 @@ export class Client {
   /// Begin listening to events
   async initialise() {
     this.client.on('message', (message) => {
-      if (message.channel.type !== 'text') {
-        return;
-      }
+      if (message.channel.type !== 'text') return;
 
       this.handleMessage(message as GuildMessage);
     });
@@ -42,6 +44,7 @@ export class Client {
     await this.client.login(process.env.DISCORD_SECRET);
     Client.bot = this.client.user!;
     Client.database  = new Database(this.client.guilds.cache.find((guild) => guild.id === config.managedGuildId)!);
+    Client.menu = new DiscordMenus(this.client);
 
     Utils.initialiseServices(Client.services);
     for (const module of Client.modules) {
@@ -50,19 +53,15 @@ export class Client {
 
     this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
 
-    console.info(`Ready to serve with ${Utils.pluralise('module', Client.modules.length)} and ${Utils.pluralise('service', Client.services.length)}.`);
+    console.info(`Ready to serve with ${Utils.pluralise('service', Client.services.length)} and ${Utils.pluralise('command', this.commands.length)} within ${Utils.pluralise('module', Client.modules.length)}.`);
   }
 
   private handleMessage(message: GuildMessage) {
     // If the message was submitted by a bot
-    if (message.author.bot) {
-      return;
-    }
+    if (message.author.bot) return;
 
     // If the message was submitted by the bot itself
-    if (message.member!.id === this.client.user!.id) {
-      return;
-    }
+    if (message.member!.id === Client.bot.id) return;
 
     // If the message was submitted in an excluded channel
     if (string.sanitize(message.channel.name) in config.excludedChannels) {

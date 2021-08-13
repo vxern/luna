@@ -1,6 +1,9 @@
 # Node
 node_modules/
 
+# Built JavaScript
+build/
+
 # Old files
 teacher-old/
 
