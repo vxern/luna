@@ -3,11 +3,13 @@ import { Utils } from "../utils";
 
 import { Module } from "./module";
 
+import config from '../config.json';
+
 export interface HandlingData {
   message: GuildMessage;
   dependencies: Map<string, any>;
   parameters: Map<string, string>;
-  parameter?: string;
+  parameter: string;
 }
 
 export abstract class Command<T extends Module> {
@@ -50,10 +52,10 @@ export abstract class Command<T extends Module> {
 
   getUsage(): string {
     const parameters = this.parameters.map((parameter) => {
-      if (parameter.startsWith('optional: ')) return ` [${parameter}]`;
+      if (parameter.startsWith('optional: ')) return `[${parameter}]`;
 
-      return ` <${parameter}>`;
-    }).join('');
-    return Utils.toCode(this.caller + parameters);
+      return `<${parameter}>`;
+    }).join(' ');
+    return Utils.toCode(`${config.alias} ${this.caller} ${parameters}`);
   }
 }
