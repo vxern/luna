@@ -111,6 +111,11 @@ export abstract class Module {
   ///
   /// [displayString] - How the string to display is obtained from the object
   static async browse<T>(originalMessage: GuildMessage, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
+    if (list.length === 0) {
+      Client.warn(originalMessage.channel, 'No results.');
+      return;
+    }
+    
     const browser = originalMessage.author;
     const textChannel = originalMessage.channel;
 
@@ -170,6 +175,7 @@ export abstract class Module {
             }
             
             updateList();
+            responses.stop('changedPage');
           });
 
           responses.on('collect', (response) => {
@@ -182,6 +188,8 @@ export abstract class Module {
           });
 
           responses.on('end', (_, reason) => {
+            if (reason === 'changedPage') return;
+
             if (reason !== 'complete' && reason !== 'cancelled') {
               Client.warn(textChannel, 'Query timed out.');
             }
