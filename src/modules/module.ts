@@ -110,7 +110,7 @@ export abstract class Module {
   /// a list of available options
   ///
   /// [displayString] - How the string to display is obtained from the object
-  static async browse<T>(originalMessage: GuildMessage, list: T[], displayMethod: (entry: T) => string): Promise<T | undefined> {
+  static async browse<T>(originalMessage: GuildMessage, list: T[], displayMethod: (entry: T) => string, readonly = false): Promise<T | undefined> {
     if (list.length === 0) {
       Client.warn(originalMessage.channel, 'No results.');
       return;
@@ -140,9 +140,11 @@ export abstract class Module {
       while (true) {
         await new Promise<void>(async (updateList) => {
           const pageMessage = (await Client.send(textChannel, Embed.singleField({
-            name: 'Make a selection by writing its index.',
+            name: !readonly ? 
+              'Browse through the results and pick one by using its index.' : 
+              'Browse through the list using the arrow buttons.',
             value: pages[currentPage].map(
-              (entry, index) => `**${index + 1}** ~ ${displayMethod(entry)}`
+              (entry, index) => (!readonly ? `**${index + 1}** ~ ` : '') + displayMethod(entry)
             ).join('\n\n'),
             inline: false,
           })))!;
@@ -150,13 +152,17 @@ export abstract class Module {
           if (isNotOnFirstPage()) pageMessage.react('⬅️');
           if (isNotOnLastPage()) pageMessage.react('➡️');
 
-          pageMessage.react('❌');
+          if (!readonly) pageMessage.react('❌');
     
           const reactions = pageMessage.createReactionCollector(validReaction);  
-          const responses = pageMessage.channel.createMessageCollector(validSelection, {time: config.queryTimeout * 1000});  
+          const responses = pageMessage.channel.createMessageCollector(validSelection, {
+            time: !readonly ? config.queryTimeout * 1000 : undefined
+          });  
 
           reactions.on('collect', async (reaction) => {
-            if (!validReactions.includes(reaction.emoji.name)) return;
+            if (!validReactions.includes(reaction.emoji.name) || (reaction.emoji.name === '❌' && readonly)) {
+              return;
+            }
             
             pageMessage.delete();
             
