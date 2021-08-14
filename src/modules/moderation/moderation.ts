@@ -31,9 +31,8 @@ export class Moderation extends Module {
 
   /// Takes an identifier in the form of a full tag, a username or an ID and
   /// finds the member bearing it
-  static async resolveMember(messageOrGuild: GuildMessage | Guild, parameter: string): Promise<GuildMember | undefined> {
-    const guild: Guild = (messageOrGuild instanceof Guild) ? messageOrGuild : messageOrGuild.guild!;
-    const members = await guild.members.fetch();
+  static async resolveMember(message: GuildMessage | undefined, parameter: string): Promise<GuildMember | undefined> {
+    const members = await (message !== undefined ? message.guild!.members.fetch() : Client.getMembers());
 
     // If the identifier is a tag, convert it to an ID
     if (userTag.test(parameter)) {
@@ -52,12 +51,12 @@ export class Moderation extends Module {
       member = members.find((member) => member.user.tag === parameter);
     }
 
-    if (!!member) return member!;
+    if (!!member) return member;
 
-    const message = messageOrGuild as GuildMessage;
+    if (message === undefined) return;
 
     if (member === undefined) {
-      Client.warn(message.channel, `**${parameter}** is not a member of ${guild.name}.`);
+      Client.warn(message.channel, `**${parameter}** is not a member of ${message.guild?.name}.`);
       return;
     }
 

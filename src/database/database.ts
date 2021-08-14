@@ -11,7 +11,6 @@ const $ = fauna.query;
 
 /// Interface for interaction with Fauna - a database API
 export class Database {
-  private guild: Guild;
   /// To prevent Fauna from retrieving documents during every request, which would result
   /// in a very large amount of database calls, documents are cached
   private cachedDocuments: Map<string, Document> = new Map();
@@ -21,8 +20,7 @@ export class Database {
   public muteTimeouts: Map<string, [NodeJS.Timeout, Function]> = new Map();
   private client: FaunaClient;
 
-  constructor(guild: Guild) {
-    this.guild = guild;
+  constructor() {
     this.client = new FaunaClient({domain: 'db.eu.fauna.com', secret: process.env.FAUNA_SECRET!});
     this.resumeMuteExpirations();
     console.info('Established connection with Fauna.');
@@ -214,7 +212,7 @@ export class Database {
     document.user.mute = null;
     this.update(document);
     this.dispatchQuery($.Delete(referenceToMutedDocument));
-    const member = (await Moderation.resolveMember(this.guild, document.user.id))!;
+    const member = (await Moderation.resolveMember(undefined, document.user.id))!;
     Roles.removeRole(undefined, member, 'muted');
     console.debug('Stopped');
   }
