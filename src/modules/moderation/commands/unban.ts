@@ -6,13 +6,13 @@ import { Command, HandlingData } from "../../command";
 export class Unban extends Command<Moderation> {
   readonly identifier = 'unban';
   readonly aliases = ['unsuspend'];
-  readonly description = 'Unbans a previously banned user';
+  readonly description = 'Unbans a user who has been previously banned indefinitely.';
   readonly parameters = ['identifier'];
   readonly dependencies = [];
   readonly handler = this.unban;
 
   async unban({message, parameter}: HandlingData) {
-    const banData = await this.module.resolveBannedUser(message, parameter!);
+    const banData = await Moderation.resolveBannedUser(message, parameter!);
 
     if (banData === undefined) return;
 

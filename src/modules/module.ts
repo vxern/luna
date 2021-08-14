@@ -115,7 +115,7 @@ export abstract class Module {
       Client.warn(originalMessage.channel, 'No results.');
       return;
     }
-    
+
     const browser = originalMessage.author;
     const textChannel = originalMessage.channel;
 
@@ -141,7 +141,7 @@ export abstract class Module {
         await new Promise<void>(async (updateList) => {
           const pageMessage = (await Client.send(textChannel, Embed.singleField({
             name: !readonly ? 
-              'Browse through the results and pick one by using its index.' : 
+              `Browse through the list and make a selection using an index.` : 
               'Browse through the list using the arrow buttons.',
             value: pages[currentPage].map(
               (entry, index) => (!readonly ? `**${index + 1}** ~ ` : '') + displayMethod(entry)

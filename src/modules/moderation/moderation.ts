@@ -77,8 +77,10 @@ export class Moderation extends Module {
 
   /// Takes an identifier in the form of an ID, a full tag or a username
   /// and finds the banned user bearing it
-  async resolveBannedUser(message: GuildMessage, parameter: string): Promise<BannedUser | undefined> {
+  static async resolveBannedUser(message: GuildMessage, parameter: string): Promise<BannedUser | undefined> {
     const bans = Array.from((await message.guild!.fetchBans()).values());
+
+    parameter = parameter.toLowerCase();
 
     // If the identifier is an ID
     if (Utils.isNumber(parameter)) {
@@ -107,7 +109,7 @@ export class Moderation extends Module {
   }
 
   /// Returns the ban reason or attempts to synthesise it if one does not exist
-  findBanReason(bannedUsers: User[], data: BannedUser) {
+  static findBanReason(bannedUsers: User[], data: BannedUser) {
     if (data.reason !== null) return data.reason;
 
     const bannedUsersWithSimilarName = bannedUsers.filter(
