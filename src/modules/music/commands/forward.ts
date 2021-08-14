@@ -9,8 +9,8 @@ import { Utils } from "../../../utils";
 
 export class Forward extends Command<Music> {
   readonly identifier = 'forward';
-  readonly aliases = [];
-  readonly description = 'Fast-forward the song by the given amount of time';
+  readonly aliases = ['fastforward', 'ff'];
+  readonly description = 'Fast-forwards the song by a specified amount of time.';
   readonly parameters = ['time'];
   readonly dependencies = [Replay, Play];
   readonly handler = this.forward;

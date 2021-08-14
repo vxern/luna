@@ -15,7 +15,11 @@ import roles from '../../../roles.json';
 export class Info extends Command<Information> {
   readonly identifier = 'info';
   readonly aliases = ['information'];
-  readonly description = 'Displays helpful information about the server';
+  readonly description = `
+    Displays helpful information about the server such as
+    the server's description, when the server was created,
+    and what percentage of the server's userbase each proficiency role makes up.
+  `;
   readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.info;

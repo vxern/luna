@@ -7,7 +7,7 @@ import { Play } from "./play";
 export class Unskip extends Command<Music> {
   readonly identifier = 'unskip';
   readonly aliases = ['previous'];
-  readonly description = 'Plays the last played song';
+  readonly description = 'Plays the last played song.';
   readonly parameters = [];
   readonly dependencies = [Play];
   readonly handler = this.unskip;

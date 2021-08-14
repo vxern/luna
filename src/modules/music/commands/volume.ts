@@ -10,7 +10,7 @@ import config from '../../../config.json';
 export class Volume extends Command<Music> {
   readonly identifier = 'volume';
   readonly aliases = ['vol'];
-  readonly description = 'Changes the volume of playback';
+  readonly description = 'Changes the volume of the playback of songs.';
   readonly parameters = ['volume'];
   readonly dependencies = [];
   readonly handler = this.volume;

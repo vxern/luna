@@ -7,8 +7,8 @@ import { Command, HandlingData } from "../../command";
 
 export class Kick extends Command<Moderation> {
   readonly identifier = 'kick';
-  readonly aliases = [];
-  readonly description = 'Kicks a user from the server';
+  readonly aliases = ['exclude'];
+  readonly description = 'Kicks a user from the server.';
   readonly parameters = ['identifier', 'optional: reason'];
   readonly dependencies = [];
   readonly handler = this.kick;

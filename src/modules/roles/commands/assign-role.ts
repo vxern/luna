@@ -13,7 +13,7 @@ import roles from '../../../roles.json';
 export class AssignRole extends Command<Roles> {
   readonly identifier = '$rolename';
   readonly aliases = [];
-  readonly description = 'Assigns or unassigns a role';
+  readonly description = 'Assigns or unassigns a role from a user.';
   readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.resolve;

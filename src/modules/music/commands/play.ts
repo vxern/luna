@@ -17,7 +17,7 @@ const youtubePattern: RegExp = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\
 export class Play extends Command<Music> {
   readonly identifier = 'play';
   readonly aliases = ['request'];
-  readonly description = 'Request to play a song by providing a URL to it, or searching using keywords';
+  readonly description = 'Requests to play a song by providing a direct link to it, or by searching using keywords.';
   readonly parameters = ['song'];
   readonly dependencies = [];
   readonly handler = this.request;

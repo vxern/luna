@@ -7,7 +7,7 @@ import { Play } from "./play";
 export class Replay extends Command<Music> {
   readonly identifier = 'replay';
   readonly aliases = ['restart'];
-  readonly description = 'Begin playing the song from the start';
+  readonly description = 'Begins playing the song from the start.';
   readonly parameters = [];
   readonly dependencies = [Play];
   readonly handler = this.replay;

@@ -10,7 +10,7 @@ import { Utils } from "../../../utils";
 export class Rewind extends Command<Music> {
   readonly identifier = 'rewind';
   readonly aliases = [];
-  readonly description = 'Rewind the song by the given amount of time';
+  readonly description = 'Rewinds the song by a specified amount of time';
   readonly parameters = ['time'];
   readonly dependencies = [Replay, Play];
   readonly handler = this.rewind;

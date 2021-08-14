@@ -6,11 +6,12 @@ import { Command, HandlingData } from "../../command";
 
 import config from '../../../config.json';
 import { Utils } from "../../../utils";
+import { Module } from "../../module";
 
 export class Help extends Command<Information> {
   readonly identifier = 'help';
   readonly aliases = ['commands'];
-  readonly description = 'Displays a menu explaining how to use the bot and a list of available modules';
+  readonly description = 'Displays a menu which explains how to use the bot and lists the available modules.';
   readonly parameters = ['optional: module'];
   readonly dependencies = [];
   readonly handler = this.help;
@@ -45,9 +46,18 @@ export class Help extends Command<Information> {
       return;
     }
 
+    Module.browse(
+      message, 
+      module.commandsAll.map((command) => command.fullInformation), 
+      (entry) => entry,
+      true
+    );
+
+    /*
     Client.send(message.channel, new Embed({
       title: `List of commands of the ${module.name.toLowerCase()} module`,
       message: module.commandsAll.map((command) => command.fullInformation).join('\n\n'),
     }));
+    */
   }
 }

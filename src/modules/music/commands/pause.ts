@@ -7,7 +7,7 @@ import { Unpause } from "./unpause";
 export class Pause extends Command<Music> {
   readonly identifier = 'pause';
   readonly aliases = ['stop', 'halt'];
-  readonly description = 'Pause the song';
+  readonly description = 'Pauses the song indefinitely.';
   readonly parameters = [];
   readonly dependencies = [Unpause];
   readonly handler = this.pause;

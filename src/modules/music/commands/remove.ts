@@ -9,7 +9,7 @@ import { Utils } from "../../../utils";
 export class Remove extends Command<Music> {
   readonly identifier = 'remove';
   readonly aliases = ['delete'];
-  readonly description = 'Removes a song in queue';
+  readonly description = 'Removes a song from the list of queued songs.';
   readonly parameters = ['position'];
   readonly dependencies = [];
   readonly handler = this.remove;

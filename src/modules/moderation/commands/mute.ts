@@ -11,7 +11,7 @@ import { Command, HandlingData } from "../../command";
 export class Mute extends Command<Moderation> {
   readonly identifier = 'mute';
   readonly aliases = ['silence'];
-  readonly description = 'Mutes a user, effectively excluding them from the server';
+  readonly description = 'Mutes a user, effectively excluding them from interacting on the server for the duration of the mute.';
   readonly parameters = ['identifier', 'reason', 'duration',];
   readonly dependencies = [];
   readonly handler = this.mute;

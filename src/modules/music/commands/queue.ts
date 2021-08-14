@@ -7,7 +7,7 @@ import { Command, HandlingData } from "../../command";
 export class Queue extends Command<Music> {
   readonly identifier = 'queue';
   readonly aliases = ['songs', 'songqueue', 'upcoming'];
-  readonly description = 'Display a list of upcoming songs';
+  readonly description = 'Displays a list of queued songs.';
   readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.displayQueue;

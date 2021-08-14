@@ -7,7 +7,7 @@ import { Command, HandlingData } from "../../command";
 export class History extends Command<Music> {
   readonly identifier = 'history';
   readonly aliases = ['past', 'played'];
-  readonly description = 'Display a list of songs played previously';
+  readonly description = 'Displays a list of previously played songs.';
   readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.displayHistory;

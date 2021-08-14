@@ -1,9 +1,8 @@
-import { ClientUser } from "discord.js";
+import { Client } from "../client/client";
 
 import { Service } from "./service";
 
 import config from '../config.json';
-import { Client } from "../client/client";
 
 const repositoryLink = `https://github.com/vxern/${config.alias}`;
 const statuses: Array<string> = [

@@ -7,7 +7,7 @@ import { Command, HandlingData } from "../../command";
 export class Now extends Command<Music> {
   readonly identifier = 'now';
   readonly aliases = ['current', 'song'];
-  readonly description = 'Display the song currently playing';
+  readonly description = 'Display the song which is currently playing.';
   readonly parameters = [];
   readonly dependencies = [];
   readonly handler = this.displayNowPlaying;

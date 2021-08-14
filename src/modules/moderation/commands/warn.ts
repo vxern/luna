@@ -16,7 +16,7 @@ import config from '../../../config.json';
 export class Warn extends Command<Moderation> {
   readonly identifier = 'warn';
   readonly aliases = [];
-  readonly description = 'Warns a user';
+  readonly description = 'Warns a user.';
   readonly parameters = ['identifier', 'reason'];
   readonly dependencies = [Ban];
   readonly handler = this.warn;

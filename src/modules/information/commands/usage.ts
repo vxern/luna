@@ -9,7 +9,7 @@ import { Utils } from "../../../utils";
 export class Usage extends Command<Information> {
   readonly identifier = 'usage';
   readonly aliases = [];
-  readonly description = 'Displays info about a command and its usage';
+  readonly description = 'Displays useful information about a command such as its aliases and usage.';
   readonly parameters = ['command'];
   readonly dependencies = [];
   readonly handler = this.usage;

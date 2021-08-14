@@ -1,5 +1,7 @@
 import { GuildMember, Role, TextChannel } from 'discord.js';
 
+import { Client } from '../../client/client';
+
 import { Module } from '../module';
 
 import { Assignable } from './commands/assignable';
@@ -8,7 +10,6 @@ import { AssignRole } from './commands/assign-role';
 import { Utils } from '../../utils';
 
 import roles from '../../roles.json';
-import { Client } from '../../client/client';
 
 export class Roles extends Module {
   readonly commandUnrestricted = Utils.instantiate([Assignable, AssignRole], [this]);

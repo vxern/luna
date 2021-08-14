@@ -11,7 +11,7 @@ import rules from "../../../rules.json";
 export class CiteRule extends Command<Moderation> {
   readonly identifier = 'rule';
   readonly aliases = ['rules', 'cite'];
-  readonly description = 'Cites a rule';
+  readonly description = 'Cites a rule by taking its number / index.';
   readonly parameters = ['rule'];
   readonly dependencies = [];
   readonly handler = this.citeRule;

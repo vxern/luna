@@ -7,8 +7,8 @@ import { Utils } from "../../../utils";
 
 export class Ban extends Command<Moderation> {
   readonly identifier = 'ban';
-  readonly aliases = ['suspend'];
-  readonly description = `Bans a user indefinitely and optionally deletes the user's message history up to 7 days`;
+  readonly aliases = ['banish', 'suspend', 'exile'];
+  readonly description = `Bans a user indefinitely, and optionally deletes the user's message history up to 7 days`;
   readonly parameters = ['identifier', 'optional: days', 'optional: reason'];
   readonly dependencies = [];
   readonly handler = this.ban;

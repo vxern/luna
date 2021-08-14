@@ -7,8 +7,8 @@ import { Utils } from "../../../utils";
 
 export class Pardon extends Command<Moderation> {
   readonly identifier = 'pardon';
-  readonly aliases = [];
-  readonly description = `Pardons a user by removing a warning they've received`;
+  readonly aliases = ['unwarn'];
+  readonly description = `Pardons a user by removing a warning they've previously received.`;
   readonly parameters = ['identifier', 'id'];
   readonly dependencies = [];
   readonly handler = this.pardon;

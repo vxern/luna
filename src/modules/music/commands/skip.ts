@@ -7,7 +7,7 @@ import { Play } from "./play";
 export class Skip extends Command<Music> {
   readonly identifier = 'skip';
   readonly aliases = ['next'];
-  readonly description = 'Plays the next song in queue';
+  readonly description = 'Plays the next song in the list of queued songs.';
   readonly parameters = [];
   readonly dependencies = [Play];
   readonly handler = this.skip;

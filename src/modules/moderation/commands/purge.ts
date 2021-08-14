@@ -7,7 +7,7 @@ import { Client } from "../../../client/client";
 export class Purge extends Command<Moderation> {
   readonly identifier = 'purge';
   readonly aliases = ['delete'];
-  readonly description = 'Deletes a specified number of messages from a channel';
+  readonly description = 'Deletes a specified number of messages from a channel.';
   readonly parameters = ['number', 'optional: quiet'];
   readonly dependencies = [];
   readonly handler = this.purge;
