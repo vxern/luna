@@ -28,6 +28,6 @@ export class Purge extends Command<Moderation> {
 
     deleted += (await message.channel.bulkDelete(leftAfterBulk).catch().finally()).size;
 
-    if (!quiet) Client.tip(message.channel, `${Utils.pluralise('message', deleted - 1)} have been cleared`);
+    if (!quiet) Client.info(message.channel, `${Utils.pluralise('message', deleted - 1)} have been cleared.`);
   }
 }

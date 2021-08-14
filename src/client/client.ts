@@ -246,22 +246,14 @@ export class Client {
     }}) as Promise<GuildMessage>;
   }
 
-  /// Send an embedded message with a tip
-  static async tip(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
-    return this.send(textChannel, new Embed({
-      message: `:information_source: ` + message,
-      color: config.accentColorTip,
-    }));
-  }
-
   /// Send an embedded message with an informational message
   static async info(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
-    return this.send(textChannel, new Embed({message: message}));
+    return Client.send(textChannel, new Embed({message: message}));
   }
 
   /// Send an embedded message with a warning
   static async warn(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
-    return this.send(textChannel, new Embed({
+    return Client.send(textChannel, new Embed({
       message: `:warning: ` + message,
       color: config.accentColorWarning,
     }));
@@ -269,7 +261,7 @@ export class Client {
 
   /// Send an embedded message with an error
   static async severe(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
-    return this.send(textChannel, new Embed({
+    return Client.send(textChannel, new Embed({
       message: `:exclamation: ` + message,
       color: config.accentColorSevere,
     }));

@@ -32,7 +32,7 @@ export class Unmute extends Command<Moderation> {
       clearTimeout(timeout);
       expire();
 
-      Client.tip(message.channel, `**${member.user.tag}** has been unmuted.`);
+      Client.info(message.channel, `**${member.user.tag}** has been unmuted.`);
     });
   }
 }
