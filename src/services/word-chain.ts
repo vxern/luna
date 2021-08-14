@@ -7,12 +7,11 @@ import { Service } from "./service";
 
 import config from '../config.json';
 
-const wordChainEntry = /(#\d+) ([\w ]+) ([\[({].+[\])}])/;
+const wordChainEntry = /([\w ]+) ([\[({].+[\])}])/;
 
 export class WordChain extends Service {
   wordChainChannels: TextChannel[] = [];
   instructionTimeouts: Map<string, NodeJS.Timeout> = new Map();
-  expectedSubmissionIndex: number = 0;
 
   async initialise() {
     Client.bot.client.on('message', (message) => {
@@ -37,40 +36,11 @@ export class WordChain extends Service {
       return;
     }
 
-    if (this.expectedSubmissionIndex === 0) {
-      const lastSubmissions = Array.from((await message.channel.messages.fetch()).values());
-      const mostRecentSubmission = lastSubmissions.find((message) => wordChainEntry.test(message.content));
-      
-      if (mostRecentSubmission !== undefined) {
-        const mostRecentSubmissionIndex = Number(Utils.extractNumbers(mostRecentSubmission.content)[0]);
-        this.expectedSubmissionIndex = mostRecentSubmissionIndex + 1;
-      }
-    }
-
-    this.postInstructions(message.channel);
-
     if (!wordChainEntry.test(message.content)) {
       return this.displayUsage(message);
     }
-    
-    // If the user managed to copy the example submission literally
-    if (Utils.areSimilar(message.content, `#${this.expectedSubmissionIndex} <word> (<definition>)`)) {
-      Client.autodelete(Client.warn, message, 10 * 1000,
-        'You are not meant to copy the example submission __literally__ :person_facepalming:.',
-      );
-      return;
-    }
-    
-    const [index, word, definition] = wordChainEntry.exec(message.content)!.slice(1, 4);
 
-    const number = Number(index.replace('#', ''));
-    
-    if (number !== this.expectedSubmissionIndex + 1) {
-      Client.autodelete(Client.warn, message, 10 * 1000,
-        `Your submission was expected to be number ${this.expectedSubmissionIndex}, ` + 
-        `but instead it was found with number ${number}.`,
-      );
-    }
+    this.postInstructions(message.channel);
   }
 
   async displayUsage(message: GuildMessage) {
@@ -111,6 +81,6 @@ export class WordChain extends Service {
   }
 
   get exampleSubmission(): string {
-    return `Example submission: \`#${this.expectedSubmissionIndex + 1} <word> (<definition>)\``;
+    return `Example submission: \`încotro (whither, where to)\``;
   }
 }
