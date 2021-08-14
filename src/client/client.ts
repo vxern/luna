@@ -1,4 +1,4 @@
-import { Client as DiscordClient, ClientUser, TextChannel, Message as DiscordMessage } from 'discord.js';
+import { Client as DiscordClient, ClientUser, TextChannel, Message as DiscordMessage, GuildChannel, Guild, GuildMember, Collection } from 'discord.js';
 import * as string from 'string-sanitizer';
 
 import { Embed } from './embed';
@@ -30,7 +30,8 @@ export class Client {
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
   static services: Service[] = Utils.instantiate([Presence, WordChain]);
   private commands: Command<Module>[] = [];
-  static database: Database;
+  static guilds: Guild[] = [];
+  static database: Database = new Database();
   static bot: ClientUser;
 
   /// Begin listening to events
@@ -41,19 +42,26 @@ export class Client {
       this.handleMessage(message as GuildMessage);
     });
 
-    await this.client.login(process.env.DISCORD_SECRET);
-    Client.bot = this.client.user!;
-    Client.database  = new Database(this.client.guilds.cache.find((guild) => guild.id === config.managedGuildId)!);
-    Client.menu = new DiscordMenus(this.client);
+    this.client.on('ready', async () => {
+      this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
+      Client.bot = this.client.user!;
+      Client.menu = new DiscordMenus(this.client);
 
-    Utils.initialiseServices(Client.services);
-    for (const module of Client.modules) {
-      module.name = Utils.getNameOfClass(module);
-    }
+      for (const guild of this.client.guilds.cache.values()) {
+        Client.guilds.push(await guild.fetch());
+      }
 
-    this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
+      Utils.initialiseServices(Client.services);
+      for (const module of Client.modules) {
+        module.name = Utils.getNameOfClass(module);
+      }
 
-    console.info(`Ready to serve with ${Utils.pluralise('service', Client.services.length)} and ${Utils.pluralise('command', this.commands.length)} within ${Utils.pluralise('module', Client.modules.length)}.`);
+      this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
+    
+      console.info(`Ready to serve with ${Utils.pluralise('service', Client.services.length)} and ${Utils.pluralise('command', this.commands.length)} within ${Utils.pluralise('module', Client.modules.length)}.`);
+    });
+
+    this.client.login(process.env.DISCORD_SECRET);
   }
 
   private handleMessage(message: GuildMessage) {
@@ -211,6 +219,22 @@ export class Client {
     });
   }
 
+  static async getMembers(): Promise<Collection<string, GuildMember>> {
+    const members: [string, GuildMember][] = [];
+    for (const guild of Client.guilds) {
+      members.push(...Object.entries(await guild.members.fetch()) as [string, GuildMember][]);
+    }
+    return new Collection(members);
+  }
+
+  static getChannelsByName(name: string): TextChannel[] {
+    return Client.guilds.map(
+      (guild) => guild.channels.cache.find(
+        (channel) => Utils.extractWords(channel.name).join(' ') === Utils.extractWords(name).join(' ')
+      )
+    ).filter((channel) => channel !== undefined && channel.type === 'text') as TextChannel[];
+  }
+
   static async send(textChannel: TextChannel | undefined, embed: Embed): Promise<GuildMessage | undefined> {
     if (textChannel === undefined) return;
     return textChannel.send({embed: {
@@ -249,5 +273,19 @@ export class Client {
       message: `:exclamation: ` + message,
       color: config.accentColorSevere,
     }));
+  }
+
+  /// Send an embedded message using one of the specified severities before
+  /// removing both the original message and the one posted by the user
+  static async autodelete(
+    method: (textChannel: TextChannel | undefined, message: string) => Promise<GuildMessage | undefined>,
+    originalMessage: GuildMessage,
+    timeout: number,
+    message: string,
+  ) {
+    method(originalMessage.channel, message).then((message) => {
+      originalMessage.delete({timeout: timeout}).catch();
+      message?.delete({timeout: timeout}).catch();
+    });
   }
 }
