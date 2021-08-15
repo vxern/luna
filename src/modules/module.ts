@@ -139,15 +139,21 @@ export abstract class Module {
 
       while (true) {
         await new Promise<void>(async (updateList) => {
-          const pageMessage = (await Client.send(textChannel, Embed.singleField({
-            name: !readonly ? 
-              `Browse through the list and make a selection using an index.` : 
-              'Browse through the list using the arrow buttons.',
-            value: pages[currentPage].map(
-              (entry, index) => (!readonly ? `**${index + 1}** ~ ` : '') + displayMethod(entry)
-            ).join('\n\n'),
-            inline: false,
-          })))!;
+          const selections = pages[currentPage].map(
+            (entry, index) => (!readonly ? `**${index + 1}** ~ ` : '') + displayMethod(entry)
+          ).join('\n\n');
+
+          const pageMessage = (
+            (pages.length === 1 && readonly) ?
+              await Client.info(textChannel, selections) :
+              await Client.send(textChannel, Embed.singleField({
+                name: !readonly ? 
+                  `Browse through the list and make a selection using an index.` : 
+                  'Browse through the list using the arrow buttons.',
+                value: selections,
+                inline: false,
+              }))
+          )!;
 
           if (isNotOnFirstPage()) pageMessage.react('⬅️');
           if (isNotOnLastPage()) pageMessage.react('➡️');
