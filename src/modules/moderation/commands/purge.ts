@@ -17,8 +17,8 @@ export class Purge extends Command<Moderation> {
     const numberToDelete = Utils.resolveNumber(message.channel, parameters.get('number')!);
     if (numberToDelete === null) return;
 
-    const quiet = typeof(parameters.get('quiet')) === typeof(true);
-    
+    const quiet = !!parameters.get('quiet');
+
     const iterations = Math.floor(numberToDelete! / 100);
     let deleted = 0;
     for (let iteration = 0; iteration < iterations; iteration++) {
