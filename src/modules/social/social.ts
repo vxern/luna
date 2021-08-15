@@ -1,10 +1,11 @@
-import { GuildMember, PartialGuildMember } from 'discord.js';
+import { GuildMember } from 'discord.js';
 
 import { GuildMessage } from '../../client/client';
 
 import { Document } from "../../database/structs/document";
 
 import { Praise } from './commands/praise';
+import { Profile } from './commands/profile';
 import { Module } from '../module';
 
 import { Utils } from '../../utils';
@@ -16,7 +17,7 @@ export type EmojiCollection = 'flowers' | 'plants' | 'stars';
 export class Social extends Module {
   readonly requirement = (message: GuildMessage) => Utils.isModerator(message.member!);
   readonly commandsRestricted = Utils.instantiate([], [this]);
-  readonly commandUnrestricted = Utils.instantiate([Praise], [this]);
+  readonly commandUnrestricted = Utils.instantiate([Praise, Profile], [this]);
 
   private static readonly tierThresholds = [5, 10, 20, 40, 100];
   private static readonly emojiCollections = {
