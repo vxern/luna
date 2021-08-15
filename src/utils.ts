@@ -1,4 +1,4 @@
-import { TextChannel } from 'discord.js';
+import { GuildMember, TextChannel } from 'discord.js';
 import { distance as getDistance } from 'fastest-levenshtein';
 import * as string from 'string-sanitizer';
 import { YTSearchPage } from 'ytsearcher';
@@ -199,8 +199,8 @@ export class Utils {
     return target === undefined ? undefined : Number(target);
   }
 
-  static isModerator(message: GuildMessage) {
-    return message.member?.roles.cache
+  static isModerator(member: GuildMember) {
+    return member.roles.cache
       .map((role) => role.name)
       .includes(Utils.capitaliseWords(roles.moderator)) || false
   }
@@ -208,6 +208,22 @@ export class Utils {
   /// Case-invariant 'includes' function
   static includes(left: string, right: string): boolean {
     return left.toLowerCase().includes(right.toLowerCase());
+  }
+
+  /// Generates a random number and determines whether `true`
+  /// has been rolled based on the provided probability
+  static roll(probability: number): boolean {
+    return Math.random() <= probability;
+  }
+
+  /// Convert a user's ID to a Discord in-message tag
+  static toUserTag(id: string): string {
+    return `<@${id}>`;
+  }
+
+  /// Convert a role's ID to a Discord in-message tag
+  static toRoleTag(id: string): string {
+    return `<@&${id}>`;
   }
 
   static initialiseServices(services: Service[]) {

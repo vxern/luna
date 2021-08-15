@@ -25,7 +25,7 @@ export interface BannedUser {
 }
 
 export class Moderation extends Module {
-  readonly requirement = (message: GuildMessage) => Utils.isModerator(message);
+  readonly requirement = (message: GuildMessage) => Utils.isModerator(message.member!);
   readonly commandsRestricted = Utils.instantiate([Ban, Kick, Mute, Pardon, Purge, Unban, Unmute, Warn], [this]);
   readonly commandUnrestricted = Utils.instantiate([CiteRule], [this]);
 
