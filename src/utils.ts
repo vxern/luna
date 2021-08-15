@@ -200,7 +200,7 @@ export class Utils {
   }
 
   static isModerator(member: GuildMember) {
-    return member.roles.cache
+    return member.user.bot || member.roles.cache
       .map((role) => role.name)
       .includes(Utils.capitaliseWords(roles.moderator)) || false
   }
