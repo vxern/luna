@@ -56,7 +56,7 @@ export class Info extends Command<Information> {
     const proficiencies = roles.proficiency.map((proficiency) => Utils.capitaliseWords(proficiency));
     // Obtain the tags for each of the proficiency roles
     const proficiencyTags = proficiencies.map(
-      (proficiency) => Utils.toUserTag(guild?.roles.cache.find((role) => role.name === proficiency)!.id!)
+      (proficiency) => Utils.toRoleTag(guild?.roles.cache.find((role) => role.name === proficiency)!.id!)
     );
     // Calculate the fractions that each proficiency takes up on the server
     const fractions = proficiencies.map((proficiency) => members.filter(
