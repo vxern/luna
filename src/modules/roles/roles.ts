@@ -83,6 +83,12 @@ export class Roles extends Module {
     Client.info(textChannel, message + `.  :sob:`);
   }
 
+  static getRelevantRoleCategories(member: GuildMember): [string, string[]][] {
+    return Object
+      .entries(roles)
+      .slice(3, Roles.hasProficiency(member) ? undefined : 4) as [string, string[]][];
+  }
+
   /// Check if the user already has the maximum number of ethnicity roles
   static hasEnoughEthnicityRoles(member: GuildMember): boolean {
     return member.roles.cache.filter(
