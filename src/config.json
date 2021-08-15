@@ -8,7 +8,7 @@
   "extendBanToPermanenceBeyondYears": 1,
   "maximumMuteInDays": 2,
   "warningExpiryInMonths": 2,
-  "thankIntervalInHours": 4,
+  "thankCooldownInHours": 4,
 
   "accentColorNormal": "0x5c6bc0",
   "accentColorTip": "0x8f9ef3",
