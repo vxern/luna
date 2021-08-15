@@ -1,8 +1,9 @@
+import { Client } from "../../../client/client";
+
 import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 
 import { Utils } from "../../../utils";
-import { Client } from "../../../client/client";
 
 export class Purge extends Command<Moderation> {
   readonly identifier = 'purge';
@@ -28,6 +29,6 @@ export class Purge extends Command<Moderation> {
 
     deleted += (await message.channel.bulkDelete(leftAfterBulk).catch().finally()).size;
 
-    if (!quiet) Client.info(message.channel, `${Utils.pluralise('message', deleted - 1)} have been cleared.`);
+    if (!quiet) Client.info(message.channel, `${Utils.pluralise('message has', deleted - 1, 'messages have')} been cleared.`);
   }
 }

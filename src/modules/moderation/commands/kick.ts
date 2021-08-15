@@ -5,6 +5,8 @@ import { Client } from "../../../client/client";
 import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 
+import { Utils } from "../../../utils";
+
 export class Kick extends Command<Moderation> {
   readonly identifier = 'kick';
   readonly aliases = ['exclude'];
@@ -18,7 +20,7 @@ export class Kick extends Command<Moderation> {
 
     if (member === undefined) return;
 
-    if (!member.bannable) {
+    if (Utils.isModerator(member)) {
       Client.warn(message.channel as TextChannel, 'You do not have the authority to kick this member.');
       return;
     }
@@ -28,6 +30,6 @@ export class Kick extends Command<Moderation> {
     member.kick(reason);
 
     const kickReason = reason !== undefined ? `for: ${reason}` : 'with no reason given';
-    Client.severe(message.channel as TextChannel, `**${member.user.tag}** has been kicked ${kickReason}.`);
+    Client.severe(message.channel as TextChannel, `${Utils.toUserTag(member.id)} has been kicked ${kickReason}.`);
   }
 }

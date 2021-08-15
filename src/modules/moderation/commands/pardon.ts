@@ -18,8 +18,8 @@ export class Pardon extends Command<Moderation> {
 
     if (member === undefined) return;
 
-    if (!member.bannable) {
-      Client.warn(message.channel, 'You do not have the authority to pardon this member.');
+    if (Utils.isModerator(member)) {
+      Client.warn(message.channel, `You do not have the authority to pardon ${Utils.toUserTag(member.id)}.`);
       return;
     }
 
@@ -27,7 +27,7 @@ export class Pardon extends Command<Moderation> {
       if (document === undefined) return;
 
       if (document.user.warnings.length === 0) {
-        Client.warn(message.channel, `${member.user.tag} has no warnings, and thus it is not possible to pardon them.`);
+        Client.warn(message.channel, `${Utils.toUserTag(member.id)} has no warnings, and thus it is not possible to pardon them.`);
         return;
       }
 
@@ -48,8 +48,8 @@ export class Pardon extends Command<Moderation> {
       Client.database.update(document);
 
       Client.info(message.channel, 
-        `**${member.user.tag}** has been pardoned from warning no. ${warningId}: ${reason}\n\n` +
-        `**${member.user.tag}** now has ${Utils.pluralise('warning', document.user.warnings.length)}.`
+        `${Utils.toUserTag(member.id)} has been pardoned from warning no. ${warningId}: ${reason}\n\n` +
+        `${Utils.toUserTag(member.id)} now has ${Utils.pluralise('warning', document.user.warnings.length)}.`
       );
     });
   }

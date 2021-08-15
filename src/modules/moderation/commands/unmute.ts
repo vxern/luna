@@ -3,6 +3,8 @@ import { Client } from "../../../client/client";
 import { Moderation } from "../moderation";
 import { Command, HandlingData } from "../../command";
 
+import { Utils } from "../../../utils";
+
 export class Unmute extends Command<Moderation> {
   readonly identifier = 'unmute';
   readonly aliases = ['unsilence'];
@@ -16,23 +18,23 @@ export class Unmute extends Command<Moderation> {
 
     if (member === undefined) return;
 
-    if (!member.bannable) {
+    if (Utils.isModerator(member)) {
       Client.warn(message.channel, 'You do not have the authority to mute this member.');
       return;
     }
 
     Client.database.fetchOrCreateDocument(member.user).then((document) => {
       if (!document.user.mute) {
-        Client.warn(message.channel, `**${member.user.tag}** is not muted.`);
+        Client.warn(message.channel, `${Utils.toUserTag(member.id)} is not muted.`);
         return;
       }
 
       // Hijack the expire callback, and cancel the timeout which was due to execute it
-      const [timeout, expire] = Client.database.muteTimeouts.get(member.user.id)!;
+      const [timeout, expire] = Client.database.muteTimeouts.get(member.id)!;
       clearTimeout(timeout);
       expire();
 
-      Client.info(message.channel, `**${member.user.tag}** has been unmuted.`);
+      Client.info(message.channel, `${Utils.toUserTag(member.id)} has been unmuted.`);
     });
   }
 }

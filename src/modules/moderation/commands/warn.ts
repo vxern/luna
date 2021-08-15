@@ -28,7 +28,7 @@ export class Warn extends Command<Moderation> {
       return;
     }
 
-    if (!member.bannable) {
+    if (Utils.isModerator(member)) {
       Client.warn(message.channel, 'You do not have the authority to warn this member.');
       return;
     }
@@ -60,8 +60,8 @@ export class Warn extends Command<Moderation> {
       Client.database.update(document);
 
       Client.warn(message.channel, 
-        `**${member.user.tag}** has been warned for: ${reason}\n\n` +
-        `**${member.user.tag}** now has ${Utils.pluralise('warning', numberOfWarnings)}`
+        `${Utils.toUserTag(member.id)} has been warned for: ${reason}\n\n` +
+        `${Utils.toUserTag(member.id)} now has ${Utils.pluralise('warning', numberOfWarnings)}`
       );
     });
   }

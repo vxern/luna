@@ -34,7 +34,7 @@ export class Ban extends Command<Moderation> {
 
     if (member === undefined) return;
 
-    if (!member.bannable) {
+    if (Utils.isModerator(member)) {
       Client.warn(message.channel, 'You do not have the authority to ban this member.');
       return;
     }

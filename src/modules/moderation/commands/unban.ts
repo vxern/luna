@@ -18,6 +18,6 @@ export class Unban extends Command<Moderation> {
 
     message.guild!.members.unban(banData.user);
    
-    Client.info(message.channel, `${banData.user.tag} has been unbanned.`);
+    Client.info(message.channel, `**${banData.user.tag}** has been unbanned.`);
   }
 }
