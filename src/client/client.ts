@@ -16,7 +16,7 @@ import { Social } from '../modules/social/social';
 
 import { Service } from '../services/service';
 import { Presence } from '../services/presence';
-import { MemberUpdate } from '../services/member-update';
+import { NicknameDeforgery } from '../services/nickname-deforgery';
 import { WordChain } from '../services/word-chain';
 
 import { ModifySignature, Utils } from '../utils';
@@ -29,7 +29,7 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static menu: DiscordMenus;
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
-  static services: Service[] = Utils.instantiate([Presence, MemberUpdate, WordChain]);
+  static services: Service[] = Utils.instantiate([Presence, NicknameDeforgery, WordChain]);
   private commands: Command<Module>[] = [];
   static guilds: Guild[] = [];
   static database: Database = new Database();

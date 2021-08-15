@@ -4,7 +4,7 @@ import { Social } from "../modules/social/social";
 
 import { Service } from "./service";
 
-export class MemberUpdate extends Service {
+export class NicknameDeforgery extends Service {
   async initialise() {
     // Hijack nickname updates to override them
     Client.bot.client.on('guildMemberUpdate', async (memberUnfetched) => {
