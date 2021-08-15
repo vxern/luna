@@ -8,7 +8,6 @@
   "extendBanToPermanenceBeyondYears": 1,
   "maximumMuteInDays": 2,
   "warningExpiryInMonths": 2,
-  "thankCooldownInHours": 4,
 
   "accentColorNormal": "0x5c6bc0",
   "accentColorTip": "0x8f9ef3",
@@ -23,6 +22,10 @@
 
   "roleAssignmentDelay": 1,
   "maximumRolesAtOnce": 5,
+  
+  "messageAutodeleteInSeconds": 20,
+
+  "thankCooldownInHours": 4,
 
   "itemsPerPage": 4,
   "queryTimeout": 30,

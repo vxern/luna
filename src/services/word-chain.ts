@@ -7,7 +7,7 @@ import { Service } from "./service";
 
 import config from '../config.json';
 
-const wordChainEntry = /([\w ]+) ([\[({].+[\])}])/;
+const wordChainEntry = /[\p{L}\- ]+ \([[:ascii:]]+\)( \- [\p{L}[:ascii:]]+ \([[:ascii:]]+\))?/;
 
 export class WordChain extends Service {
   wordChainChannels: TextChannel[] = [];
@@ -44,15 +44,15 @@ export class WordChain extends Service {
   }
 
   async displayUsage(message: GuildMessage) {
-    Client.autodelete(Client.warn, message, 10 * 1000,
-      'Your submission does not match the supported format.\n\n' + this.exampleSubmission,
+    Client.autodelete(Client.warn, message, config.messageAutodeleteInSeconds * 1000,
+      'Your submission does not match the supported format.' + this.exampleSubmission,
     );
   }
 
   async displayInstructions(textChannel: TextChannel) {
     Client.info(textChannel, 
       `Welcome to <#${textChannel.id}>! To participate in the game, write a ` + 
-      'word that starts with the final letter/s of the previous word.\n\n' +
+      'word that starts with the final letter/s of the previous word.' +
       this.exampleSubmission
     );
   }
@@ -76,11 +76,13 @@ export class WordChain extends Service {
       () => {
         this.displayInstructions(textChannel);
         this.instructionTimeouts.delete(textChannel.id);
-      }, 10 * 1000
+      }, config.messageAutodeleteInSeconds * 1000
     ));
   }
 
   get exampleSubmission(): string {
-    return `Example submission: \`încotro (whither, where to)\``;
+    return '\n\nExample submission: ```încotro (whither, where to)```\n' +
+      'Optionally, you may also add an example to your submission:' + 
+      '```a cunoaște (to know) - Îl cunoști? (Do you know him?)```';
   }
 }
