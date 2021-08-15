@@ -89,7 +89,7 @@ export class AssignRole extends Command<Roles> {
     }
 
     let baseMessage = `Your level is already ${
-      Roles.toTag(Roles.findRole(message.member!, roleName).id)
+      Utils.toRoleTag(Roles.findRole(message.member!, roleName).id)
     }.\n\nInstead, you may `;
     let upgradeMessage = ':arrow_double_up: upgrade to ';
     let downgradeMessage = ':arrow_double_down: downgrade to ';
@@ -164,14 +164,14 @@ export class AssignRole extends Command<Roles> {
   /// Get tags of roles which are 'better' than the given role's index
   getTagsOfProficiencyRolesBetterThan(member: GuildMember, roleIndex: number): string[] {
     return roles.proficiency.filter(
-      (_, index) => index > roleIndex).map((roleName) => Roles.toTag(Roles.findRole(member, roleName).id)
+      (_, index) => index > roleIndex).map((roleName) => Utils.toRoleTag(Roles.findRole(member, roleName).id)
     );
   }
 
   /// Get tags of roles which are 'worse' than the given role's index
   getTagsOfProficiencyRolesWorseThan(member: GuildMember, roleIndex: number): string[] {
     return roles.proficiency.filter(
-      (_, index) => index < roleIndex).map((roleName) => Roles.toTag(Roles.findRole(member, roleName).id)
+      (_, index) => index < roleIndex).map((roleName) => Utils.toRoleTag(Roles.findRole(member, roleName).id)
     );
   }
 }

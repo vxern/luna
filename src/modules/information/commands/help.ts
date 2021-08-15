@@ -3,10 +3,11 @@ import { Embed } from "../../../client/embed";
 
 import { Information } from "../information";
 import { Command, HandlingData } from "../../command";
+import { Module } from "../../module";
+
+import { Utils } from "../../../utils";
 
 import config from '../../../config.json';
-import { Utils } from "../../../utils";
-import { Module } from "../../module";
 
 export class Help extends Command<Information> {
   readonly identifier = 'help';

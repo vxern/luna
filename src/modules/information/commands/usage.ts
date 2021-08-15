@@ -4,6 +4,7 @@ import { Embed } from "../../../client/embed";
 import { Module } from "../../module";
 import { Information } from "../information";
 import { Command, HandlingData } from "../../command";
+
 import { Utils } from "../../../utils";
 
 export class Usage extends Command<Information> {

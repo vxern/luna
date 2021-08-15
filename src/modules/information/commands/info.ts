@@ -5,7 +5,6 @@ import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
 
 import { Information } from "../information";
-import { Roles } from "../../roles/roles";
 import { Command, HandlingData } from "../../command";
 
 import { Utils } from "../../../utils";
@@ -57,7 +56,7 @@ export class Info extends Command<Information> {
     const proficiencies = roles.proficiency.map((proficiency) => Utils.capitaliseWords(proficiency));
     // Obtain the tags for each of the proficiency roles
     const proficiencyTags = proficiencies.map(
-      (proficiency) => Roles.toTag(guild?.roles.cache.find((role) => role.name === proficiency)!.id!)
+      (proficiency) => Utils.toUserTag(guild?.roles.cache.find((role) => role.name === proficiency)!.id!)
     );
     // Calculate the fractions that each proficiency takes up on the server
     const fractions = proficiencies.map((proficiency) => members.filter(

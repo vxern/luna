@@ -25,7 +25,7 @@ export class Assignable extends Command<Roles> {
 
     const fields = roleCategoriesToDisplay.map(([key, value]: [string, string[]]) => {return {
       name: Utils.capitaliseWords(key),
-      value: value.map((roleName) => Roles.toTag(
+      value: value.map((roleName) => Utils.toRoleTag(
         Roles.findRole(message.member!, roleName).id)
       ).join(' '),
       inline: true,

@@ -1,4 +1,5 @@
-import { Client as DiscordClient, ClientUser, TextChannel, Message as DiscordMessage, GuildChannel, Guild, GuildMember, Collection } from 'discord.js';
+import { Client as DiscordClient, ClientUser, TextChannel, Message as DiscordMessage, Guild, GuildMember, Collection } from 'discord.js';
+import { DiscordMenus } from 'discord-menus';
 import * as string from 'string-sanitizer';
 
 import { Embed } from './embed';
@@ -11,16 +12,15 @@ import { Information } from '../modules/information/information';
 import { Moderation } from '../modules/moderation/moderation';
 import { Music } from '../modules/music/music';
 import { Roles } from '../modules/roles/roles';
+import { Social } from '../modules/social/social';
 
 import { Service } from '../services/service';
 import { Presence } from '../services/presence';
+import { WordChain } from '../services/word-chain';
 
 import { ModifySignature, Utils } from '../utils';
 
 import config from '../config.json';
-import { WordChain } from '../services/word-chain';
-import { Social } from '../modules/social/social';
-import { DiscordMenus } from 'discord-menus';
 
 export type GuildMessage = ModifySignature<DiscordMessage, {channel: TextChannel}>;
 

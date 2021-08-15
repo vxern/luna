@@ -56,7 +56,7 @@ export class Roles extends Module {
       message = `You are now a ${roleName}`;
     }
 
-    Client.info(textChannel, message + `.  :partying_face:`);
+    Client.info(textChannel, message + `.  🎉`);
   }
 
   static removeRole(textChannel: TextChannel | undefined, member: GuildMember, roleName: string) {
@@ -105,10 +105,5 @@ export class Roles extends Module {
   /// Check if the user has a proficiency role by passing its name
   static hasProficiency(member: GuildMember): boolean {
     return member.roles.cache.some((role) => roles.proficiency.includes(role.name.toLowerCase()))
-  }
-
-  /// Convert a role's ID to a Discord in-message tag
-  static toTag(id: string): string {
-    return `<@&${id}>`;
   }
 }
