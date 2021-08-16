@@ -19,7 +19,6 @@ export class Play extends Command<Music> {
   readonly aliases = ['request'];
   readonly description = 'Requests to play a song by providing a direct link to it, or by searching using keywords.';
   readonly parameters = ['song'];
-  readonly dependencies = [];
   readonly handler = this.request;
 
   readonly searcher: YTSearcher = new YTSearcher(process.env.YOUTUBE_SECRET!);

@@ -8,7 +8,6 @@ export class Unban extends Command<Moderation> {
   readonly aliases = ['unsuspend'];
   readonly description = 'Unbans a user who has been previously banned indefinitely.';
   readonly parameters = ['identifier'];
-  readonly dependencies = [];
   readonly handler = this.unban;
 
   async unban({message, parameter}: HandlingData) {

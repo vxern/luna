@@ -13,8 +13,7 @@ export class Mute extends Command<Moderation> {
   readonly identifier = 'mute';
   readonly aliases = ['silence'];
   readonly description = 'Mutes a user, effectively excluding them from interacting on the server for the duration of the mute.';
-  readonly parameters = ['identifier', 'reason', 'duration',];
-  readonly dependencies = [];
+  readonly parameters = ['identifier', 'reason', 'duration'];
   readonly handler = this.mute;
 
   async mute({message, parameters}: HandlingData) {

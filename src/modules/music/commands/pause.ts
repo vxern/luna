@@ -9,11 +9,10 @@ export class Pause extends Command<Music> {
   readonly aliases = ['stop', 'halt'];
   readonly description = 'Pauses the song indefinitely.';
   readonly parameters = [];
-  readonly dependencies = [Unpause];
   readonly handler = this.pause;
 
   /// Pauses or unpauses the song playing
-  async pause({message, dependencies}: HandlingData) {
+  async pause({message}: HandlingData) {
     if (!this.module.isPlaying) {
       Client.warn(message.channel, 'There is no song to pause.');
       return;
@@ -26,7 +25,7 @@ export class Pause extends Command<Music> {
     }
 
     if (this.module.voiceConnection?.dispatcher.paused) {
-      dependencies.get('Unpause').unpause({message: message});
+      Client.commands.get(Unpause).unpause({message: message});
       return;
     }
 

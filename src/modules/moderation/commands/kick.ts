@@ -12,7 +12,6 @@ export class Kick extends Command<Moderation> {
   readonly aliases = ['exclude'];
   readonly description = 'Kicks a user from the server.';
   readonly parameters = ['identifier', 'optional: reason'];
-  readonly dependencies = [];
   readonly handler = this.kick;
 
   async kick({message, parameters}: HandlingData) {

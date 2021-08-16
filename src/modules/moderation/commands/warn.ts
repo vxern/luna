@@ -18,10 +18,9 @@ export class Warn extends Command<Moderation> {
   readonly aliases = [];
   readonly description = 'Warns a user.';
   readonly parameters = ['identifier', 'reason'];
-  readonly dependencies = [Ban];
   readonly handler = this.warn;
 
-  async warn({message, dependencies, parameters}: HandlingData) {
+  async warn({message, parameters}: HandlingData) {
     const member = await Moderation.resolveMember(message, parameters.get('identifier')!);
 
     if (member === undefined) {
@@ -39,7 +38,7 @@ export class Warn extends Command<Moderation> {
       const numberOfWarnings = document.user.warnings.length + 1;
 
       if (numberOfWarnings === 3) {
-        dependencies.get('Ban').ban({
+        Client.commands.get(Ban).ban({
           message: message,
           parameters: new Map([
             ['identifier', member.id],

@@ -14,7 +14,6 @@ export class Help extends Command<Information> {
   readonly aliases = ['commands'];
   readonly description = 'Displays a menu which explains how to use the bot and lists the available modules.';
   readonly parameters = ['optional: module'];
-  readonly dependencies = [];
   readonly handler = this.help;
 
   async help({message, parameter}: HandlingData) {

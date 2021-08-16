@@ -10,7 +10,6 @@ export class Unmute extends Command<Moderation> {
   readonly aliases = ['unsilence'];
   readonly description = 'Unmutes a user, allowing them to interact on the server again.';
   readonly parameters = ['identifier'];
-  readonly dependencies = [];
   readonly handler = this.unmute;
 
   async unmute({message, parameter}: HandlingData) {

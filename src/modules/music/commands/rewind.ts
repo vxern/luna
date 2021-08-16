@@ -3,7 +3,6 @@ import { Client } from "../../../client/client";
 import { Music } from "../music";
 import { Command, HandlingData } from "../../command";
 import { Replay } from "./replay";
-import { Play } from "./play";
 
 import { Utils } from "../../../utils";
 
@@ -12,11 +11,10 @@ export class Rewind extends Command<Music> {
   readonly aliases = [];
   readonly description = 'Rewinds the song by a specified amount of time';
   readonly parameters = ['time'];
-  readonly dependencies = [Replay, Play];
   readonly handler = this.rewind;
   
   /// Rewinds the song by a given number of seconds
-  async rewind({message, dependencies, parameter}: HandlingData) {
+  async rewind({message, parameter}: HandlingData) {
     const seconds = this.module.resolveTimeQuery(
       message.channel, 
       parameter!,
@@ -57,6 +55,6 @@ export class Rewind extends Command<Music> {
       `${this.module.runningTimeAsString()}`,
     );
 
-    dependencies.get('Replay').replay({message: message, dependencies: dependencies});
+    Client.commands.get(Replay).replay({message: message});
   }
 }

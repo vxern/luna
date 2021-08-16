@@ -11,7 +11,6 @@ export class Remove extends Command<Music> {
   readonly aliases = ['delete'];
   readonly description = 'Removes a song from the list of queued songs.';
   readonly parameters = ['position'];
-  readonly dependencies = [];
   readonly handler = this.remove;
 
   /// Removes a song from queue, taking its index

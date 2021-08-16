@@ -8,7 +8,6 @@ export class Unpause extends Command<Music> {
   readonly aliases = ['resume', 'start'];
   readonly description = 'Unpauses the currently paused song.';
   readonly parameters = [];
-  readonly dependencies = [];
   readonly handler = this.unpause;
 
   /// Resumes the song playing

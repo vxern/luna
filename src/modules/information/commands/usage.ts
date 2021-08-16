@@ -12,7 +12,6 @@ export class Usage extends Command<Information> {
   readonly aliases = [];
   readonly description = 'Displays useful information about a command such as its aliases and usage.';
   readonly parameters = ['command'];
-  readonly dependencies = [];
   readonly handler = this.usage;
 
   async usage({message, parameter}: HandlingData) {

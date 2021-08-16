@@ -10,7 +10,6 @@ export class Pardon extends Command<Moderation> {
   readonly aliases = ['unwarn'];
   readonly description = `Pardons a user by removing a warning they've previously received.`;
   readonly parameters = ['identifier', 'id'];
-  readonly dependencies = [];
   readonly handler = this.pardon;
 
   async pardon({message, parameters}: HandlingData) {

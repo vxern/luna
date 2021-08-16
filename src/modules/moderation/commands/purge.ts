@@ -10,7 +10,6 @@ export class Purge extends Command<Moderation> {
   readonly aliases = ['delete'];
   readonly description = 'Deletes a specified number of messages from a channel.';
   readonly parameters = ['number', 'optional: quiet'];
-  readonly dependencies = [];
   readonly handler = this.purge;
 
   async purge({message, parameters}: HandlingData) {

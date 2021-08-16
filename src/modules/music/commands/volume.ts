@@ -12,7 +12,6 @@ export class Volume extends Command<Music> {
   readonly aliases = ['vol'];
   readonly description = 'Changes the volume of the playback of songs.';
   readonly parameters = ['volume'];
-  readonly dependencies = [];
   readonly handler = this.volume;
 
   /// Changes the song's volume

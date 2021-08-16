@@ -16,7 +16,6 @@ export class Profile extends Command<Social> {
   readonly aliases = [];
   readonly description = 'Displays useful information about the user.';
   readonly parameters = [];
-  readonly dependencies = [];
   readonly handler = this.thank;
 
   async thank({message}: HandlingData) {

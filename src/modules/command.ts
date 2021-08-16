@@ -7,7 +7,6 @@ import config from '../config.json';
 
 export interface HandlingData {
   message: GuildMessage;
-  dependencies: Map<string, any>;
   parameters: Map<string, string>;
   parameter: string;
 }
@@ -20,8 +19,6 @@ export abstract class Command<T extends Module> {
   abstract readonly description: string;
   /// Arguments and parameters this command takes
   abstract readonly parameters: string[];
-  /// Which other command's functionality this command requires
-  abstract readonly dependencies: any[];
   /// What should happen when a user writes a command's alias
   abstract readonly handler: ({}: HandlingData) => Promise<void>;
 

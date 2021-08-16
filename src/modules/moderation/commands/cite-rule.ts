@@ -13,7 +13,6 @@ export class CiteRule extends Command<Moderation> {
   readonly aliases = ['rules', 'cite'];
   readonly description = 'Cites a rule by taking its number / index.';
   readonly parameters = ['rule'];
-  readonly dependencies = [];
   readonly handler = this.citeRule;
 
   async citeRule({message, parameter}: HandlingData) {

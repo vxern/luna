@@ -20,7 +20,6 @@ export class Info extends Command<Information> {
     and what percentage of the server's userbase each proficiency role makes up.
   `;
   readonly parameters = [];
-  readonly dependencies = [];
   readonly handler = this.info;
 
   /// Displays an informational menu

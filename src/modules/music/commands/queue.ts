@@ -9,7 +9,6 @@ export class Queue extends Command<Music> {
   readonly aliases = ['songs', 'songqueue', 'upcoming'];
   readonly description = 'Displays a list of queued songs.';
   readonly parameters = [];
-  readonly dependencies = [];
   readonly handler = this.displayQueue;
 
   /// Displays the current song queue

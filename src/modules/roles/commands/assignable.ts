@@ -15,7 +15,6 @@ export class Assignable extends Command<Roles> {
   readonly aliases = ['role', 'rolelist', 'assignable'];
   readonly description = 'Displays a list of assignable roles.';
   readonly parameters = [];
-  readonly dependencies = [];
   readonly handler = this.displayAssignableRoles;
 
   async displayAssignableRoles({message}: HandlingData) {

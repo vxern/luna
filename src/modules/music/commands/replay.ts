@@ -9,11 +9,10 @@ export class Replay extends Command<Music> {
   readonly aliases = ['restart'];
   readonly description = 'Begins playing the song from the start.';
   readonly parameters = [];
-  readonly dependencies = [Play];
   readonly handler = this.replay;
 
   /// Restarts the current running song
-  async replay({message, dependencies}: HandlingData) {
+  async replay({message}: HandlingData) {
     if (this.module.currentSong === undefined) {
       Client.warn(message.channel, 'There is no song to replay.');
       return;
@@ -33,6 +32,6 @@ export class Replay extends Command<Music> {
     }
 
     this.module.currentSong = undefined;
-    dependencies.get('Play').play(message.channel, undefined, false);
+    Client.commands.get(Play).play(message.channel, undefined, false);
   }
 }

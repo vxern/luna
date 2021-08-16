@@ -9,11 +9,10 @@ export class Skip extends Command<Music> {
   readonly aliases = ['next'];
   readonly description = 'Plays the next song in the list of queued songs.';
   readonly parameters = [];
-  readonly dependencies = [Play];
   readonly handler = this.skip;
 
   /// Plays the next song
-  async skip({message, dependencies}: HandlingData) {
+  async skip({message}: HandlingData) {
     if (!this.module.isPlaying) {
       Client.warn(message.channel, 'There is no song to skip.');
       return;
@@ -28,6 +27,6 @@ export class Skip extends Command<Music> {
 
     Client.info(message.channel, `Skipped '${this.module.currentSong!.title}'.`);
 
-    dependencies.get('Play').play(message.channel);
+    Client.commands.get(Play).play(message.channel);
   }
 }

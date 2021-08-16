@@ -9,7 +9,6 @@ export class History extends Command<Music> {
   readonly aliases = ['past', 'played'];
   readonly description = 'Displays a list of previously played songs.';
   readonly parameters = [];
-  readonly dependencies = [];
   readonly handler = this.displayHistory;
 
   /// Displays the history of songs played

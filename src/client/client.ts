@@ -14,11 +14,6 @@ import { Music } from '../modules/music/music';
 import { Roles } from '../modules/roles/roles';
 import { Social } from '../modules/social/social';
 
-import { Service } from '../modules/service';
-import { Presence } from '../modules/information/services/presence';
-import { NicknameDeforgery } from '../modules/social/services/nickname-deforgery';
-import { WordChain } from '../modules/social/services/word-chain';
-
 import { ModifySignature, Utils } from '../utils';
 
 import config from '../config.json';
@@ -29,7 +24,8 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static menu: DiscordMenus;
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
-  private commands: Command<Module>[] = [];
+  static commands: Map<unknown, any> = new Map();
+  private commandsArray!: Command<Module>[];
   static guilds: Guild[] = [];
   static database: Database = new Database();
   static bot: ClientUser;
@@ -53,12 +49,17 @@ export class Client {
       for (const module of Client.modules) {
         module.name = Utils.getNameOfClass(module);
       }
-    
-      this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
+
+      Client.modules.forEach((module) => {
+        module.commandsAll.forEach((command) => {
+          Client.commands.set(typeof command, command);
+        });
+      });
+      this.commandsArray = Array.from(Client.commands.values()) as Command<Module>[];
 
       Client.modules.forEach((module) => module.services.forEach((service) => service.initialise()));
 
-      const numberOfCommands = this.commands.length;
+      const numberOfCommands = Client.commands.size;
       const numberOfServices = Client.modules.map((module) => module.services.length).reduce((a, b) => a + b);
       const numberOfModules = Client.modules.length;
 
@@ -110,7 +111,7 @@ export class Client {
       return isIdentifier || isAlias || isSingletonCommand;
     }
 
-    const matchedCommand = this.commands.find(commandMatchesQuery);
+    const matchedCommand = this.commandsArray.find(commandMatchesQuery);
 
     if (matchedCommand === undefined) {
       Client.warn(message.channel, 'Unknown command.');
@@ -208,19 +209,8 @@ export class Client {
 
     const firstArgument = args.values().next().value ?? (parametersParsable.length === 0 ? message.content : undefined);
 
-    const neededDependencies = matchedCommand.dependencies.map((dependency) => Utils.getNameOfClass(dependency));
-    const foundDependencies = neededDependencies.map(
-      (dependency) => [dependency, 
-        this.commands.find(
-          (command) => Utils.getNameOfClass(command) === dependency
-        )
-      ]
-    ).filter(([_, value]) => value !== undefined) as [string, Command<Module>][];
-    const dependencies = new Map(foundDependencies);
-
     matchedCommand.handler({
       message: message, 
-      dependencies: dependencies,
       parameters: args,
       parameter: firstArgument,
     });

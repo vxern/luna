@@ -14,6 +14,8 @@ import { Unban } from './commands/unban';
 import { Unmute } from './commands/unmute';
 import { Warn } from './commands/warn';
 
+import { AntiFlood } from './services/anti-flood';
+
 import { Utils } from '../../utils';
 
 const userTag = /<@!?.+>/;
@@ -28,6 +30,7 @@ export class Moderation extends Module {
   readonly requirement = (message: GuildMessage) => Utils.isModerator(message.member!);
   readonly commandsRestricted = Utils.instantiate([Ban, Kick, Mute, Pardon, Purge, Unban, Unmute, Warn], [this]);
   readonly commandUnrestricted = Utils.instantiate([CiteRule], [this]);
+  readonly services = Utils.instantiate([AntiFlood], [this]);
 
   /// Takes an identifier in the form of a full tag, a username or an ID and
   /// finds the member bearing it

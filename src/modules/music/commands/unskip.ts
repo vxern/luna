@@ -9,11 +9,10 @@ export class Unskip extends Command<Music> {
   readonly aliases = ['previous'];
   readonly description = 'Plays the last played song.';
   readonly parameters = [];
-  readonly dependencies = [Play];
   readonly handler = this.unskip;
   
   /// Plays the last song
-  async unskip({message, dependencies}: HandlingData) {
+  async unskip({message}: HandlingData) {
     if (this.module.history.length === 0) {
       Client.warn(message.channel, 'There are no song listings in the history.');
       return;
@@ -36,6 +35,6 @@ export class Unskip extends Command<Music> {
     listingToUnskip.songManagers = this.module.usersPresent();
     this.module.queue.unshift(listingToUnskip);
 
-    dependencies.get('Play').play(message.channel);
+    Client.commands.get(Play).play(message.channel);
   }
 }

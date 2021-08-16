@@ -17,7 +17,6 @@ export class Praise extends Command<Social> {
   readonly description = 'Praises a user for their contribution/s. ' + 
     `This command can only be used once every ${Utils.pluralise('hour', config.thankCooldownInHours)}.`;
   readonly parameters = ['user', 'optional: for'];
-  readonly dependencies = [];
   readonly handler = this.thank;
 
   async thank({message, parameters}: HandlingData) {
