@@ -1,10 +1,10 @@
-import { GuildMember } from "discord.js";
-import { Client } from "../client/client";
-import { Social } from "../modules/social/social";
+import { Client } from "../../../client/client";
 
-import { Service } from "./service";
+import { Service } from "../../service";
 
-export class NicknameDeforgery extends Service {
+import { Social } from "../social";
+
+export class NicknameDeforgery extends Service<Social> {
   async initialise() {
     // Hijack nickname updates to override them
     Client.bot.client.on('guildMemberUpdate', async (memberUnfetched) => {

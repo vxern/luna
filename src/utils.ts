@@ -5,7 +5,7 @@ import { YTSearchPage } from 'ytsearcher';
 
 import { Client, GuildMessage } from './client/client';
 
-import { Service } from './services/service';
+import { Service } from './modules/service';
 
 import roles from './roles.json';
 

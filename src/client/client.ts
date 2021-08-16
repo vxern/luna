@@ -14,10 +14,10 @@ import { Music } from '../modules/music/music';
 import { Roles } from '../modules/roles/roles';
 import { Social } from '../modules/social/social';
 
-import { Service } from '../services/service';
-import { Presence } from '../services/presence';
-import { NicknameDeforgery } from '../services/nickname-deforgery';
-import { WordChain } from '../services/word-chain';
+import { Service } from '../modules/service';
+import { Presence } from '../modules/information/services/presence';
+import { NicknameDeforgery } from '../modules/social/services/nickname-deforgery';
+import { WordChain } from '../modules/social/services/word-chain';
 
 import { ModifySignature, Utils } from '../utils';
 

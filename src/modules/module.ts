@@ -8,6 +8,7 @@ import { Command, HandlingData } from "./command";
 import { Utils } from "../utils";
 
 import config from '../config.json';
+import { Service } from "./service";
 
 type TimeDescriptor = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
 
@@ -20,6 +21,8 @@ export abstract class Module {
   readonly commandsRestricted: Command<Module>[] = [];
   /// Commands which are not affected by this module's requirement
   readonly commandUnrestricted: Command<Module>[] = [];
+  /// Services employed by this module
+  readonly services: Service<Module>[] = [];
   /// Getter for all commands contained within 
   get commandsAll(): Command<Module>[] {
     return [...this.commandsRestricted, ...this.commandUnrestricted];

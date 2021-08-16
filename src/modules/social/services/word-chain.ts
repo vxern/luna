@@ -1,17 +1,20 @@
 import { TextChannel } from 'discord.js';
 
-import { Client, GuildMessage } from "../client/client";
-import { Utils } from "../utils";
+import { Client, GuildMessage } from "../../../client/client";
 
-import { Service } from "./service";
+import { Service } from "../../service";
 
-import config from '../config.json';
+import { Social } from '../social';
+
+import { Utils } from "../../../utils";
+
+import config from '../../../config.json';
 
 const wordChainEntry = /[\p{L}\- ]+ \([[:ascii:]]+\)( \- [\p{L}[:ascii:]]+ \([[:ascii:]]+\))?/;
 
-export class WordChain extends Service {
-  wordChainChannels: TextChannel[] = [];
-  instructionTimeouts: Map<string, NodeJS.Timeout> = new Map();
+export class WordChain extends Service<Social> {
+  private wordChainChannels: TextChannel[] = [];
+  private instructionTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   async initialise() {
     Client.bot.client.on('message', (message) => {

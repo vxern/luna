@@ -1,8 +1,9 @@
-import { Client } from "../client/client";
+import { Client } from "../../../client/client";
 
-import { Service } from "./service";
+import { Service } from "../../service";
 
-import config from '../config.json';
+import config from '../../../config.json';
+import { Information } from "../information";
 
 const repositoryLink = `https://github.com/vxern/${config.alias}`;
 const statuses: Array<string> = [
@@ -12,7 +13,7 @@ const statuses: Array<string> = [
   `Look up a word using '${config.alias} word <word>'`,
 ];
 
-export class Presence extends Service {
+export class Presence extends Service<Information> {
   private currentStatus: number = 0;
 
   async initialise() {

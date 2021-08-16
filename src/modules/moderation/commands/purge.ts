@@ -17,18 +17,18 @@ export class Purge extends Command<Moderation> {
     const numberToDelete = Utils.resolveNumber(message.channel, parameters.get('number')!);
     if (numberToDelete === null) return;
 
-    const quiet = !!parameters.get('quiet');
-
     const iterations = Math.floor(numberToDelete! / 100);
     let deleted = 0;
     for (let iteration = 0; iteration < iterations; iteration++) {
       deleted += (await message.channel.bulkDelete(100)).size;
     }
 
-    const leftAfterBulk = numberToDelete! - 100 * iterations + 1;
+    const leftAfterBulkDeletion = numberToDelete! - 100 * iterations + 1;
 
-    deleted += (await message.channel.bulkDelete(leftAfterBulk).catch().finally()).size;
+    deleted += (await message.channel.bulkDelete(leftAfterBulkDeletion).catch().finally()).size;
 
-    if (!quiet) Client.info(message.channel, `${Utils.pluralise('message has', deleted - 1, 'messages have')} been cleared.`);
+    if (!parameters.get('quiet')) {
+      Client.info(message.channel, `${Utils.pluralise('message has', deleted - 1, 'messages have')} been cleared.`);
+    }
   }
 }

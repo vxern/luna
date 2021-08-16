@@ -1,19 +1,15 @@
-import { Client, GuildMessage } from "../../../client/client";
+import moment from "moment";
+
+import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
 
-import { Praise as DatabasePraise } from '../../../database/structs/praise';
+import { Document } from "../../../database/structs/document";
 
-import { Moderation } from "../../moderation/moderation";
-import { Social } from "../social";
 import { Command, HandlingData } from "../../command";
 
-import { Utils } from "../../../utils";
+import { Social } from "../social";
 
-import config from '../../../config.json';
-import moment from "moment";
-import { GuildMember } from "discord.js";
-import { Roles } from "../../roles/roles";
-import { Document } from "../../../database/structs/document";
+import { Utils } from "../../../utils";
 
 export class Profile extends Command<Social> {
   readonly identifier = 'profile';
