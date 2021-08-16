@@ -29,7 +29,6 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static menu: DiscordMenus;
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
-  static services: Service[] = Utils.instantiate([Presence, NicknameDeforgery, WordChain]);
   private commands: Command<Module>[] = [];
   static guilds: Guild[] = [];
   static database: Database = new Database();
@@ -44,7 +43,6 @@ export class Client {
     });
 
     this.client.on('ready', async () => {
-      this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
       Client.bot = this.client.user!;
       Client.menu = new DiscordMenus(this.client);
 
@@ -52,14 +50,22 @@ export class Client {
         Client.guilds.push(await guild.fetch());
       }
 
-      Utils.initialiseServices(Client.services);
       for (const module of Client.modules) {
         module.name = Utils.getNameOfClass(module);
       }
-
-      this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
     
-      console.info(`Ready to serve with ${Utils.pluralise('service', Client.services.length)} and ${Utils.pluralise('command', this.commands.length)} within ${Utils.pluralise('module', Client.modules.length)}.`);
+      this.commands = ([] as Command<Module>[]).concat(...Client.modules.map((module) => module.commandsAll));
+
+      Client.modules.forEach((module) => module.services.forEach((service) => service.initialise()));
+
+      const numberOfCommands = this.commands.length;
+      const numberOfServices = Client.modules.map((module) => module.services.length).reduce((a, b) => a + b);
+      const numberOfModules = Client.modules.length;
+
+      console.info(
+        `Ready to serve with ${Utils.pluralise('service', numberOfServices)} ` + 
+        `and ${Utils.pluralise('command', numberOfCommands)} within ${Utils.pluralise('module', numberOfModules)}.`
+      );
     });
 
     this.client.login(process.env.DISCORD_SECRET);

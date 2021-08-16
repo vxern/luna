@@ -7,6 +7,5 @@ export abstract class Service<T extends Module> {
 
   constructor(module: T) {
     this.module = module;
-    this.initialise();
   }
 }

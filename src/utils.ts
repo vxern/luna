@@ -225,8 +225,4 @@ export class Utils {
   static toRoleTag(id: string): string {
     return `<@&${id}>`;
   }
-
-  static initialiseServices(services: Service[]) {
-    services.forEach((service) => service.initialise());
-  }
 }
