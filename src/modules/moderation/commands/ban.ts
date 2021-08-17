@@ -9,7 +9,7 @@ export class Ban extends Command<Moderation> {
   readonly identifier = 'ban';
   readonly aliases = ['banish', 'suspend', 'exile'];
   readonly description = `Bans a user indefinitely, and optionally deletes the user's message history up to 7 days`;
-  readonly parameters = ['identifier', 'optional: days', 'optional: reason'];
+  readonly parameters = ['identifier', 'optional: reason', 'optional: days'];
   readonly handler = this.ban;
 
   async ban({message, parameters}: HandlingData) {
