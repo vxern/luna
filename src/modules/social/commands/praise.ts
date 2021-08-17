@@ -53,8 +53,6 @@ export class Praise extends Command<Social> {
       return;
     }
 
-    message?.delete({timeout: config.messageAutodeleteInSeconds * 1000});
-
     caster.user.cannotPraiseUntil = now.add(config.thankCooldownInHours, 'hours');
 
     const praise = new DatabasePraise({author: caster.user.id, for: parameters.get('for')});
@@ -69,9 +67,7 @@ export class Praise extends Command<Social> {
       praiseMessage += Social.displayEmojiInstructions();
     }
 
-    Client.info(message.channel, praiseMessage).then((message) => {
-      message?.delete({timeout: config.messageAutodeleteInSeconds * 1000});
-    });
+    Client.info(message.channel, praiseMessage);
 
     Social.assignEmoji(target, member);
 
@@ -85,9 +81,7 @@ export class Praise extends Command<Social> {
       Client.info(message.channel, 
         `BONUS! ${Utils.toUserTag(message.author.id)} has also been praised for social interaction!  🎉\n\n` +
         Social.displayNumberOfPraises(caster)
-      ).then((message) => {
-        message?.delete({timeout: config.messageAutodeleteInSeconds * 1000});
-      });
+      );
 
       Social.assignEmoji(caster, member);
     }
