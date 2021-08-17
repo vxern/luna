@@ -63,7 +63,7 @@ export class Moderation extends Module {
       return;
     }
 
-    const membersFound = members.filter((member) => Utils.includes(member.user.username + member.displayName, parameter));
+    const membersFound = members.filter((member) => Utils.includes(member.user.tag + member.displayName, parameter));
 
     if (membersFound.size === 0) {
       Client.warn(message.channel, `No members with the username '${parameter}' found.`);
@@ -94,7 +94,7 @@ export class Moderation extends Module {
       return bans.find((data) => data.user.tag === parameter);
     }
 
-    const usersFound = bans.filter((ban) => Utils.includes(ban.user.username, parameter));
+    const usersFound = bans.filter((ban) => Utils.includes(ban.user.tag, parameter));
 
     if (usersFound.length === 0) {
       Client.warn(message.channel, `No banned users with the username '${parameter}' found.`);
