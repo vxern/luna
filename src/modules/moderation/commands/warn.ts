@@ -38,7 +38,7 @@ export class Warn extends Command<Moderation> {
       const numberOfWarnings = document.user.warnings.length + 1;
 
       if (numberOfWarnings === 3) {
-        Client.commands.get(Ban).ban({
+        Client.commands.get('Ban').ban({
           message: message,
           parameters: new Map([
             ['identifier', member.id],

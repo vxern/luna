@@ -211,10 +211,11 @@ export class Database {
   async expireMute(referenceToMutedDocument: string, document: Document) {
     document.user.mute = null;
     this.update(document);
+    
     this.dispatchQuery($.Delete(referenceToMutedDocument));
+
     const member = (await Moderation.resolveMember(undefined, document.user.id))!;
     Roles.removeRole(undefined, member, 'muted');
-    console.debug('Stopped');
   }
   
   /// Increment the [target's] number of [thanks] and [caster's] [lastThanked] list with target

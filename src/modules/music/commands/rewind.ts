@@ -55,6 +55,6 @@ export class Rewind extends Command<Music> {
       `${this.module.runningTimeAsString()}`,
     );
 
-    Client.commands.get(Replay).replay({message: message});
+    Client.commands.get('Replay').replay({message: message});
   }
 }

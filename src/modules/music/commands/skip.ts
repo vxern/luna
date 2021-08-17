@@ -27,6 +27,6 @@ export class Skip extends Command<Music> {
 
     Client.info(message.channel, `Skipped '${this.module.currentSong!.title}'.`);
 
-    Client.commands.get(Play).play(message.channel);
+    Client.commands.get('Play').play(message.channel);
   }
 }

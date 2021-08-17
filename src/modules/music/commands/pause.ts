@@ -25,7 +25,7 @@ export class Pause extends Command<Music> {
     }
 
     if (this.module.voiceConnection?.dispatcher.paused) {
-      Client.commands.get(Unpause).unpause({message: message});
+      Client.commands.get('Unpause').unpause({message: message});
       return;
     }
 

@@ -32,6 +32,6 @@ export class Replay extends Command<Music> {
     }
 
     this.module.currentSong = undefined;
-    Client.commands.get(Play).play(message.channel, undefined, false);
+    Client.commands.get('Play').play(message.channel, undefined, false);
   }
 }

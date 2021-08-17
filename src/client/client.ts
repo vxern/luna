@@ -24,7 +24,7 @@ export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static menu: DiscordMenus;
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
-  static commands: Map<unknown, any> = new Map();
+  static commands: Map<string, any> = new Map();
   private commandsArray!: Command<Module>[];
   static guilds: Guild[] = [];
   static database: Database = new Database();
@@ -52,7 +52,7 @@ export class Client {
 
       Client.modules.forEach((module) => {
         module.commandsAll.forEach((command) => {
-          Client.commands.set(typeof command, command);
+          Client.commands.set(Utils.getNameOfClass(command), command);
         });
       });
       this.commandsArray = Array.from(Client.commands.values()) as Command<Module>[];
@@ -213,15 +213,16 @@ export class Client {
       message: message, 
       parameters: args,
       parameter: firstArgument,
+      quiet: false,
     });
   }
 
   static async getMembers(): Promise<Collection<string, GuildMember>> {
-    const members: [string, GuildMember][] = [];
+    const members = [];
     for (const guild of Client.guilds) {
-      members.push(...Object.entries(await guild.members.fetch()) as [string, GuildMember][]);
+      members.push(await guild.members.fetch());
     }
-    return new Collection(members);
+    return new Collection<string, GuildMember>().concat(...members);
   }
 
   static getChannelsByName(name: string): TextChannel[] {
@@ -232,8 +233,8 @@ export class Client {
     ).filter((channel) => channel !== undefined && channel.type === 'text') as TextChannel[];
   }
 
-  static async send(textChannel: TextChannel | undefined, embed: Embed): Promise<GuildMessage | undefined> {
-    if (textChannel === undefined) return;
+  static async send(textChannel: TextChannel | undefined, embed: Embed, quiet: boolean = false): Promise<GuildMessage | undefined> {
+    if (textChannel === undefined || quiet) return;
     return textChannel.send({embed: {
       title: embed.title,
       thumbnail: {url: embed.thumbnail},
@@ -244,24 +245,24 @@ export class Client {
   }
 
   /// Send an embedded message with an informational message
-  static async info(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
-    return Client.send(textChannel, new Embed({message: message}));
+  static async info(textChannel: TextChannel | undefined, message: string, quiet: boolean = false): Promise<GuildMessage | undefined> {
+    return Client.send(textChannel, new Embed({message: message}), quiet);
   }
 
   /// Send an embedded message with a warning
-  static async warn(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
+  static async warn(textChannel: TextChannel | undefined, message: string, quiet: boolean = false): Promise<GuildMessage | undefined> {
     return Client.send(textChannel, new Embed({
       message: `:warning: ` + message,
       color: config.accentColorWarning,
-    }));
+    }), quiet);
   }
 
   /// Send an embedded message with an error
-  static async severe(textChannel: TextChannel | undefined, message: string): Promise<GuildMessage | undefined> {
+  static async severe(textChannel: TextChannel | undefined, message: string, quiet: boolean = false): Promise<GuildMessage | undefined> {
     return Client.send(textChannel, new Embed({
       message: `:exclamation: ` + message,
       color: config.accentColorSevere,
-    }));
+    }), quiet);
   }
 
   /// Send an embedded message using one of the specified severities before

@@ -9,6 +9,7 @@ export interface HandlingData {
   message: GuildMessage;
   parameters: Map<string, string>;
   parameter: string;
+  quiet: boolean;
 }
 
 export abstract class Command<T extends Module> {

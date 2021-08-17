@@ -16,11 +16,11 @@ export class Mute extends Command<Moderation> {
   readonly parameters = ['identifier', 'reason', 'duration'];
   readonly handler = this.mute;
 
-  async mute({message, parameters}: HandlingData) {
+  async mute({message, parameters, quiet}: HandlingData) {
     const seconds = this.module.resolveTimeQuery(
-      message.channel, 
+      message.channel,
       parameters.get('duration')!,
-      ['minute', 'hour', 'day'],
+      ['second', 'minute', 'hour', 'day'],
       'second',
     );
 
@@ -37,9 +37,12 @@ export class Mute extends Command<Moderation> {
 
     Client.database.fetchOrCreateDocument(member.user).then((document) => {
       if (!!document.user.mute) {
-        Client.warn(message.channel, 
+        Client.warn(
+          message.channel, 
           `${Utils.toUserTag(member.id)} is already muted.\n\n` + 
-          `Their mute expires ${document.user.mute!.expiresAt.fromNow()}.`);
+          `Their mute expires ${document.user.mute!.expiresAt.fromNow()}.`,
+          quiet
+        );
         return;
       }
 
@@ -52,7 +55,11 @@ export class Mute extends Command<Moderation> {
         expiresAt: expiresAt,
       }));
 
-      Client.severe(message.channel, `**${member.user.tag}** has been muted, and will be unmuted ${expiresAt.fromNow()}.`);
+      Client.severe(
+        message.channel, 
+        `**${member.user.tag}** has been muted, and will be unmuted ${expiresAt.fromNow()}.`,
+        quiet
+      );
     });
   }
 }
