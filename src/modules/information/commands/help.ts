@@ -1,3 +1,5 @@
+import { exec } from "child_process";
+
 import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
 
@@ -11,27 +13,34 @@ import config from '../../../config.json';
 
 export class Help extends Command<Information> {
   readonly identifier = 'help';
-  readonly aliases = ['commands'];
+  readonly aliases = [];
   readonly description = 'Displays a menu which explains how to use the bot and lists the available modules.';
   readonly parameters = ['optional: module'];
   readonly handler = this.help;
 
   async help({message, parameter}: HandlingData) {
+    const [numberOfFiles, linesOfCode] = await new Promise((resolve) => {
+      exec('yarn cloc src --include-lang=TypeScript --json', (_, stdout) => {
+        const json = JSON.parse(stdout.split('\n').slice(2).join('\n'));
+        resolve([json.SUM.nFiles, json.SUM.code]);
+      });
+    });
+
     if (parameter === undefined) {
       Client.send(message.channel, new Embed({
         title: 'Help Menu',
+        thumbnail: Client.bot.displayAvatarURL(),
         fields: [{
-          name: 'How to use the bot',
-          value: 'Beside is a list of modules which are available for the user to use. ' + 
-                 `To get the full list of commands for a specific module, use: ${Utils.toCode(`${config.alias} help [module]`)}\n` +
-                 `To get information on how to use a specific command, use: ${Utils.toCode(`${config.alias} usage [command]`)}`,
-          inline: true,
+          name: 'Information',
+          value: 
+            `I am **${Utils.capitaliseWords(config.alias)}** - a custom bot written in **TypeScript** ` + 
+            `by ${Utils.toUserTag('217319536485990400')}. I span **${numberOfFiles}** files and **${linesOfCode}** lines of code.`,
+          inline: false,
         }, {
-          name: 'Available Modules',
-          value: Client.modules.map((module) => `${module.name} ~ [${
-            module.commandsAll.slice(0, 3).map((command) => command.caller).join(', ')
-          }, ...]`).join('\n'),
-          inline: true,
+          name: 'How to use the bot',
+          value: `To get a list of commands, use: ${Utils.toCode(`${config.alias} modules`)}\n` +
+                 `To get information on how to use a specific command, use: ${Utils.toCode(`${config.alias} usage [command]`)}`,
+          inline: false,
         }]
       }));
       return;
@@ -52,12 +61,5 @@ export class Help extends Command<Information> {
       (entry) => entry,
       true
     );
-
-    /*
-    Client.send(message.channel, new Embed({
-      title: `List of commands of the ${module.name.toLowerCase()} module`,
-      message: module.commandsAll.map((command) => command.fullInformation).join('\n\n'),
-    }));
-    */
   }
 }
