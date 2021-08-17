@@ -226,6 +226,22 @@ export class Utils {
     }
   }
 
+  static makeUniformAndHighlightWord(sentence: string, keywords: string[]) {
+    const sentencesInExample = 
+      (!sentence.includes('.') ? [sentence] : sentence.split('.'))
+      .filter((sentence) => sentence.length !== 0)
+      .map((sentence) => sentence.trim())
+      .map((sentence) => sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.');
+
+    const exampleWithHighlight = sentencesInExample
+      .join(' ')
+      .split(' ')
+      .map((word) => keywords.find((keyword) => Utils.includes(word, keyword)) !== undefined ? `**${word}**` : word)
+      .join(' ');
+
+    return exampleWithHighlight;
+  }
+
   /// Generates a random number and determines whether `true`
   /// has been rolled based on the provided probability
   static roll(probability: number): boolean {
