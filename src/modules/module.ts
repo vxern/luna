@@ -20,12 +20,12 @@ export abstract class Module {
   /// Commands which require `requirement` to yield `true` for execution
   readonly commandsRestricted: Command<Module>[] = [];
   /// Commands which are not affected by this module's requirement
-  readonly commandUnrestricted: Command<Module>[] = [];
+  readonly commandsUnrestricted: Command<Module>[] = [];
   /// Services employed by this module
   readonly services: Service<Module>[] = [];
   /// Getter for all commands contained within 
   get commandsAll(): Command<Module>[] {
-    return [...this.commandsRestricted, ...this.commandUnrestricted];
+    return [...this.commandsRestricted, ...this.commandsUnrestricted];
   }
 
   /// Placeholder command for unimplemented functionality

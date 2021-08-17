@@ -21,10 +21,10 @@ export type EmojiCollection = 'flowers' | 'plants' | 'stars';
 export class Social extends Module {
   readonly requirement = (message: GuildMessage) => Utils.isModerator(message.member!);
   readonly commandsRestricted = Utils.instantiate([], [this]);
-  readonly commandUnrestricted = Utils.instantiate([Praise, Profile], [this]);
+  readonly commandsUnrestricted = Utils.instantiate([Praise, Profile], [this]);
   readonly services = Utils.instantiate([NicknameDeforgery, WordChain], [this]);
 
-  private static readonly tierThresholds = [5, 10, 20, 40, 100];
+  static readonly tierThresholds = [5, 10, 20, 40, 100];
   private static readonly emojiCollections = {
     flowers:  ['🌸', '💮', '🌷', '🌹', '💐'],
     medals:   ['🥉', '🥈', '🥇', '🎖️', '🏆'],

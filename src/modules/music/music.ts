@@ -26,7 +26,7 @@ export class Music extends Module {
   readonly commandsRestricted = Utils.instantiate([
     Forward, Pause, Play, Remove, Replay, Rewind, Skip, Unpause, Unskip, Volume
   ], [this]);
-  readonly commandUnrestricted = Utils.instantiate([
+  readonly commandsUnrestricted = Utils.instantiate([
     History, Now, Queue,
   ], [this]);
 

@@ -12,7 +12,7 @@ import { Utils } from '../../utils';
 import roles from '../../roles.json';
 
 export class Roles extends Module {
-  readonly commandUnrestricted = Utils.instantiate([Assignable, AssignRole], [this]);
+  readonly commandsUnrestricted = Utils.instantiate([Assignable, AssignRole], [this]);
 
   // Concatenate the roles specified in [roles.json] into a single array
   readonly allRoles = [
