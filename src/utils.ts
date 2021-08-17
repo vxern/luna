@@ -3,9 +3,7 @@ import { distance as getDistance } from 'fastest-levenshtein';
 import * as string from 'string-sanitizer';
 import { YTSearchPage } from 'ytsearcher';
 
-import { Client, GuildMessage } from './client/client';
-
-import { Service } from './modules/service';
+import { Client } from './client/client';
 
 import roles from './roles.json';
 
@@ -208,6 +206,24 @@ export class Utils {
   /// Case-invariant 'includes' function
   static includes(left: string, right: string): boolean {
     return left.toLowerCase().includes(right.toLowerCase());
+  }
+
+  static toOrdinal(number: number): string {
+    const numberStringified = number.toString();
+
+    switch (number) {
+      case 1: return 'first';
+      case 2: return 'second';
+      case 3: return 'third';
+      case 4: return 'fourth';
+      case 5: return 'fifth';
+      default:
+        if (number <= 20) return numberStringified + 'th';
+        if (numberStringified.endsWith('1')) return numberStringified + 'st';
+        if (numberStringified.endsWith('2')) return numberStringified + 'nd';
+        if (numberStringified.endsWith('3')) return numberStringified + 'rd';
+        return numberStringified + 'th';
+    }
   }
 
   /// Generates a random number and determines whether `true`
