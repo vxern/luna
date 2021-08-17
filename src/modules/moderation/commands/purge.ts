@@ -19,7 +19,7 @@ export class Purge extends Command<Moderation> {
     const iterations = Math.floor(numberToDelete! / 100);
     let deleted = 0;
     for (let iteration = 0; iteration < iterations; iteration++) {
-      deleted += (await message.channel.bulkDelete(100)).size;
+      deleted += (await message.channel.bulkDelete(100).catch().finally()).size;
     }
 
     const leftAfterBulkDeletion = numberToDelete! - 100 * iterations + 1;

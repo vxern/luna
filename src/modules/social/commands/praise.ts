@@ -63,7 +63,7 @@ export class Praise extends Command<Social> {
       `${Utils.toUserTag(member.id)} has been praised by ${Utils.toUserTag(message.author.id)}!  🎉\n\n` +
       Social.displayNumberOfPraises(target);
 
-    if (target.user.praises.length === 1) {
+    if (target.user.praises.length === Social.tierThresholds[0]) {
       praiseMessage += Social.displayEmojiInstructions();
     }
 
