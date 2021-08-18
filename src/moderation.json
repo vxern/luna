@@ -1,0 +1,15 @@
+{
+    "flooding": {
+        "intervalInSeconds": 5,
+        "messagesToTrigger": 3,
+        "warningMuteDurations": [
+            "5 seconds", "30 seconds", "5 minutes", "30 minutes", "2 hours"
+        ],
+        "autodelete": {
+            "warningInSeconds": 5,
+            "messages": {
+                "afterWarnings": 2
+            }
+        }
+    }
+}
