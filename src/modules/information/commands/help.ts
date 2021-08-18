@@ -33,8 +33,9 @@ export class Help extends Command<Information> {
         fields: [{
           name: 'Information',
           value: 
-            `I am **${Utils.capitaliseWords(config.alias)}** - a custom bot written in **TypeScript** ` + 
-            `by ${Utils.toUserTag('217319536485990400')}. I span **${numberOfFiles}** files and **${linesOfCode}** lines of code.`,
+  `I am **${Utils.capitaliseWords(config.alias)}** - a custom bot written in **TypeScript** ` + 
+  `by ${Utils.toUserTag('217319536485990400')}. I span **${numberOfFiles}** files and **${linesOfCode}** lines of code.\n\n` +
+  `My alias is \`${config.alias}\`. You can use it to summon me anywhere on the server.`,
           inline: false,
         }, {
           name: 'How to use the bot',
