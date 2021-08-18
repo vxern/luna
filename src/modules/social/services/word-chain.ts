@@ -1,6 +1,7 @@
 import { TextChannel } from 'discord.js';
 
 import { Client, GuildMessage } from "../../../client/client";
+import { Embed } from '../../../client/embed';
 
 import { Service } from "../../service";
 
@@ -10,7 +11,8 @@ import { Utils } from "../../../utils";
 
 import config from '../../../config.json';
 
-const wordChainEntry = /[\p{L}\- ]+ \([[:ascii:]]+\)( \- [\p{L}[:ascii:]]+ \([[:ascii:]]+\))?/;
+const submission = /(word:.+)([ |\n]+?definition:.+)(([ |\n]+?example:.+)([ |\n]+?translation:.+))?/iu;
+const definitionDivider = / *(,|;) */g;
 
 export class WordChain extends Service<Social> {
   private wordChainChannels: TextChannel[] = [];
@@ -39,9 +41,47 @@ export class WordChain extends Service<Social> {
       return;
     }
 
-    if (!wordChainEntry.test(message.content)) {
+    if (!submission.test(message.content)) {
       return this.displayUsage(message);
     }
+
+    const regexResult = Array.from(submission.exec(message.content)!)
+      .filter((field) => field !== undefined)
+      .map((field) => field.split(':').slice(1).join(':').trimStart());
+    const [entry, definitions] = regexResult.slice(1, 3).map((word) => word.toLowerCase());
+    const [example, translation] = regexResult.slice(4, 6);
+
+    const fields = [];
+
+    fields.push(
+      {name: 'Word', value: entry, inline: true},
+      {name: 'Definition', value: definitions, inline: true}
+    );
+
+    if (example !== undefined) {
+      if (!Utils.includes(example, entry)) {
+        return Client.autodelete(Client.warn, message, config.messageAutodeleteInSeconds * 1000,
+          `The example sentence you provided does not contain the word you're attempting to submit (${example}).` + 
+          this.exampleSubmission,
+        );
+      }
+
+      const uniformExample = Utils.makeUniformAndHighlightWord(example, [entry]);
+      const uniformTranslation = Utils.makeUniformAndHighlightWord(translation, definitions.split(definitionDivider));
+
+      fields.push(
+        {name: 'Example', value: uniformExample, inline: false},
+        {name: 'Translation', value: uniformTranslation, inline: false},
+      );
+    }
+
+    Client.send(message.channel, new Embed({
+      title: `'${entry}' by *${message.author.username}*`,
+      thumbnail: message.author.displayAvatarURL({size: 32}),
+      fields: fields,
+    }));
+    
+    message.delete();
 
     this.postInstructions(message.channel);
   }
@@ -64,9 +104,9 @@ export class WordChain extends Service<Social> {
     // Remove bot's previous messages
     textChannel.messages.fetch().then((messages) => messages.forEach(
       (message) => {
-        if (message.author.id === Client.bot.id) {
-          message.delete();
-        }
+        if (message.embeds.length === 0) return;
+        if (message.embeds[0].fields.length === 0) return message.delete();
+        if (message.embeds[0].fields[0].name !== 'Word') return message.delete();
       })
     );
 
@@ -84,8 +124,8 @@ export class WordChain extends Service<Social> {
   }
 
   get exampleSubmission(): string {
-    return '\n\nExample submission: ```încotro (whither, where to)```\n' +
+    return '\n\nExample submission: ```yaml\nword: încotro\ndefinition: whither, where to```\n' +
       'Optionally, you may also add an example to your submission:' + 
-      '```a cunoaște (to know) - Îl cunoști? (Do you know him?)```';
+      '```yaml\nword: a cunoaște\ndefinition: to know, to recognise\nexample: Îl cunoști?\ntranslation: Do you know him?```';
   }
 }
