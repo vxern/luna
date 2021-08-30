@@ -62,7 +62,7 @@ export abstract class Module {
       return undefined;
     }
 
-    let validDescriptors = [
+    const validDescriptors: [string[], number][] = [
       [['s', 'sec', 'second', 'seconds'], 1                 ],
       [['m', 'min', 'minute', 'minutes'], 60                ],
       [['h', 'hr', 'hour', 'hours'     ], 60 * 60           ],
@@ -70,7 +70,7 @@ export abstract class Module {
       [['w', 'wk', 'week', 'weeks'     ], 60 * 60 * 24 * 7  ],
       [['M', 'month', 'months'         ], 60 * 60 * 24 * 30 ],
       [['y', 'year', 'years'           ], 60 * 60 * 24 * 365],
-    ] as [string[], number][];
+    ];
 
     const validDescriptorNames = validDescriptors.map(([desc]) => desc);
     const indexOfOutputDescriptor = validDescriptorNames.findIndex((names) => names.includes(output));

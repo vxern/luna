@@ -23,19 +23,26 @@ export type GuildMessage = ModifySignature<DiscordMessage, {channel: TextChannel
 export class Client {
   private readonly client: DiscordClient = new DiscordClient();
   static menu: DiscordMenus;
+
+  static database: Database = new Database();
+
   static modules: Module[] = Utils.instantiate([Information, Moderation, Music, Social, Roles]);
   static commands: Map<string, any> = new Map();
   private commandsArray!: Command<Module>[];
+
   static guilds: Guild[] = [];
-  static database: Database = new Database();
+
   static bot: ClientUser;
+
+  static messageListeners: ((message: GuildMessage) => {})[] = [];
 
   /// Begin listening to events
   async initialise() {
     this.client.on('message', (message) => {
       if (message.channel.type !== 'text') return;
 
-      this.handleMessage(message as GuildMessage);
+      const handledByClient = this.handleMessage(message as GuildMessage);
+      if (!handledByClient) Client.messageListeners.forEach((callback) => callback(message as GuildMessage));
     });
 
     this.client.on('ready', async () => {
@@ -72,35 +79,38 @@ export class Client {
     this.client.login(process.env.DISCORD_SECRET);
   }
 
-  private handleMessage(message: GuildMessage) {
+  static listenForMessage(callback: (message: GuildMessage) => {}) {
+    Client.messageListeners.push(callback);
+  }
+
+  private handleMessage(message: GuildMessage): boolean {
     // If the message was submitted by a bot
-    if (message.author.bot) return;
+    if (message.author.bot) return false;
 
     // If the message was submitted by the bot itself
-    if (message.member!.id === Client.bot.id) return;
+    if (message.member!.id === Client.bot.id) return false;
 
     // If the message was submitted in an excluded channel
-    if (string.sanitize(message.channel.name) in config.excludedChannels) {
-      return;
-    }
+    if (string.sanitize(message.channel.name) in config.excludedChannels) return false;
 
     message.content = Utils.normaliseSpaces(message.content);
 
     const inAliaslessChannel = config.aliaslessChannels.includes(message.channel.name)
     const isCallingBot = message.content.toLowerCase().startsWith(config.alias);
 
-    if (!isCallingBot && !inAliaslessChannel) return;
+    if (!isCallingBot && !inAliaslessChannel) return false;
 
     if (isCallingBot) {
       message.content = Utils.removeFirstWord(message.content);
     }
 
-    if (message.content.length === 0) return;
+    if (message.content.length === 0) return false;
   
     this.resolveCommandHandler(message);
+    return true;
   }
 
-  private resolveCommandHandler(message: GuildMessage) {
+  private async resolveCommandHandler(message: GuildMessage) {
     const firstWord = message.content.toLowerCase().split(' ')[0];
 
     const commandMatchesQuery = (command: Command<Module>) => {

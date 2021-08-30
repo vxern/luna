@@ -19,11 +19,7 @@ export class WordChain extends Service<Social> {
   private instructionTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   async initialise() {
-    Client.bot.client.on('message', (message) => {
-      if (message.channel.type !== 'text') return;
-
-      this.handleMessage(message as GuildMessage);
-    });
+    Client.listenForMessage(this.handleMessage);
 
     this.wordChainChannels = Client.getChannelsByName(config.wordChainChannel);
 
@@ -37,7 +33,7 @@ export class WordChain extends Service<Social> {
     if (message.member!.id === Client.bot.id) return;
 
     // If the message was posted in a channel different to the designated channel
-    if (Utils.extractWords(message.channel.name).join(' ') !== Utils.extractWords(config.wordChainChannel).join(' ')) { 
+    if (Utils.extractWords(message.channel.name).join(' ') !== Utils.extractWords(config.wordChainChannel).join(' ')) {
       return;
     }
 
@@ -54,33 +50,33 @@ export class WordChain extends Service<Social> {
     const fields = [];
 
     fields.push(
-      {name: 'Word', value: entry, inline: true},
-      {name: 'Definition', value: definitions, inline: true}
+      { name: 'Word', value: entry, inline: true },
+      { name: 'Definition', value: definitions, inline: true }
     );
 
     if (example !== undefined) {
       if (!Utils.includes(example, entry)) {
         return Client.autodelete(Client.warn, message, config.messageAutodeleteInSeconds * 1000,
-          `The example sentence you provided does not contain the word you're attempting to submit (${example}).` + 
+          `The example sentence you provided does not contain the word you're attempting to submit (${example}).` +
           this.exampleSubmission,
         );
       }
 
-      const uniformExample = Utils.makeUniformAndHighlightWord(example, [entry]);
-      const uniformTranslation = Utils.makeUniformAndHighlightWord(translation, definitions.split(definitionDivider));
+      const uniformExample = Utils.normaliseAndHighlightKeyword(example, [entry]);
+      const uniformTranslation = Utils.normaliseAndHighlightKeyword(translation, definitions.split(definitionDivider));
 
       fields.push(
-        {name: 'Example', value: uniformExample, inline: false},
-        {name: 'Translation', value: uniformTranslation, inline: false},
+        { name: 'Example', value: uniformExample, inline: false },
+        { name: 'Translation', value: uniformTranslation, inline: false },
       );
     }
 
     Client.send(message.channel, new Embed({
       title: `'${entry}' by *${message.author.username}*`,
-      thumbnail: message.author.displayAvatarURL({size: 32}),
+      thumbnail: message.author.displayAvatarURL({ size: 32 }),
       fields: fields,
     }));
-    
+
     message.delete();
 
     this.postInstructions(message.channel);
@@ -93,8 +89,8 @@ export class WordChain extends Service<Social> {
   }
 
   async displayInstructions(textChannel: TextChannel) {
-    Client.info(textChannel, 
-      `Welcome to <#${textChannel.id}>! To participate in the game, write a ` + 
+    Client.info(textChannel,
+      `Welcome to <#${textChannel.id}>! To participate in the game, write a ` +
       'word that starts with the final letter/s of the previous word.' +
       this.exampleSubmission
     );
@@ -125,7 +121,7 @@ export class WordChain extends Service<Social> {
 
   get exampleSubmission(): string {
     return '\n\nExample submission: ```yaml\nword: încotro\ndefinition: whither, where to```\n' +
-      'Optionally, you may also add an example to your submission:' + 
+      'Optionally, you may also add an example to your submission:' +
       '```yaml\nword: a cunoaște\ndefinition: to know, to recognise\nexample: Îl cunoști?\ntranslation: Do you know him?```';
   }
 }

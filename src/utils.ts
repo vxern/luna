@@ -29,7 +29,7 @@ export class Utils {
   }
 
   /// Checks if a value is a number by attempting to parse it and making sure it isn't `NaN`
-  static isNumber(value: any): boolean { 
+  static isNumber(value: any): boolean {
     return !isNaN(parseFloat(value)) && !isNaN(value - 0);
   }
 
@@ -55,8 +55,8 @@ export class Utils {
     const alphanumericOnlyKeywords = this.getWords(string.sanitize.keepUnicode(target));
     // Find those words which when in lowercase format are similar to any of [keywordsToHighlight]
     const keywordsFound = [
-      ...alphanumericOnlyKeywords.filter(similar), 
-      ...this.coupleUpKeywordPairs(alphanumericOnlyKeywords, 'even').filter(similar), 
+      ...alphanumericOnlyKeywords.filter(similar),
+      ...this.coupleUpKeywordPairs(alphanumericOnlyKeywords, 'even').filter(similar),
       ...this.coupleUpKeywordPairs(alphanumericOnlyKeywords, 'odd').filter(similar),
     ];
     // Highlight the necessary keywords in [target]
@@ -186,7 +186,7 @@ export class Utils {
 
   static removeDuplicateAndEmpty(words: string[]) {
     return words.filter((word, index, array) => word.length !== 0 && index === array.indexOf(word));
-  } 
+  }
 
   static resolveNumber(textChannel: TextChannel, target: string | undefined): number | null | undefined {
     if (target !== undefined && !this.isNumber(target)) {
@@ -226,12 +226,12 @@ export class Utils {
     }
   }
 
-  static makeUniformAndHighlightWord(sentence: string, keywords: string[]) {
-    const sentencesInExample = 
+  static normaliseAndHighlightKeyword(sentence: string, keywords: string[]) {
+    const sentencesInExample =
       (!sentence.includes('.') ? [sentence] : sentence.split('.'))
-      .filter((sentence) => sentence.length !== 0)
-      .map((sentence) => sentence.trim())
-      .map((sentence) => sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.');
+        .filter((sentence) => sentence.length !== 0)
+        .map((sentence) => sentence.trim())
+        .map((sentence) => sentence.charAt(0).toUpperCase() + sentence.slice(1));
 
     const exampleWithHighlight = sentencesInExample
       .join(' ')
