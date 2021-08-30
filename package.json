@@ -1,35 +1,33 @@
 {
   "name": "talon",
-  "version": "0.0.7",
-  "description": "A swift, sharp and seamless Discord bot written in TypeScript for the 'Learn Romanian' Discord server",
+  "version": "0.0.8",
+  "description": "A swift, sharp and seamless Discord bot written for the 'Learn Romanian' and 'Learn Belarusian' Discord servers.",
+  "license": "GPL-3.0",
+  "author": {
+    "name": "Dorian Oszczęda",
+    "email": "vxern@wordcollector.co.uk",
+    "url": "https://github.com/vxern"
+  },
+  "contributors": [],
+  "keywords": [
+    "Discord",
+    "bot",
+    "Romanian",
+    "Belarusian",
+    "language",
+    "simple",
+    "fast",
+    "clean",
+    "documented"
+  ],
+  "homepage": "https://github.com/vxern/talon",
+  "repository": "github:vxern/talon",
+  "bugs": "github:vxern/talon/issues",
   "type": "module",
-  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "start": "ts-node-dev --respawn src/index.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/vxern/talon.git"
-  },
-  "keywords": [
-    "discord",
-    "bot",
-    "typescript",
-    "javascript",
-    "fast",
-    "powerful",
-    "language",
-    "command",
-    "module",
-    "modular"
-  ],
-  "author": "Dorian Oszczęda <vxern@wordcollector.co.uk>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/vxern/talon/issues"
-  },
-  "homepage": "https://github.com/vxern/talon#readme",
   "devDependencies": {
     "ts-node": "^10.1.0",
     "ts-node-dev": "^1.1.8",
