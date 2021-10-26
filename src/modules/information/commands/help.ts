@@ -1,5 +1,3 @@
-import { exec } from "child_process";
-
 import { Client } from "../../../client/client";
 import { Embed } from "../../../client/embed";
 
@@ -19,13 +17,6 @@ export class Help extends Command<Information> {
   readonly handler = this.help;
 
   async help({message, parameter}: HandlingData) {
-    const [numberOfFiles, linesOfCode] = await new Promise((resolve) => {
-      exec('yarn cloc src --include-lang=TypeScript --json', (_, stdout) => {
-        const json = JSON.parse(stdout.split('\n').slice(2).join('\n'));
-        resolve([json.SUM.nFiles, json.SUM.code]);
-      });
-    });
-
     if (parameter === undefined) {
       Client.send(message.channel, new Embed({
         title: 'Help Menu',
@@ -34,8 +25,8 @@ export class Help extends Command<Information> {
           name: 'Information',
           value: 
   `I am **${Utils.capitaliseWords(config.alias)}** - a custom bot written in **TypeScript** ` + 
-  `by ${Utils.toUserTag('217319536485990400')}. I span **${numberOfFiles}** files and **${linesOfCode}** lines of code.\n\n` +
-  `My alias is \`${config.alias}\`. You can use it to summon me anywhere on the server.`,
+  `by ${Utils.toUserTag('217319536485990400')}. \n\nMy alias is \`${config.alias}\`.` +
+  `You can use it to summon me anywhere on the server.`,
           inline: false,
         }, {
           name: 'How to use the bot',

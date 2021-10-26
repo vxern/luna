@@ -3,11 +3,7 @@
   "version": "0.0.8",
   "description": "A swift, sharp and seamless Discord bot written for the 'Learn Romanian' and 'Learn Belarusian' Discord servers.",
   "license": "GPL-3.0",
-  "author": {
-    "name": "Dorian Oszczęda",
-    "email": "vxern@wordcollector.co.uk",
-    "url": "https://github.com/vxern"
-  },
+  "author": "Dorian Oszczęda <vxern@wordcollector.co.uk> (https://github.com/vxern)",
   "contributors": [],
   "keywords": [
     "Discord",
@@ -21,15 +17,20 @@
     "documented"
   ],
   "homepage": "https://github.com/vxern/talon",
-  "repository": "github:vxern/talon",
-  "bugs": "github:vxern/talon/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vxern/talon.git"
+  },
+  "bugs": {
+    "url": "github:vxern/talon/issues"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "ts-node-dev --respawn src/index.ts"
   },
   "devDependencies": {
-    "ts-node": "^10.1.0",
+    "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.3.5"
   },
@@ -46,5 +47,6 @@
     "string-sanitizer": "^2.0.2",
     "ytdl-core": "^4.9.0",
     "ytsearcher": "^1.2.4"
-  }
+  },
+  "main": "src/index.ts"
 }

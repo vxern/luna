@@ -1,11 +1,6 @@
 # Node
 node_modules/
+package-lock.json
 
 # Built JavaScript
 build/
-
-# Old files
-teacher-old/
-
-# Yarn
-yarn.lock
